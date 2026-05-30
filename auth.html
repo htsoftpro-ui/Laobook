@@ -562,7 +562,7 @@
                         <label class="text-sm font-semibold text-[#e1bfb3] mb-2 block">رقم الهاتف</label>
                         <div class="relative">
                             <span class="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-[#7a7570] text-[20px]">phone</span>
-                            <input type="tel" id="regPhone" class="auth-input pr-12" placeholder="+966 5XX XXX XXXX" required dir="ltr" style="text-align:left; padding-left:16px;"/>
+                            <input type="tel" id="regPhone" class="auth-input pr-12" placeholder="+967 7XX XXX XXX" required dir="ltr" style="text-align:left; padding-left:16px;"/>
                         </div>
                     </div>
 
@@ -1089,6 +1089,7 @@
     const Auth = {
         // إنشاء مستخدم جديد
         register(name, phone, email, password) {
+            phone = normalizeYemeniPhone(phone);
             const users = DB.get('users') || [];
             // التحقق من عدم تكرار رقم الهاتف
             if (users.find(u => u.phone === phone)) {
@@ -1112,7 +1113,9 @@
                 backupCodes: [],
                 createdAt: new Date().toISOString(),
                 sessions: [],
-                loginHistory: []
+                loginHistory: [],
+                role: 'user',
+                country: 'YE'
             };
 
             users.push(user);
@@ -1126,7 +1129,8 @@
         // تسجيل الدخول
         login(identifier, password) {
             const users = DB.get('users') || [];
-            const user = users.find(u => u.phone === identifier || u.email === identifier);
+            const normalizedIdentifier = normalizeYemeniPhone(identifier);
+            const user = users.find(u => u.phone === normalizedIdentifier || u.phone === identifier || u.email === identifier);
 
             if (!user) {
                 return { success: false, message: 'المستخدم غير موجود' };
@@ -1147,7 +1151,7 @@
                 device: this.detectDevice(),
                 browser: this.detectBrowser(),
                 ip: '192.168.1.' + Math.floor(Math.random() * 255),
-                location: 'المملكة العربية السعودية',
+                location: 'اليمن',
                 createdAt: new Date().toISOString(),
                 lastActive: new Date().toISOString(),
                 isCurrent: true
@@ -1416,9 +1420,7 @@
     }
 
     function switchToHome() {
-        document.getElementById('authWrapper').style.display = 'none';
-        document.getElementById('homePreview').classList.add('active');
-        populateHome();
+        window.location.href = 'index.html';
     }
 
     // ═══════════════════════════════════════════
@@ -1456,7 +1458,21 @@
         }
     }
 
-    // ═══════════════════════════════════════════
+    
+    function normalizeYemeniPhone(phone) {
+        const digits = (phone || '').replace(/\D/g, '');
+        if (!digits) return '';
+        if (digits.startsWith('967') && digits.length === 12) return '+' + digits;
+        if (digits.startsWith('00967') && digits.length === 14) return '+967' + digits.slice(5);
+        if (digits.startsWith('7') && digits.length === 9) return '+967' + digits;
+        return phone.trim();
+    }
+
+    function isValidYemeniPhone(phone) {
+        return /^\+9677\d{8}$/.test(normalizeYemeniPhone(phone));
+    }
+
+// ═══════════════════════════════════════════
     // HANDLE: LOGIN
     // ═══════════════════════════════════════════
     function handleLogin(e) {
@@ -1499,6 +1515,7 @@
         const name = document.getElementById('regName').value.trim();
         const phone = document.getElementById('regPhone').value.trim();
         const email = document.getElementById('regEmail').value.trim();
+        const normalizedPhone = normalizeYemeniPhone(phone);
         const password = document.getElementById('regPassword').value;
         const confirmPassword = document.getElementById('regPasswordConfirm').value;
         const captchaVal = document.getElementById('captchaInput').value.trim().toUpperCase();
@@ -1507,6 +1524,11 @@
         // التحقق من الحقول
         if (!name || !phone || !password || !confirmPassword) {
             showToast('يرجى ملء جميع الحقول المطلوبة', 'error');
+            return false;
+        }
+
+        if (!isValidYemeniPhone(phone)) {
+            showToast('يرجى إدخال رقم هاتف يمني صحيح بصيغة 7XXXXXXXX أو +9677XXXXXXXX', 'error');
             return false;
         }
 
@@ -1555,10 +1577,10 @@
         setLoading('registerBtn', true);
 
         setTimeout(() => {
-            const result = Auth.register(name, phone, email, password);
+            const result = Auth.register(name, normalizedPhone, email, password);
 
             if (result.success) {
-                showToast('تم إنشاء الحساب وتسجيل الدخول بنجاح!', 'success');
+                showToast('تم إنشاء الحساب بنجاح والتحقق البشري فقط دون رسالة تأكيد. سيتم نقلك الآن.', 'success');
                 setTimeout(() => switchToHome(), 1000);
             } else {
                 showToast(result.message, 'error');
