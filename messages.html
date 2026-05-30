@@ -146,6 +146,9 @@
             .back-btn-mobile{display:none!important}
         }
     </style>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg"/>
+    <link rel="manifest" href="manifest.json"/>
+    <meta name="theme-color" content="#f97316"/>
 </head>
 <body>
 <div class="app-bg"></div>
@@ -440,7 +443,7 @@ function esc(t){const d=document.createElement('div');d.appendChild(document.cre
 function ago(m){return new Date(Date.now()-m*60000).toISOString()}
 function formatTime(iso){return new Date(iso).toLocaleTimeString('ar-SA',{hour:'2-digit',minute:'2-digit'})}
 function formatDate(iso){const d=new Date(iso);const now=new Date();if(d.toDateString()===now.toDateString())return 'اليوم';const y=new Date(now-86400000);if(d.toDateString()===y.toDateString())return 'أمس';return d.toLocaleDateString('ar-SA',{month:'short',day:'numeric'})}
-function formatDuration(s){const m=Math.floor(s/60);const sec=Math.floor(s%60);return (m<10?'0':'')+m+':':(sec<10?'0':'')+sec}
+function formatDuration(s){const m=Math.floor(s/60);const sec=Math.floor(s%60);return (m<10?'0':'')+m+':'+(sec<10?'0':'')+sec}
 function formatCallDuration(s){const m=Math.floor(s/60);const sec=s%60;return (m<10?'0':'')+m+':'+(sec<10?'0':'')+sec}
 
 // ═══════════════════════════════════════════

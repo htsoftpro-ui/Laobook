@@ -141,6 +141,9 @@
             .stream-container{max-width:420px;max-height:100dvh;margin:0 auto}
         }
     </style>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg"/>
+    <link rel="manifest" href="manifest.json"/>
+    <meta name="theme-color" content="#f97316"/>
 </head>
 <body>
 <div class="app-bg"></div>
@@ -407,7 +410,7 @@ function esc(t){const d=document.createElement('div');d.appendChild(document.cre
 function genId(){return 'l_'+Date.now()+'_'+Math.random().toString(36).substr(2,6)}
 function formatNum(n){if(n>=1000000)return(n/1000000).toFixed(1)+'M';if(n>=1000)return(n/1000).toFixed(1)+'K';return n.toString()}
 function ago(m){return new Date(Date.now()-m*60000).toISOString()}
-function formatDuration(s){const h=Math.floor(s/3600);const m=Math.floor((s%3600)/60);const sec=s%60;return (h>0?(h<10?'0':'')+h+':':'')+(m<10?'0':'')+m+':':(sec<10?'0':'')+sec}
+function formatDuration(s){const h=Math.floor(s/3600);const m=Math.floor((s%3600)/60);const sec=s%60;return (h>0?(h<10?'0':'')+h+':':'')+(m<10?'0':'')+m+':'+(sec<10?'0':'')+sec}
 
 // ═══════════════════════════════════════════
 // GIFTS DATA

@@ -189,6 +189,15 @@
         .empty-state .material-symbols-outlined{font-size:56px;color:var(--text-muted);opacity:.3;display:block;margin-bottom:12px}
         .empty-state p{font-size:13px;color:var(--text-muted)}
 
+
+        .quick-links{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;padding:14px 16px}
+        .quick-link{display:flex;align-items:center;gap:10px;padding:12px;border-radius:14px;background:var(--surface);border:1px solid var(--border);color:var(--text);cursor:pointer;transition:all .25s;font-family:'Tajawal',sans-serif}
+        .quick-link:hover{border-color:var(--border-light);transform:translateY(-1px)}
+        .quick-link .material-symbols-outlined{width:34px;height:34px;border-radius:12px;display:flex;align-items:center;justify-content:center;background:var(--surface-2);color:var(--accent);font-size:20px}
+        .quick-link-text{display:flex;flex-direction:column;gap:2px;min-width:0}
+        .quick-link-text strong{font-size:12px}
+        .quick-link-text span{font-size:10px;color:var(--text-muted)}
+    
         /* ─── Spacing ─── */
         .page-spacer-top{height:56px}
         .page-spacer-bottom{height:72px}
@@ -198,10 +207,15 @@
             .navbar{padding:0 24px}
             .post-card{margin:8px auto;max-width:560px}
             .stories-bar{padding:12px 24px;justify-content:center}
+            .quick-links{max-width:560px;margin:0 auto}
             .modal-overlay{align-items:center}
             .modal-sheet{border-radius:var(--radius);max-height:80dvh}
         }
     </style>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg"/>
+    <link rel="manifest" href="manifest.json"/>
+    <meta name="theme-color" content="#f97316"/>
+    <script src="js/core/platform-config.js"></script>
 </head>
 <body>
 
@@ -209,12 +223,12 @@
 <nav class="navbar">
     <span class="logo">لـو بـوك</span>
     <div class="nav-actions">
+        <button class="nav-btn" onclick="window.location.href='notifications.html'" title="الإشعارات">
+            <span class="material-symbols-outlined">notifications</span>
+            <span class="badge-dot"></span>
+        </button>
         <button class="nav-btn" onclick="openCreateModal()" title="منشور جديد">
             <span class="material-symbols-outlined">add_box</span>
-        </button>
-        <button class="nav-btn" title="إعجابات">
-            <span class="material-symbols-outlined">favorite</span>
-            <span class="badge-dot"></span>
         </button>
         <button class="nav-btn" onclick="window.location.href='messages.html'" title="الرسائل">
             <span class="material-symbols-outlined">chat</span>
@@ -228,6 +242,33 @@
 
 <!-- Stories -->
 <section class="stories-bar" id="storiesBar"></section>
+
+<section class="quick-links">
+    <button class="quick-link" onclick="window.location.href='reels.html'">
+        <span class="material-symbols-outlined">smart_display</span>
+        <span class="quick-link-text"><strong>الريلز</strong><span>مشاهدة عمودية سريعة</span></span>
+    </button>
+    <button class="quick-link" onclick="window.location.href='live.html'">
+        <span class="material-symbols-outlined">podcasts</span>
+        <span class="quick-link-text"><strong>البث المباشر</strong><span>جلسات ونقاشات حيّة</span></span>
+    </button>
+    <button class="quick-link" onclick="window.location.href='groups.html'">
+        <span class="material-symbols-outlined">groups</span>
+        <span class="quick-link-text"><strong>المجموعات</strong><span>مجتمعات متخصصة</span></span>
+    </button>
+    <button class="quick-link" onclick="window.location.href='pages.html'">
+        <span class="material-symbols-outlined">dashboard_customize</span>
+        <span class="quick-link-text"><strong>الصفحات</strong><span>حسابات وهيئات رسمية</span></span>
+    </button>
+    <button class="quick-link" onclick="window.location.href='friends.html'">
+        <span class="material-symbols-outlined">diversity_3</span>
+        <span class="quick-link-text"><strong>الأصدقاء</strong><span>إدارة العلاقات والاقتراحات</span></span>
+    </button>
+    <button class="quick-link" onclick="window.location.href='settings.html'">
+        <span class="material-symbols-outlined">tune</span>
+        <span class="quick-link-text"><strong>الحساب</strong><span>الخصوصية والتخصيص</span></span>
+    </button>
+</section>
 
 <div class="divider"></div>
 
@@ -245,6 +286,10 @@
     <button class="bottom-item" onclick="window.location.href='search.html'">
         <span class="material-symbols-outlined">search</span>
         <span>اكتشاف</span>
+    </button>
+    <button class="bottom-item" onclick="window.location.href='reels.html'">
+        <span class="material-symbols-outlined">smart_display</span>
+        <span>ريلز</span>
     </button>
     <button class="bottom-item" onclick="openCreateModal()">
         <span class="material-symbols-outlined">add_circle</span>

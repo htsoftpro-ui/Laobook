@@ -443,6 +443,9 @@
             .captcha-text { font-size: 28px; letter-spacing: 8px; }
         }
     </style>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg"/>
+    <link rel="manifest" href="manifest.json"/>
+    <meta name="theme-color" content="#f97316"/>
 </head>
 <body>
     <!-- Background -->
@@ -565,6 +568,7 @@
                             <input type="tel" id="regPhone" class="auth-input pr-12" placeholder="+967 7XX XXX XXX" required dir="ltr" style="text-align:left; padding-left:16px;"/>
                         </div>
                     </div>
+                        <p class="text-[11px] text-[#7a7570] mt-2 flex items-center gap-1"><span class="material-symbols-outlined text-[14px] text-[#f26522]">verified_user</span> يتم إنشاء الحساب مباشرة بعد التحقق البشري فقط — بدون إرسال كود SMS أو واتساب.</p>
 
                     <!-- Email (Optional) -->
                     <div>
@@ -668,7 +672,7 @@
                         </div>
                     </div>
                     <button type="submit" class="btn-primary" id="forgotBtn1">
-                        <span class="btn-text">إرسال رمز التحقق</span>
+                        <span class="btn-text">إنشاء رمز الاستعادة</span>
                         <div class="spinner"></div>
                     </button>
                 </form>
@@ -677,7 +681,7 @@
                 <form id="forgotStep2" class="space-y-4 hidden" onsubmit="return handleForgotStep2(event)">
                     <div class="text-center p-4 rounded-xl bg-[#f26522]/10 border border-[#f26522]/20 mb-2">
                         <span class="material-symbols-outlined text-[#f26522] mb-1">mark_email_read</span>
-                        <p class="text-sm text-[#e1bfb3]">تم إرسال رمز التحقق إلى</p>
+                        <p class="text-sm text-[#e1bfb3]">تم إنشاء رمز الاستعادة إلى</p>
                         <p class="text-sm font-bold text-[#f26522] mt-1" id="forgotTarget"></p>
                     </div>
                     <div>
@@ -689,7 +693,7 @@
                         <div class="spinner"></div>
                     </button>
                     <p class="text-center text-xs text-[#7a7570]">
-                        لم يصلك الرمز؟
+                        لم يظهر الرمز؟
                         <a href="javascript:void(0)" onclick="resendResetCode()" class="text-[#f26522] font-semibold hover:underline">إعادة الإرسال</a>
                     </p>
                 </form>
@@ -1630,7 +1634,7 @@
             const result = Auth.requestPasswordReset(identifier);
 
             if (result.success) {
-                showToast('تم إرسال رمز التحقق', 'success');
+                showToast('تم إنشاء رمز الاستعادة', 'success');
                 document.getElementById('forgotTarget').textContent = identifier;
                 document.getElementById('forgotStep1').classList.add('hidden');
                 document.getElementById('forgotStep2').classList.remove('hidden');

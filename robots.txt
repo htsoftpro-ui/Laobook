@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://htsoftpro-ui.github.io/Laobook/

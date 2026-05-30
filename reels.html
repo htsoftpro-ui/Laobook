@@ -113,6 +113,9 @@
             .reel-slide{border-radius:16px}
         }
     </style>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg"/>
+    <link rel="manifest" href="manifest.json"/>
+    <meta name="theme-color" content="#f97316"/>
 </head>
 <body>
 <div id="toastEl" class="toast"></div>
@@ -302,14 +305,14 @@ function generateSamples(){
     if(reels.length>0) return;
 
     const sampleReels = [
-        {user:USERS[0],caption:'نصيحة قانونية مهمة عند توقيع أي عقد تجاري! لا ت signing قبل ما تقرأ كل البنود','#قانون #عقود #نصائح_قانونية #تجارة',category:'advice',duration:45,likes:2340,comments:generateComments(12),saves:189,shares:67,music:'صوت أصلي - د. نورة'},
-        {user:USERS[1],caption:'المحكمة العليا أصدرت قراراً جديداً لصالح حقوق المستهلك!','#قضاء #حقوق_المستهلك #محكمة_عليا',category:'news',duration:32,likes:5670,comments:generateComments(34),saves:432,shares:210,music:'صوت أصلي - أ. فهد'},
-        {user:USERS[2],caption:'📚 أفضل 5 كتب للمبتدئين في القانون التجاري','#كتب #قانون_تجاري #تعليم #مبتدئين',category:'education',duration:60,likes:8920,comments:generateComments(56),saves:1200,shares:450,music:'صوت أصلي - المكتبة القانونية'},
-        {user:USERS[3],caption:'كيف تحمي نفسك قانونياً عند تأسيس شركتك؟','#قانون #شركات #تأسيس #حماية_قانونية',category:'advice',duration:28,likes:3450,comments:generateComments(23),saves:567,shares:123,music:'صوت أصلي - أ. سارة'},
-        {user:USERS[4],caption:'التحكيم الدولي ليس معقداً كما تتصور! شرح مبسط','#تحكيم #دولي #قانون_دولي #مبسط',category:'education',duration:55,likes:4210,comments:generateComments(19),saves:789,shares:156,music:'صوت أصلي - د. خالد'},
-        {user:USERS[5],caption:'هل تعلم؟ يمكنك استشارة قانونية مجانية عبر المنصة!','#استشارة #مجانية #قانون #هل_تعلم',category:'general',duration:20,likes:15600,comments:generateComments(89),saves:2100,shares:890,music:'أغنية رائجة'},
-        {user:USERS[6],caption:'案例: كيف ربحت قضية تجارية بقيمة مليون ريال!','#قضية #تجارية #نجاح #محاماة',category:'law',duration:42,likes:9800,comments:generateComments(45),saves:1560,shares:345,music:'صوت أصلي - منى'},
-        {user:USERS[0],caption:'التعديلات الجديدة على نظام العمل - ما يجب أن يعرفه كل موظف!','#قانون_العمل #تعديلات #موظف #حقوق',category:'news',duration:38,likes:7650,comments:generateComments(38),saves:890,shares:234,music:'صوت أصلي - د. نورة'}
+        {user:USERS[0],caption:'نصيحة قانونية مهمة عند توقيع أي عقد تجاري! لا توقّع قبل ما تقرأ كل البنود. #قانون #عقود #نصائح_قانونية #تجارة',category:'advice',duration:45,likes:2340,comments:generateComments(12),saves:189,shares:67,music:'صوت أصلي - د. نورة'},
+        {user:USERS[1],caption:'المحكمة العليا أصدرت قراراً جديداً لصالح حقوق المستهلك! #قضاء #حقوق_المستهلك #محكمة_عليا',category:'news',duration:32,likes:5670,comments:generateComments(34),saves:432,shares:210,music:'صوت أصلي - أ. فهد'},
+        {user:USERS[2],caption:'📚 أفضل 5 كتب للمبتدئين في القانون التجاري #كتب #قانون_تجاري #تعليم #مبتدئين',category:'education',duration:60,likes:8920,comments:generateComments(56),saves:1200,shares:450,music:'صوت أصلي - المكتبة القانونية'},
+        {user:USERS[3],caption:'كيف تحمي نفسك قانونياً عند تأسيس شركتك؟ #قانون #شركات #تأسيس #حماية_قانونية',category:'advice',duration:28,likes:3450,comments:generateComments(23),saves:567,shares:123,music:'صوت أصلي - أ. سارة'},
+        {user:USERS[4],caption:'التحكيم الدولي ليس معقداً كما تتصور! شرح مبسط #تحكيم #دولي #قانون_دولي #مبسط',category:'education',duration:55,likes:4210,comments:generateComments(19),saves:789,shares:156,music:'صوت أصلي - د. خالد'},
+        {user:USERS[5],caption:'هل تعلم؟ يمكنك استشارة قانونية مجانية عبر المنصة! #استشارة #مجانية #قانون #هل_تعلم',category:'general',duration:20,likes:15600,comments:generateComments(89),saves:2100,shares:890,music:'أغنية رائجة'},
+        {user:USERS[6],caption:'كيف ربحت قضية تجارية بقيمة مليون ريال! #قضية #تجارية #نجاح #محاماة',category:'law',duration:42,likes:9800,comments:generateComments(45),saves:1560,shares:345,music:'صوت أصلي - منى'},
+        {user:USERS[0],caption:'التعديلات الجديدة على نظام العمل - ما يجب أن يعرفه كل موظف! #قانون_العمل #تعديلات #موظف #حقوق',category:'news',duration:38,likes:7650,comments:generateComments(38),saves:890,shares:234,music:'صوت أصلي - د. نورة'}
     ];
 
     sampleReels.forEach((r,i)=>{

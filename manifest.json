@@ -1,0 +1,19 @@
+{
+  "name": "لو بوك",
+  "short_name": "لو بوك",
+  "description": "منصة تواصل قانونية عربية مع إدارة متقدمة ولوحة تحكم رئيسية.",
+  "lang": "ar",
+  "dir": "rtl",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#09090b",
+  "theme_color": "#f97316",
+  "icons": [
+    {
+      "src": "./favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
