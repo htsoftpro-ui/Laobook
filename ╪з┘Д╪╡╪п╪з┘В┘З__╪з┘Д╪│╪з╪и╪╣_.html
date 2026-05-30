@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+<html class="dark" lang="ar" dir="rtl">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>لو بوك | المتابعة والأصدقاء</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <style>
+        *{box-sizing:border-box}
+        body{font-family:'Tajawal',sans-serif;min-height:100dvh;overflow-x:hidden;background:#0a0a0a;color:#e5e2e1}
+        .material-symbols-outlined{font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24;transition:all .2s ease}
+        .filled{font-variation-settings:'FILL' 1;color:#f26522!important}
+
+        .app-bg{position:fixed;inset:0;z-index:0;background:radial-gradient(ellipse at 20% 0%,rgba(242,101,34,.06) 0%,transparent 50%),radial-gradient(ellipse at 80% 100%,rgba(242,101,34,.04) 0%,transparent 50%),#0a0a0a}
+        .app-bg::after{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");opacity:.3;pointer-events:none}
+        .glass{background:rgba(32,31,31,.85);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
+
+        @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+        @keyframes fadeInUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+        @keyframes slideInRight{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
+        @keyframes pop{0%{transform:scale(1)}50%{transform:scale(1.3)}100%{transform:scale(1)}}
+        @keyframes heartBurst{0%{transform:scale(1)}25%{transform:scale(1.4)}50%{transform:scale(.9)}75%{transform:scale(1.15)}100%{transform:scale(1)}}
+        @keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
+        @keyframes checkPop{0%{transform:scale(0) rotate(-45deg);opacity:0}60%{transform:scale(1.2) rotate(0);opacity:1}100%{transform:scale(1) rotate(0);opacity:1}}
+        @keyframes unfollowShake{0%,100%{transform:translateX(0)}20%{transform:translateX(-3px)}40%{transform:translateX(3px)}60%{transform:translateX(-2px)}80%{transform:translateX(2px)}}
+        @keyframes starBounce{0%{transform:scale(1)}30%{transform:scale(1.4) rotate(15deg)}60%{transform:scale(.9) rotate(-5deg)}100%{transform:scale(1) rotate(0)}}
+        @keyframes blockSlide{from{opacity:1;transform:translateX(0)}to{opacity:0;transform:translateX(40px)}}
+        @keyframes dotPulse{0%{box-shadow:0 0 0 0 rgba(34,197,94,.5)}70%{box-shadow:0 0 0 6px rgba(34,197,94,0)}100%{box-shadow:0 0 0 0 rgba(34,197,94,0)}}
+
+        .anim-fade{animation:fadeIn .3s ease}
+        .anim-fadeUp{animation:fadeInUp .4s ease}
+        .anim-slideR{animation:slideInRight .3s ease}
+        .anim-pop{animation:pop .3s ease-in-out}
+        .anim-heart{animation:heartBurst .5s ease}
+        .anim-check{animation:checkPop .4s cubic-bezier(.4,0,.2,1)}
+        .anim-shake{animation:unfollowShake .4s ease}
+        .anim-star{animation:starBounce .5s ease}
+        .anim-block{animation:blockSlide .4s ease forwards}
+
+        /* ═══════ Tabs ═══════ */
+        .page-tabs{display:flex;overflow-x:auto;scrollbar-width:none;gap:4px;padding:4px;background:rgba(26,26,26,.5);border-radius:14px;border:1px solid rgba(89,65,56,.12)}
+        .page-tabs::-webkit-scrollbar{display:none}
+        .page-tab{padding:10px 16px;border-radius:10px;font-weight:600;font-size:13px;cursor:pointer;transition:all .3s;border:none;background:transparent;color:#7a7570;font-family:'Tajawal',sans-serif;white-space:nowrap;display:flex;align-items:center;gap:6px}
+        .page-tab:hover{color:#e5e2e1;background:rgba(255,255,255,.04)}
+        .page-tab.active{background:rgba(242,101,34,.15);color:#f26522}
+        .page-tab .count-badge{font-size:10px;background:rgba(242,101,34,.15);color:#f26522;padding:2px 7px;border-radius:10px;font-weight:700}
+
+        /* ═══════ User Card ═══════ */
+        .user-card{display:flex;gap:14px;padding:16px;border-radius:16px;transition:all .3s;border:1px solid transparent;align-items:center}
+        .user-card:hover{background:rgba(242,101,34,.04);border-color:rgba(89,65,56,.1)}
+        .user-card.removing{animation:blockSlide .4s ease forwards}
+
+        .user-avatar{width:52px;height:52px;border-radius:50%;object-fit:cover;flex-shrink:0;cursor:pointer;transition:all .3s}
+        .user-avatar:hover{ring:3px solid rgba(242,101,34,.3);transform:scale(1.05)}
+        .online-dot{width:12px;height:12px;background:#22c55e;border-radius:50%;border:2.5px solid #0a0a0a;position:absolute;bottom:1px;right:1px;animation:dotPulse 2s infinite}
+
+        /* ═══════ Follow Button ═══════ */
+        .btn-follow{padding:8px 20px;border-radius:10px;font-weight:700;font-size:13px;cursor:pointer;transition:all .3s;border:2px solid transparent;font-family:'Tajawal',sans-serif;display:flex;align-items:center;gap:6px;position:relative;overflow:hidden}
+        .btn-follow::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,.1),transparent);opacity:0;transition:opacity .3s}
+        .btn-follow:hover::before{opacity:1}
+
+        .btn-follow.not-following{background:#f26522;color:white;border-color:#f26522}
+        .btn-follow.not-following:hover{box-shadow:0 4px 16px rgba(242,101,34,.35);transform:translateY(-1px)}
+        .btn-follow.not-following:active{transform:scale(.96)}
+
+        .btn-follow.following{background:transparent;color:#f26522;border-color:rgba(242,101,34,.4)}
+        .btn-follow.following:hover{border-color:#ef4444;color:#ef4444;background:rgba(239,68,68,.08)}
+
+        .btn-follow.mutual{background:rgba(242,101,34,.1);color:#f26522;border-color:rgba(242,101,34,.25)}
+        .btn-follow.mutual:hover{border-color:#ef4444;color:#ef4444;background:rgba(239,68,68,.08)}
+
+        /* ═══════ Friend Request ═══════ */
+        .request-card{display:flex;gap:14px;padding:16px;border-radius:16px;border:1px solid rgba(89,65,56,.15);background:rgba(42,42,42,.2);transition:all .3s;align-items:center}
+        .request-card.accepted{border-color:rgba(34,197,94,.3);background:rgba(34,197,94,.04)}
+        .request-card.rejected{opacity:0;transform:translateX(30px);transition:all .3s;height:0;padding:0;margin:0;overflow:hidden;border:none}
+
+        .btn-accept{background:linear-gradient(135deg,#22c55e,#16a34a);color:white;font-weight:700;font-size:13px;padding:8px 18px;border-radius:10px;border:none;cursor:pointer;transition:all .3s;font-family:'Tajawal',sans-serif;display:flex;align-items:center;gap:4px}
+        .btn-accept:hover{box-shadow:0 4px 16px rgba(34,197,94,.3);transform:translateY(-1px)}
+
+        .btn-reject{background:transparent;border:1px solid rgba(239,68,68,.3);color:#ef4444;font-weight:600;font-size:13px;padding:8px 18px;border-radius:10px;cursor:pointer;transition:all .3s;font-family:'Tajawal',sans-serif;display:flex;align-items:center;gap:4px}
+        .btn-reject:hover{background:rgba(239,68,68,.1);border-color:#ef4444}
+
+        /* ═══════ Block / Mute / Favorite ═══════ */
+        .btn-unblock{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:#ef4444;font-weight:600;font-size:13px;padding:8px 16px;border-radius:10px;cursor:pointer;transition:all .3s;font-family:'Tajawal',sans-serif;display:flex;align-items:center;gap:4px}
+        .btn-unblock:hover{background:rgba(239,68,68,.2);border-color:#ef4444}
+
+        .btn-unmute{background:rgba(234,179,8,.1);border:1px solid rgba(234,179,8,.3);color:#facc15;font-weight:600;font-size:13px;padding:8px 16px;border-radius:10px;cursor:pointer;transition:all .3s;font-family:'Tajawal',sans-serif;display:flex;align-items:center;gap:4px}
+        .btn-unmute:hover{background:rgba(234,179,8,.2);border-color:#facc15}
+
+        .star-btn{cursor:pointer;transition:all .3s;padding:4px}
+        .star-btn:hover{transform:scale(1.2)}
+        .star-btn.active{color:#f26522}
+
+        /* ═══════ Action Menu ═══════ */
+        .action-menu{position:absolute;top:100%;left:0;margin-top:4px;background:#1a1a1a;border:1px solid rgba(89,65,56,.3);border-radius:14px;padding:4px;min-width:180px;box-shadow:0 8px 32px rgba(0,0,0,.5);z-index:20;display:none}
+        .action-menu.show{display:block;animation:fadeIn .2s ease}
+        .action-menu-item{display:flex;align-items:center;gap:8px;padding:10px 14px;border-radius:10px;cursor:pointer;transition:all .2s;font-size:13px;font-weight:600}
+        .action-menu-item:hover{background:rgba(255,255,255,.05)}
+        .action-menu-item.danger{color:#ef4444}
+        .action-menu-item.danger:hover{background:rgba(239,68,68,.1)}
+        .action-menu-item.warn{color:#facc15}
+        .action-menu-item.warn:hover{background:rgba(234,179,8,.1)}
+
+        /* ═══════ Stats Bar ═══════ */
+        .stat-card{background:rgba(42,42,42,.3);border:1px solid rgba(89,65,56,.1);border-radius:14px;padding:16px;text-align:center;cursor:pointer;transition:all .3s}
+        .stat-card:hover{background:rgba(242,101,34,.06);border-color:rgba(242,101,34,.2);transform:translateY(-2px)}
+        .stat-card.active{border-color:rgba(242,101,34,.4);background:rgba(242,101,34,.08)}
+
+        /* ═══════ Toast ═══════ */
+        .toast{position:fixed;top:24px;left:50%;transform:translateX(-50%) translateY(-100px);z-index:9999;padding:14px 28px;border-radius:14px;font-weight:700;font-size:14px;opacity:0;transition:all .5s cubic-bezier(.68,-.55,.265,1.55);display:flex;align-items:center;gap:10px;backdrop-filter:blur(12px);max-width:90vw}
+        .toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+        .toast.success{background:rgba(34,197,94,.15);border:1px solid rgba(34,197,94,.3);color:#4ade80}
+        .toast.error{background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.3);color:#f87171}
+        .toast.info{background:rgba(59,130,246,.15);border:1px solid rgba(59,130,246,.3);color:#60a5fa}
+
+        /* ═══════ Modal ═══════ */
+        .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);z-index:100;display:none;align-items:center;justify-content:center;padding:16px}
+        .modal-bg.active{display:flex;animation:fadeIn .3s ease}
+        .modal-box{background:#1a1a1a;border:1px solid rgba(89,65,56,.3);border-radius:20px;width:100%;max-width:480px;max-height:90dvh;overflow-y:auto;animation:fadeInUp .4s cubic-bezier(.4,0,.2,1)}
+
+        /* ═══════ Buttons ═══════ */
+        .btn-orange{background:linear-gradient(135deg,#f26522,#e85d1c);color:white;font-weight:700;font-size:14px;padding:10px 20px;border-radius:12px;border:none;cursor:pointer;transition:all .3s;font-family:'Tajawal',sans-serif;display:flex;align-items:center;gap:6px}
+        .btn-ghost{background:transparent;border:1px solid rgba(89,65,56,.3);color:#e5e2e1;font-weight:600;font-size:13px;padding:8px 16px;border-radius:10px;cursor:pointer;transition:all .3s;font-family:'Tajawal',sans-serif;display:flex;align-items:center;gap:4px}
+        .btn-ghost:hover{border-color:#f26522;color:#f26522;background:rgba(242,101,34,.06)}
+
+        /* ═══════ Search ═══════ */
+        .search-box{position:relative}
+        .search-box input{width:100%;background:rgba(42,42,42,.5);border:1px solid rgba(89,65,56,.25);border-radius:12px;padding:10px 16px 10px 40px;color:#e5e2e1;font-size:14px;outline:none;transition:all .3s;font-family:'Tajawal',sans-serif}
+        .search-box input:focus{border-color:#f26522;box-shadow:0 0 0 3px rgba(242,101,34,.1)}
+        .search-box input::placeholder{color:#7a7570}
+
+        /* ═══════ Empty ═══════ */
+        .empty-state{text-align:center;padding:60px 20px}
+
+        /* ═══════ Scrollbar ═══════ */
+        ::-webkit-scrollbar{width:4px;height:4px}
+        ::-webkit-scrollbar-track{background:transparent}
+        ::-webkit-scrollbar-thumb{background:#474746;border-radius:4px}
+
+        /* ═══════ Responsive ═══════ */
+        @media(max-width:640px){
+            .page-tab{padding:8px 12px;font-size:12px}
+            .user-card{padding:12px;gap:10px}
+            .user-avatar{width:44px;height:44px}
+        }
+    </style>
+</head>
+<body>
+<div class="app-bg"></div>
+<div id="toastEl" class="toast"></div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- TOP BAR -->
+<!-- ═══════════════════════════════════════════ -->
+<header class="fixed top-0 w-full z-50 glass border-b border-[#594138]/30 flex items-center justify-between px-4 h-14">
+    <div class="flex items-center gap-3">
+        <button class="p-2 rounded-full hover:bg-white/5 transition-colors">
+            <span class="material-symbols-outlined text-[#e1bfb3]">arrow_forward</span>
+        </button>
+        <h1 class="text-lg font-extrabold text-[#f26522]">المتابعة والأصدقاء</h1>
+    </div>
+    <div class="flex items-center gap-1">
+        <button onclick="showFriendRequests()" class="p-2 rounded-full hover:bg-white/5 text-[#7a7570] hover:text-[#f26522] transition-colors relative" title="طلبات الصداقة">
+            <span class="material-symbols-outlined">group_add</span>
+            <span id="requestsBadge" class="hidden absolute top-0.5 right-0.5 w-3 h-3 bg-red-500 border-2 border-[#1a1a1a] rounded-full"></span>
+        </button>
+    </div>
+</header>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- MAIN -->
+<!-- ═══════════════════════════════════════════ -->
+<main class="relative z-10 pt-16 pb-8 max-w-2xl mx-auto px-4">
+
+    <!-- ═══ Stats Cards ═══ -->
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6" style="animation:fadeIn .5s ease">
+        <div class="stat-card" onclick="switchTab('followers')">
+            <p class="text-2xl font-extrabold text-[#f26522]" id="statFollowers">0</p>
+            <p class="text-xs text-[#7a7570] mt-1">المتابعين</p>
+        </div>
+        <div class="stat-card" onclick="switchTab('following')">
+            <p class="text-2xl font-extrabold text-[#f26522]" id="statFollowing">0</p>
+            <p class="text-xs text-[#7a7570] mt-1">المتابَعين</p>
+        </div>
+        <div class="stat-card" onclick="switchTab('blocked')">
+            <p class="text-2xl font-extrabold text-[#ef4444]" id="statBlocked">0</p>
+            <p class="text-xs text-[#7a7570] mt-1">المحظورين</p>
+        </div>
+        <div class="stat-card" onclick="switchTab('muted')">
+            <p class="text-2xl font-extrabold text-[#facc15]" id="statMuted">0</p>
+            <p class="text-xs text-[#7a7570] mt-1">المكتومين</p>
+        </div>
+    </div>
+
+    <!-- ═══ Tabs ═══ -->
+    <div class="page-tabs mb-6" id="mainTabs" style="animation:fadeIn .6s ease">
+        <button class="page-tab active" onclick="switchTab('followers',this)">
+            <span class="material-symbols-outlined text-[18px]">people</span>
+            المتابعين
+            <span class="count-badge" id="badgeFollowers">0</span>
+        </button>
+        <button class="page-tab" onclick="switchTab('following',this)">
+            <span class="material-symbols-outlined text-[18px]">person_add</span>
+            المتابَعين
+            <span class="count-badge" id="badgeFollowing">0</span>
+        </button>
+        <button class="page-tab" onclick="switchTab('favorites',this)">
+            <span class="material-symbols-outlined text-[18px]">star</span>
+            المفضلين
+        </button>
+        <button class="page-tab" onclick="switchTab('blocked',this)">
+            <span class="material-symbols-outlined text-[18px]">block</span>
+            المحظورين
+        </button>
+        <button class="page-tab" onclick="switchTab('muted',this)">
+            <span class="material-symbols-outlined text-[18px]">volume_off</span>
+            المكتومين
+        </button>
+    </div>
+
+    <!-- ═══ Search ═══ -->
+    <div class="search-box mb-4" style="animation:fadeIn .65s ease">
+        <span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-[#7a7570] text-[20px]">search</span>
+        <input type="text" id="searchInput" placeholder="بحث عن مستخدم..." oninput="handleSearch(this.value)"/>
+    </div>
+
+    <!-- ═══ Content List ═══ -->
+    <div id="contentList" class="space-y-2">
+        <!-- Rendered dynamically -->
+    </div>
+
+    <!-- ═══ Empty State ═══ -->
+    <div id="emptyState" class="hidden empty-state">
+        <div class="w-20 h-20 rounded-full bg-[#1a1a1a] flex items-center justify-center mx-auto mb-4">
+            <span class="material-symbols-outlined text-[40px] text-[#353534]" id="emptyIcon">people</span>
+        </div>
+        <h3 class="text-xl font-bold text-[#353534] mb-2" id="emptyTitle">لا يوجد أحد</h3>
+        <p class="text-sm text-[#7a7570]" id="emptyText">ستظهر قائمة المستخدمين هنا</p>
+    </div>
+</main>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- FRIEND REQUESTS MODAL -->
+<!-- ═══════════════════════════════════════════ -->
+<div id="requestsModal" class="modal-bg" onclick="if(event.target===this)closeRequestsModal()">
+    <div class="modal-box">
+        <div class="flex items-center justify-between p-5 border-b border-[#594138]/20">
+            <h3 class="text-lg font-extrabold text-[#f26522] flex items-center gap-2">
+                <span class="material-symbols-outlined text-[22px]">group_add</span>
+                طلبات الصداقة
+            </h3>
+            <button onclick="closeRequestsModal()" class="p-2 rounded-full hover:bg-white/5">
+                <span class="material-symbols-outlined text-[#7a7570]">close</span>
+            </button>
+        </div>
+        <div id="requestsList" class="p-4 space-y-3 max-h-[60dvh] overflow-y-auto">
+            <!-- Rendered dynamically -->
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- CONFIRM MODAL -->
+<!-- ═══════════════════════════════════════════ -->
+<div id="confirmModal" class="modal-bg" onclick="if(event.target===this)closeConfirmModal()">
+    <div class="modal-box p-6 text-center">
+        <div id="confirmIcon" class="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4"></div>
+        <h3 id="confirmTitle" class="text-xl font-extrabold mb-2"></h3>
+        <p id="confirmText" class="text-sm text-[#7a7570] mb-6"></p>
+        <div class="flex gap-3">
+            <button onclick="closeConfirmModal()" class="btn-ghost flex-1 justify-center">إلغاء</button>
+            <button id="confirmBtn" class="flex-1 justify-center btn-orange"></button>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- JAVASCRIPT -->
+<!-- ═══════════════════════════════════════════ -->
+<script>
+// ═══════════════════════════════════════════
+// DATABASE
+// ═══════════════════════════════════════════
+const DB={get(k){try{return JSON.parse(localStorage.getItem('lb_'+k))}catch{return null}},set(k,v){localStorage.setItem('lb_'+k,JSON.stringify(v))},rm(k){localStorage.removeItem('lb_'+k)}};
+
+// ═══════════════════════════════════════════
+// CURRENT USER
+// ═══════════════════════════════════════════
+const ME={id:'usr_001',name:'عبدالملك بن محمد',username:'abdulmalik_m',avatar:'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop&crop=face'};
+
+// ═══════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════
+let users = DB.get('follow_users') || [];
+let friendRequests = DB.get('friend_requests') || [];
+let currentTab = 'followers';
+let searchQuery = '';
+let confirmAction = null;
+
+function esc(t){const d=document.createElement('div');d.appendChild(document.createTextNode(t));return d.innerHTML}
+function genId(){return 'u_'+Date.now()+'_'+Math.random().toString(36).substr(2,6)}
+function save(){DB.set('follow_users',users);DB.set('friend_requests',friendRequests)}
+
+// ═══════════════════════════════════════════
+// GENERATE SAMPLES
+// ═══════════════════════════════════════════
+function generateSamples(){
+    if(users.length>0) return;
+
+    users = [
+        {id:'u1',name:'د. نورة القحطاني',username:'nora_q',avatar:'https://i.pravatar.cc/100?img=5',bio:'أستاذة قانون تجاري',verified:true,online:true,iFollow:true,theyFollow:true,favorite:true,blocked:false,muted:false},
+        {id:'u2',name:'أ. فهد العتيبي',username:'fahad_o',avatar:'https://i.pravatar.cc/100?img=12',bio:'محامي مرخص - قانون مدني',verified:true,online:false,iFollow:true,theyFollow:true,favorite:false,blocked:false,muted:false},
+        {id:'u3',name:'المكتبة القانونية',username:'law_library',avatar:'https://i.pravatar.cc/100?img=22',bio:'أكبر مكتبة قانونية عربية',verified:true,online:true,iFollow:true,theyFollow:false,favorite:true,blocked:false,muted:false},
+        {id:'u4',name:'أ. سارة المنصور',username:'sarah_m',avatar:'https://i.pravatar.cc/100?img=9',bio:'متخصصة في قانون الأسرة',verified:false,online:true,iFollow:true,theyFollow:true,favorite:false,blocked:false,muted:false},
+        {id:'u5',name:'د. خالد الشمري',username:'khalid_s',avatar:'https://i.pravatar.cc/100?img=15',bio:'أستاذ قانون دولي',verified:true,online:false,iFollow:false,theyFollow:true,favorite:false,blocked:false,muted:false},
+        {id:'u6',name:'مكتب المحاماة الدولي',username:'intl_law',avatar:'https://i.pravatar.cc/100?img=33',bio:'استشارات قانونية دولية',verified:true,online:true,iFollow:true,theyFollow:false,favorite:false,blocked:false,muted:false},
+        {id:'u7',name:'أحمد البقمي',username:'ahmed_b',avatar:'https://i.pravatar.cc/100?img=51',bio:'طالب قانون - جامعة الملك سعود',verified:false,online:false,iFollow:false,theyFollow:false,favorite:false,blocked:false,muted:false},
+        {id:'u8',name:'منى الحربي',username:'mona_h',avatar:'https://i.pravatar.cc/100?img=44',bio:'محامية قضايا تجارية',verified:false,online:true,iFollow:true,theyFollow:true,favorite:false,blocked:false,muted:false},
+        {id:'u9',name:'مؤسسة العدالة',username:'adala_org',avatar:'https://i.pravatar.cc/100?img=60',bio:'مؤسسة تعليم قانوني',verified:true,online:false,iFollow:false,theyFollow:false,favorite:false,blocked:true,muted:false},
+        {id:'u10',name:'حساب سبام',username:'spam_user',avatar:'https://i.pravatar.cc/100?img=62',bio:'',verified:false,online:false,iFollow:false,theyFollow:false,favorite:false,blocked:false,muted:true}
+    ];
+
+    friendRequests = [
+        {id:'fr1',user:{id:'u11',name:'محمد السالم',username:'m_salem',avatar:'https://i.pravatar.cc/100?img=53',bio:'مستشار قانوني'},time:new Date(Date.now()-3600000).toISOString(),status:'pending'},
+        {id:'fr2',user:{id:'u12',name:'رنا الشهري',username:'rana_sh',avatar:'https://i.pravatar.cc/100?img=47',bio:'أستاذة قانون'},time:new Date(Date.now()-7200000).toISOString(),status:'pending'},
+        {id:'fr3',user:{id:'u13',name:'مكتب الاستشارات المتحدة',username:'united_law',avatar:'https://i.pravatar.cc/100?img=36',bio:'استشارات قانونية'},time:new Date(Date.now()-86400000).toISOString(),status:'pending'}
+    ];
+
+    save();
+}
+
+// ═══════════════════════════════════════════
+// TAB SWITCHING
+// ═══════════════════════════════════════════
+function switchTab(tab, btn){
+    currentTab = tab;
+    searchQuery = '';
+    document.getElementById('searchInput').value = '';
+
+    if(btn){
+        document.querySelectorAll('.page-tab').forEach(t=>t.classList.remove('active'));
+        btn.classList.add('active');
+    } else {
+        document.querySelectorAll('.page-tab').forEach(t=>{
+            t.classList.toggle('active', t.textContent.includes(getTabLabel(tab)));
+        });
+    }
+
+    renderList();
+}
+
+function getTabLabel(tab){
+    const labels = {followers:'المتابعين',following:'المتابَعين',favorites:'المفضلين',blocked:'المحظورين',muted:'المكتومين'};
+    return labels[tab] || '';
+}
+
+// ═══════════════════════════════════════════
+// RENDER LIST
+// ═══════════════════════════════════════════
+function renderList(){
+    const container = document.getElementById('contentList');
+    const empty = document.getElementById('emptyState');
+    const emptyIcon = document.getElementById('emptyIcon');
+    const emptyTitle = document.getElementById('emptyTitle');
+    const emptyText = document.getElementById('emptyText');
+
+    let filtered = [];
+    const q = searchQuery.toLowerCase();
+
+    switch(currentTab){
+        case 'followers':
+            filtered = users.filter(u => u.theyFollow && !u.blocked);
+            emptyIcon.textContent = 'people';
+            emptyTitle.textContent = 'لا متابعين بعد';
+            emptyText.textContent = 'عندما يتابعك شخص سيظهر هنا';
+            break;
+        case 'following':
+            filtered = users.filter(u => u.iFollow && !u.blocked);
+            emptyIcon.textContent = 'person_add';
+            emptyTitle.textContent = 'لا تتابع أحداً';
+            emptyText.textContent = 'ابدأ بمتابعة أشخاص يشاركونك اهتماماتك';
+            break;
+        case 'favorites':
+            filtered = users.filter(u => u.favorite && !u.blocked);
+            emptyIcon.textContent = 'star';
+            emptyTitle.textContent = 'لا مفضلين';
+            emptyText.textContent = 'أضف أشخاصاً إلى قائمة المفضلين بنجمة ★';
+            break;
+        case 'blocked':
+            filtered = users.filter(u => u.blocked);
+            emptyIcon.textContent = 'block';
+            emptyTitle.textContent = 'لا محظورين';
+            emptyText.textContent = 'لم تحظر أي مستخدم';
+            break;
+        case 'muted':
+            filtered = users.filter(u => u.muted);
+            emptyIcon.textContent = 'volume_off';
+            emptyTitle.textContent = 'لا مكتومين';
+            emptyText.textContent = 'لم تكتم أي مستخدم';
+            break;
+    }
+
+    // Apply search
+    if(q) filtered = filtered.filter(u => u.name.toLowerCase().includes(q) || u.username.toLowerCase().includes(q));
+
+    if(filtered.length === 0){
+        container.innerHTML = '';
+        empty.classList.remove('hidden');
+        updateStats();
+        return;
+    }
+
+    empty.classList.add('hidden');
+
+    container.innerHTML = filtered.map((user, idx) => {
+        const delay = Math.min(idx * 0.06, 0.5);
+        const isMutual = user.iFollow && user.theyFollow;
+        const isFav = user.favorite;
+
+        // For blocked/muted tabs show different UI
+        if(currentTab === 'blocked'){
+            return renderBlockedCard(user, delay);
+        }
+        if(currentTab === 'muted'){
+            return renderMutedCard(user, delay);
+        }
+
+        return `
+        <div class="user-card anim-fadeUp" style="animation-delay:${delay}s;opacity:0">
+            <div class="star-btn ${isFav?'active':''}" onclick="toggleFavorite('${user.id}',this)" title="${isFav?'إزالة من المفضلين':'إضافة للمفضلين'}">
+                <span class="material-symbols-outlined text-[22px]" style="${isFav?"font-variation-settings:'FILL' 1;color:#f26522":''}">star</span>
+            </div>
+
+            <div class="relative shrink-0">
+                <img src="${user.avatar}" class="user-avatar" onclick="showToast('عرض ملف ${esc(user.name)}','info')"/>
+                ${user.online?'<div class="online-dot"></div>':''}
+            </div>
+
+            <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-2 flex-wrap">
+                    <h4 class="font-bold text-sm cursor-pointer hover:text-[#f26522] transition-colors" onclick="showToast('عرض ملف ${esc(user.name)}','info')">${esc(user.name)}</h4>
+                    ${user.verified?'<span class="material-symbols-outlined text-[14px] text-blue-400" style="font-variation-settings:FILL 1">verified</span>':''}
+                    ${isMutual?'<span class="text-[10px] bg-green-500/10 text-green-400 px-2 py-0.5 rounded-full font-semibold">متابَع متبادل</span>':''}
+                </div>
+                <p class="text-xs text-[#7a7570] mt-0.5">@${esc(user.username)}</p>
+                ${user.bio?`<p class="text-xs text-[#7a7570] mt-1 truncate">${esc(user.bio)}</p>`:''}
+                ${user.online?'<p class="text-[10px] text-green-400 mt-1 flex items-center gap-1"><span class="w-1.5 h-1.5 bg-green-400 rounded-full"></span>متصل الآن</p>':''}
+            </div>
+
+            <div class="flex items-center gap-2 shrink-0">
+                ${renderFollowButton(user)}
+
+                <div class="relative">
+                    <button onclick="toggleActionMenu('${user.id}')" class="p-2 rounded-full hover:bg-white/5 text-[#7a7570] transition-colors">
+                        <span class="material-symbols-outlined text-[20px]">more_vert</span>
+                    </button>
+                    <div id="menu-${user.id}" class="action-menu">
+                        <div class="action-menu-item" onclick="showToast('إرسال رسالة','info');closeMenus()">
+                            <span class="material-symbols-outlined text-[18px]">chat</span>
+                            إرسال رسالة
+                        </div>
+                        <div class="action-menu-item" onclick="showToast('عرض الملف الشخصي','info');closeMenus()">
+                            <span class="material-symbols-outlined text-[18px]">person</span>
+                            عرض الملف
+                        </div>
+                        <div class="action-menu-item warn" onclick="toggleMute('${user.id}');closeMenus()">
+                            <span class="material-symbols-outlined text-[18px]">${user.muted?'volume_up':'volume_off'}</span>
+                            ${user.muted?'إلغاء الكتم':'كتم'}
+                        </div>
+                        <div class="action-menu-item danger" onclick="confirmBlock('${user.id}');closeMenus()">
+                            <span class="material-symbols-outlined text-[18px]">block</span>
+                            حظر
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>`;
+    }).join('');
+
+    updateStats();
+}
+
+function renderFollowButton(user){
+    if(user.blocked) return '';
+
+    if(user.iFollow && user.theyFollow){
+        return `<button class="btn-follow mutual" onclick="toggleFollow('${user.id}',this)"><span class="material-symbols-outlined text-[16px]">people</span>متابَع</button>`;
+    }
+    if(user.iFollow){
+        return `<button class="btn-follow following" onclick="toggleFollow('${user.id}',this)"><span class="material-symbols-outlined text-[16px]">check</span>متابَع</button>`;
+    }
+    if(user.theyFollow){
+        return `<button class="btn-follow not-following" onclick="toggleFollow('${user.id}',this)"><span class="material-symbols-outlined text-[16px]">person_add</span>متابعة</button>`;
+    }
+    return `<button class="btn-follow not-following" onclick="toggleFollow('${user.id}',this)"><span class="material-symbols-outlined text-[16px]">person_add</span>متابعة</button>`;
+}
+
+function renderBlockedCard(user, delay){
+    return `
+    <div class="user-card anim-fadeUp" style="animation-delay:${delay}s;opacity:0;border-right:3px solid #ef4444">
+        <img src="${user.avatar}" class="user-avatar opacity-50"/>
+        <div class="flex-1 min-w-0">
+            <h4 class="font-bold text-sm text-[#7a7570]">${esc(user.name)}</h4>
+            <p class="text-xs text-[#7a7570]">@${esc(user.username)}</p>
+            <p class="text-xs text-red-400/60 mt-1 flex items-center gap-1">
+                <span class="material-symbols-outlined text-[14px]">block</span>
+                محظور — لن يرى ملفك أو منشوراتك
+            </p>
+        </div>
+        <button class="btn-unblock" onclick="confirmUnblock('${user.id}')">
+            <span class="material-symbols-outlined text-[16px]">lock_open</span>
+            إلغاء الحظر
+        </button>
+    </div>`;
+}
+
+function renderMutedCard(user, delay){
+    return `
+    <div class="user-card anim-fadeUp" style="animation-delay:${delay}s;opacity:0;border-right:3px solid #facc15">
+        <img src="${user.avatar}" class="user-avatar"/>
+        <div class="flex-1 min-w-0">
+            <h4 class="font-bold text-sm">${esc(user.name)}</h4>
+            <p class="text-xs text-[#7a7570]">@${esc(user.username)}</p>
+            <p class="text-xs text-yellow-400/60 mt-1 flex items-center gap-1">
+                <span class="material-symbols-outlined text-[14px]">volume_off</span>
+                مكتوم — لن ترى منشوراته في تغذيتك
+            </p>
+        </div>
+        <button class="btn-unmute" onclick="toggleMute('${user.id}')">
+            <span class="material-symbols-outlined text-[16px]">volume_up</span>
+            إلغاء الكتم
+        </button>
+    </div>`;
+}
+
+// ═══════════════════════════════════════════
+// FOLLOW / UNFOLLOW
+// ═══════════════════════════════════════════
+function toggleFollow(userId, btn){
+    const user = users.find(u=>u.id===userId);
+    if(!user) return;
+
+    if(user.iFollow){
+        // Unfollow
+        user.iFollow = false;
+        btn.classList.remove('following','mutual');
+        btn.classList.add('not-following');
+        btn.innerHTML = '<span class="material-symbols-outlined text-[16px]">person_add</span>متابعة';
+        btn.classList.add('anim-shake');
+        setTimeout(()=>btn.classList.remove('anim-shake'),400);
+        showToast('تم إلغاء متابعة '+user.name,'info');
+    } else {
+        // Follow
+        user.iFollow = true;
+        if(user.theyFollow){
+            btn.classList.remove('not-following');
+            btn.classList.add('mutual');
+            btn.innerHTML = '<span class="material-symbols-outlined text-[16px]">people</span>متابَع';
+        } else {
+            btn.classList.remove('not-following');
+            btn.classList.add('following');
+            btn.innerHTML = '<span class="material-symbols-outlined text-[16px]">check</span>متابَع';
+        }
+        btn.classList.add('anim-check');
+        setTimeout(()=>btn.classList.remove('anim-check'),400);
+        showToast('تمت متابعة '+user.name,'success');
+    }
+
+    save();
+    updateStats();
+}
+
+// ═══════════════════════════════════════════
+// FAVORITE
+// ═══════════════════════════════════════════
+function toggleFavorite(userId, el){
+    const user = users.find(u=>u.id===userId);
+    if(!user) return;
+
+    user.favorite = !user.favorite;
+    const icon = el.querySelector('.material-symbols-outlined');
+
+    if(user.favorite){
+        icon.style.fontVariationSettings = "'FILL' 1";
+        icon.style.color = '#f26522';
+        el.classList.add('active');
+        el.classList.add('anim-star');
+        setTimeout(()=>el.classList.remove('anim-star'),500);
+        showToast('تمت إضافة '+user.name+' للمفضلين','success');
+    } else {
+        icon.style.fontVariationSettings = "'FILL' 0";
+        icon.style.color = '';
+        el.classList.remove('active');
+        showToast('تمت إزالة '+user.name+' من المفضلين','info');
+    }
+
+    save();
+}
+
+// ═══════════════════════════════════════════
+// BLOCK
+// ═══════════════════════════════════════════
+function confirmBlock(userId){
+    const user = users.find(u=>u.id===userId);
+    if(!user) return;
+
+    showConfirm(
+        '<span class="material-symbols-outlined text-red-400 text-[32px]">block</span>',
+        'background:rgba(239,68,68,.12)',
+        'حظر '+user.name,
+        'لن يتمكن من رؤية ملفك الشخصي أو منشوراتك. يمكنك إلغاء الحظر لاحقاً من إعدادات الحظر.',
+        'حظر',
+        'background:linear-gradient(135deg,#ef4444,#dc2626);',
+        ()=>{blockUser(userId)}
+    );
+}
+
+function blockUser(userId){
+    const user = users.find(u=>u.id===userId);
+    if(!user) return;
+
+    user.blocked = true;
+    user.iFollow = false;
+    user.theyFollow = false;
+    user.favorite = false;
+    user.muted = false;
+
+    save();
+    closeConfirmModal();
+    renderList();
+    showToast('تم حظر '+user.name,'success');
+}
+
+function confirmUnblock(userId){
+    const user = users.find(u=>u.id===userId);
+    if(!user) return;
+
+    showConfirm(
+        '<span class="material-symbols-outlined text-green-400 text-[32px]">lock_open</span>',
+        'background:rgba(34,197,94,.12)',
+        'إلغاء حظر '+user.name,
+        'سيتمكن مرة أخرى من رؤية ملفك الشخصي ومنشوراتك.',
+        'إلغاء الحظر',
+        'background:linear-gradient(135deg,#22c55e,#16a34a);',
+        ()=>{unblockUser(userId)}
+    );
+}
+
+function unblockUser(userId){
+    const user = users.find(u=>u.id===userId);
+    if(!user) return;
+
+    user.blocked = false;
+    save();
+    closeConfirmModal();
+    renderList();
+    showToast('تم إلغاء حظر '+user.name,'success');
+}
+
+// ═══════════════════════════════════════════
+// MUTE
+// ═══════════════════════════════════════════
+function toggleMute(userId){
+    const user = users.find(u=>u.id===userId);
+    if(!user) return;
+
+    user.muted = !user.muted;
+    save();
+    renderList();
+    showToast(user.muted?'تم كتم '+user.name:'تم إلغاء كتم '+user.name, user.muted?'info':'success');
+}
+
+// ═══════════════════════════════════════════
+// FRIEND REQUESTS
+// ═══════════════════════════════════════════
+function showFriendRequests(){
+    document.getElementById('requestsModal').classList.add('active');
+    renderRequests();
+    document.body.style.overflow='hidden';
+}
+
+function closeRequestsModal(){
+    document.getElementById('requestsModal').classList.remove('active');
+    document.body.style.overflow='';
+}
+
+function renderRequests(){
+    const container = document.getElementById('requestsList');
+    const pending = friendRequests.filter(r=>r.status==='pending');
+
+    if(pending.length===0){
+        container.innerHTML=`
+            <div class="text-center py-12 text-[#7a7570]">
+                <span class="material-symbols-outlined text-5xl mb-3 block">group_off</span>
+                <p class="font-bold">لا توجد طلبات صداقة</p>
+                <p class="text-sm mt-1">ستظهر طلبات الصداقة الواردة هنا</p>
+            </div>`;
+        return;
+    }
+
+    container.innerHTML = pending.map(req=>{
+        const u = req.user;
+        return `
+        <div class="request-card" id="req-${req.id}">
+            <img src="${u.avatar}" class="w-12 h-12 rounded-full object-cover shrink-0 cursor-pointer" onclick="showToast('عرض ملف ${esc(u.name)}','info')"/>
+            <div class="flex-1 min-w-0">
+                <h4 class="font-bold text-sm">${esc(u.name)}</h4>
+                <p class="text-xs text-[#7a7570]">@${esc(u.username)}</p>
+                ${u.bio?`<p class="text-xs text-[#7a7570] mt-0.5 truncate">${esc(u.bio)}</p>`:''}
+                <p class="text-[10px] text-[#7a7570] mt-1">منذ ${formatReqTime(req.time)}</p>
+            </div>
+            <div class="flex gap-2 shrink-0">
+                <button class="btn-accept" onclick="acceptRequest('${req.id}')">
+                    <span class="material-symbols-outlined text-[16px]">check</span>
+                    قبول
+                </button>
+                <button class="btn-reject" onclick="rejectRequest('${req.id}')">
+                    <span class="material-symbols-outlined text-[16px]">close</span>
+                    رفض
+                </button>
+            </div>
+        </div>`;
+    }).join('');
+
+    updateRequestsBadge();
+}
+
+function acceptRequest(reqId){
+    const req = friendRequests.find(r=>r.id===reqId);
+    if(!req) return;
+
+    req.status = 'accepted';
+
+    // Add user to users list
+    const newUser = {
+        ...req.user,
+        iFollow:true, theyFollow:true,
+        favorite:false, blocked:false, muted:false
+    };
+    if(!users.find(u=>u.id===newUser.id)){
+        users.push(newUser);
+    }
+
+    // Animate out
+    const card = document.getElementById('req-'+reqId);
+    if(card){
+        card.classList.add('accepted');
+        card.innerHTML=`
+            <img src="${req.user.avatar}" class="w-12 h-12 rounded-full object-cover shrink-0"/>
+            <div class="flex-1">
+                <p class="text-sm font-bold text-green-400 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-[18px]" style="font-variation-settings:'FILL' 1">check_circle</span>
+                    تم قبول طلب صداقة ${esc(req.user.name)}
+                </p>
+            </div>`;
+        setTimeout(()=>{
+            card.style.transition='all .3s';
+            card.style.opacity='0';
+            card.style.height='0';
+            card.style.padding='0';
+            card.style.margin='0';
+            card.style.overflow='hidden';
+        },1500);
+    }
+
+    save();
+    showToast('تم قبول طلب الصداقة — أنت و '+req.user.name+' الآن أصدقاء!','success');
+    setTimeout(()=>renderRequests(),2000);
+    setTimeout(()=>renderList(),500);
+    updateStats();
+}
+
+function rejectRequest(reqId){
+    const req = friendRequests.find(r=>r.id===reqId);
+    if(!req) return;
+
+    req.status = 'rejected';
+
+    const card = document.getElementById('req-'+reqId);
+    if(card) card.classList.add('rejected');
+
+    save();
+    showToast('تم رفض طلب الصداقة','info');
+    setTimeout(()=>{
+        friendRequests = friendRequests.filter(r=>r.status==='pending');
+        save();
+        renderRequests();
+    },400);
+}
+
+function formatReqTime(iso){
+    const diff = Math.floor((Date.now()-new Date(iso).getTime())/60000);
+    if(diff<60) return diff+' دقيقة';
+    if(diff<1440) return Math.floor(diff/60)+' ساعة';
+    return Math.floor(diff/1440)+' يوم';
+}
+
+function updateRequestsBadge(){
+    const count = friendRequests.filter(r=>r.status==='pending').length;
+    const badge = document.getElementById('requestsBadge');
+    badge.classList.toggle('hidden', count===0);
+}
+
+// ═══════════════════════════════════════════
+// CONFIRM MODAL
+// ═══════════════════════════════════════════
+function showConfirm(iconHtml, iconBg, title, text, btnText, btnStyle, action){
+    document.getElementById('confirmIcon').innerHTML = iconHtml;
+    document.getElementById('confirmIcon').style.cssText = iconBg;
+    document.getElementById('confirmTitle').textContent = title;
+    document.getElementById('confirmText').textContent = text;
+    const btn = document.getElementById('confirmBtn');
+    btn.textContent = btnText;
+    btn.style.cssText = btnStyle + ';font-family:Tajawal;font-weight:700;font-size:14px;padding:10px 20px;border-radius:12px;border:none;cursor:pointer;display:flex;align-items:center;gap:6px;justify-content:center;flex:1;color:white';
+    confirmAction = action;
+    document.getElementById('confirmModal').classList.add('active');
+    document.body.style.overflow='hidden';
+}
+
+function closeConfirmModal(){
+    document.getElementById('confirmModal').classList.remove('active');
+    document.body.style.overflow='';
+    confirmAction = null;
+}
+
+document.getElementById('confirmBtn').addEventListener('click', function(){
+    if(confirmAction) confirmAction();
+});
+
+// ═══════════════════════════════════════════
+// ACTION MENUS
+// ═══════════════════════════════════════════
+function toggleActionMenu(userId){
+    const menu = document.getElementById('menu-'+userId);
+    const isOpen = menu.classList.contains('show');
+    closeMenus();
+    if(!isOpen) menu.classList.add('show');
+}
+
+function closeMenus(){
+    document.querySelectorAll('.action-menu').forEach(m=>m.classList.remove('show'));
+}
+
+document.addEventListener('click', e=>{
+    if(!e.target.closest('.action-menu')&&!e.target.closest('[onclick*="toggleActionMenu"]')){
+        closeMenus();
+    }
+});
+
+// ═══════════════════════════════════════════
+// SEARCH
+// ═══════════════════════════════════════════
+function handleSearch(val){
+    searchQuery = val;
+    renderList();
+}
+
+// ═══════════════════════════════════════════
+// UPDATE STATS
+// ═══════════════════════════════════════════
+function updateStats(){
+    const followers = users.filter(u=>u.theyFollow&&!u.blocked).length;
+    const following = users.filter(u=>u.iFollow&&!u.blocked).length;
+    const blocked = users.filter(u=>u.blocked).length;
+    const muted = users.filter(u=>u.muted).length;
+
+    document.getElementById('statFollowers').textContent = followers;
+    document.getElementById('statFollowing').textContent = following;
+    document.getElementById('statBlocked').textContent = blocked;
+    document.getElementById('statMuted').textContent = muted;
+
+    document.getElementById('badgeFollowers').textContent = followers;
+    document.getElementById('badgeFollowing').textContent = following;
+}
+
+// ═══════════════════════════════════════════
+// TOAST
+// ═══════════════════════════════════════════
+function showToast(msg,type='info'){
+    const t=document.getElementById('toastEl');
+    const icons={success:'check_circle',error:'error',info:'info'};
+    t.className='toast '+type;
+    t.innerHTML=`<span class="material-symbols-outlined text-[20px]">${icons[type]}</span> ${msg}`;
+    setTimeout(()=>t.classList.add('show'),10);
+    setTimeout(()=>t.classList.remove('show'),3500);
+}
+
+// ═══════════════════════════════════════════
+// KEYBOARD
+// ═══════════════════════════════════════════
+document.addEventListener('keydown',e=>{
+    if(e.key==='Escape'){
+        closeConfirmModal();
+        closeRequestsModal();
+        closeMenus();
+    }
+});
+
+// ═══════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════
+document.addEventListener('DOMContentLoaded',function(){
+    generateSamples();
+    renderList();
+    updateRequestsBadge();
+
+    console.log('%c لو بوك | نظام المتابعة والأصدقاء ','background:#f26522;color:white;font-size:14px;font-weight:bold;border-radius:8px;padding:6px 14px');
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,2043 @@
+<!DOCTYPE html>
+<html class="dark" lang="ar" dir="rtl">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>لو بوك | نظام المنشورات</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            font-family: 'Tajawal', sans-serif;
+            min-height: 100dvh;
+            overflow-x: hidden;
+            background: #0a0a0a;
+            color: #e5e2e1;
+        }
+
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            transition: all 0.2s ease;
+        }
+        .filled-icon {
+            font-variation-settings: 'FILL' 1;
+            color: #f26522 !important;
+        }
+
+        /* ═══════ Background ═══════ */
+        .app-bg {
+            position: fixed; inset: 0; z-index: 0;
+            background:
+                radial-gradient(ellipse at 20% 0%, rgba(242,101,34,0.06) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 100%, rgba(242,101,34,0.04) 0%, transparent 50%),
+                #0a0a0a;
+        }
+        .app-bg::after {
+            content: ''; position: fixed; inset: 0;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+            opacity: 0.3; pointer-events: none;
+        }
+
+        /* ═══════ Glass ═══════ */
+        .glass-card {
+            background: rgba(32,31,31,0.75);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.06);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+        }
+        .glass-bar {
+            background: rgba(32,31,31,0.85);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+        }
+
+        /* ═══════ Animations ═══════ */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(12px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes pop {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.25); }
+            100% { transform: scale(1); }
+        }
+        @keyframes heartBurst {
+            0% { transform: scale(1); }
+            25% { transform: scale(1.4); }
+            50% { transform: scale(0.9); }
+            75% { transform: scale(1.15); }
+            100% { transform: scale(1); }
+        }
+        @keyframes slideDown {
+            from { opacity: 0; max-height: 0; }
+            to   { opacity: 1; max-height: 2000px; }
+        }
+        @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+        @keyframes countPop {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.5); opacity: 0.5; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(20px); }
+            to   { opacity: 1; transform: translateX(0); }
+        }
+
+        .animate-fadeIn { animation: fadeIn 0.4s ease forwards; }
+        .animate-fadeInUp { animation: fadeInUp 0.6s cubic-bezier(0.4,0,0.2,1) forwards; }
+        .animate-pop { animation: pop 0.3s ease-in-out; }
+        .animate-heart { animation: heartBurst 0.5s ease; }
+        .animate-countPop { animation: countPop 0.3s ease; }
+        .animate-slideIn { animation: slideIn 0.3s ease; }
+
+        /* ═══════ Post Card ═══════ */
+        .post-card {
+            background: rgba(32,31,31,0.7);
+            border: 1px solid rgba(89,65,56,0.15);
+            border-radius: 20px;
+            overflow: hidden;
+            transition: all 0.3s;
+        }
+        .post-card:hover {
+            border-color: rgba(242,101,34,0.15);
+            box-shadow: 0 4px 24px rgba(0,0,0,0.3);
+        }
+        .post-card.pinned {
+            border-color: rgba(242,101,34,0.25);
+            background: rgba(242,101,34,0.03);
+        }
+
+        /* ═══════ Carousel ═══════ */
+        .carousel-container {
+            position: relative;
+            overflow: hidden;
+            border-radius: 16px;
+            background: #111;
+        }
+        .carousel-track {
+            display: flex;
+            transition: transform 0.4s cubic-bezier(0.4,0,0.2,1);
+            will-change: transform;
+        }
+        .carousel-slide {
+            min-width: 100%;
+            aspect-ratio: 1;
+            object-fit: cover;
+            display: block;
+        }
+        .carousel-btn {
+            position: absolute; top: 50%;
+            transform: translateY(-50%);
+            width: 36px; height: 36px;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 50%;
+            color: white;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            z-index: 5;
+            opacity: 0;
+        }
+        .carousel-container:hover .carousel-btn { opacity: 1; }
+        .carousel-btn:hover { background: rgba(242,101,34,0.8); border-color: #f26522; }
+        .carousel-btn.prev { right: 12px; }
+        .carousel-btn.next { left: 12px; }
+        .carousel-dots {
+            position: absolute; bottom: 12px;
+            left: 50%; transform: translateX(-50%);
+            display: flex; gap: 6px; z-index: 5;
+        }
+        .carousel-dot {
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.4);
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        .carousel-dot.active {
+            background: #f26522;
+            width: 24px;
+            border-radius: 4px;
+        }
+        .carousel-counter {
+            position: absolute; top: 12px; left: 12px;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(8px);
+            color: white;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            z-index: 5;
+        }
+
+        /* ═══════ Video Player ═══════ */
+        .video-container {
+            position: relative;
+            border-radius: 16px;
+            overflow: hidden;
+            background: #000;
+            cursor: pointer;
+        }
+        .video-container video {
+            width: 100%;
+            display: block;
+            max-height: 500px;
+            object-fit: contain;
+            background: #000;
+        }
+        .video-overlay {
+            position: absolute; inset: 0;
+            background: rgba(0,0,0,0.3);
+            display: flex; align-items: center; justify-content: center;
+            transition: opacity 0.3s;
+            z-index: 3;
+        }
+        .video-container.playing .video-overlay { opacity: 0; pointer-events: none; }
+        .video-play-btn {
+            width: 60px; height: 60px;
+            background: rgba(242,101,34,0.9);
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            transition: transform 0.3s;
+        }
+        .video-play-btn:hover { transform: scale(1.1); }
+        .video-progress {
+            position: absolute; bottom: 0; left: 0; right: 0;
+            height: 4px; background: rgba(255,255,255,0.2);
+            z-index: 4;
+        }
+        .video-progress-fill {
+            height: 100%; background: #f26522;
+            transition: width 0.1s linear;
+            border-radius: 0 2px 2px 0;
+        }
+        .video-time {
+            position: absolute; bottom: 12px; right: 12px;
+            background: rgba(0,0,0,0.7);
+            color: white; padding: 4px 8px;
+            border-radius: 6px; font-size: 12px;
+            font-weight: 600; z-index: 4;
+        }
+
+        /* ═══════ Poll ═══════ */
+        .poll-option {
+            position: relative;
+            padding: 12px 16px;
+            border: 1px solid rgba(89,65,56,0.3);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            overflow: hidden;
+        }
+        .poll-option:hover {
+            border-color: #f26522;
+            background: rgba(242,101,34,0.05);
+        }
+        .poll-option.voted {
+            border-color: rgba(242,101,34,0.3);
+        }
+        .poll-bar {
+            position: absolute; top: 0; right: 0; bottom: 0;
+            background: rgba(242,101,34,0.1);
+            transition: width 0.6s cubic-bezier(0.4,0,0.2,1);
+            border-radius: 12px;
+            z-index: 0;
+        }
+        .poll-option-content {
+            position: relative; z-index: 1;
+            display: flex; align-items: center; justify-content: space-between;
+        }
+
+        /* ═══════ Comments ═══════ */
+        .comment-bubble {
+            background: rgba(42,42,42,0.5);
+            border: 1px solid rgba(89,65,56,0.1);
+            border-radius: 0 16px 16px 16px;
+            padding: 12px 16px;
+            transition: all 0.3s;
+        }
+        .comment-bubble:hover {
+            background: rgba(42,42,42,0.7);
+        }
+        .nested-comments {
+            margin-right: 32px;
+            border-right: 2px solid rgba(89,65,56,0.15);
+            padding-right: 16px;
+        }
+
+        /* ═══════ Composer ═══════ */
+        .composer-box {
+            background: rgba(32,31,31,0.8);
+            border: 1px solid rgba(89,65,56,0.2);
+            border-radius: 20px;
+            transition: all 0.3s;
+        }
+        .composer-box:focus-within {
+            border-color: rgba(242,101,34,0.4);
+            box-shadow: 0 0 0 3px rgba(242,101,34,0.08);
+        }
+        .composer-textarea {
+            width: 100%;
+            background: transparent;
+            border: none;
+            outline: none;
+            color: #e5e2e1;
+            font-size: 16px;
+            resize: none;
+            min-height: 60px;
+            font-family: 'Tajawal', sans-serif;
+            line-height: 1.6;
+        }
+        .composer-textarea::placeholder { color: #7a7570; }
+
+        /* ═══════ Image Preview Grid ═══════ */
+        .preview-grid {
+            display: grid;
+            gap: 4px;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        .preview-grid.cols-1 { grid-template-columns: 1fr; }
+        .preview-grid.cols-2 { grid-template-columns: 1fr 1fr; }
+        .preview-grid.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+        .preview-grid.cols-4 { grid-template-columns: 1fr 1fr; }
+        .preview-thumb {
+            position: relative;
+            aspect-ratio: 1;
+            overflow: hidden;
+        }
+        .preview-thumb img {
+            width: 100%; height: 100%;
+            object-fit: cover;
+        }
+        .preview-remove {
+            position: absolute; top: 6px; left: 6px;
+            width: 28px; height: 28px;
+            background: rgba(0,0,0,0.7);
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; transition: all 0.2s;
+        }
+        .preview-remove:hover { background: #ef4444; }
+
+        /* ═══════ Inputs ═══════ */
+        .input-field {
+            background: rgba(42,42,42,0.6);
+            border: 1px solid rgba(89,65,56,0.4);
+            border-radius: 12px;
+            padding: 12px 16px;
+            color: #e5e2e1;
+            font-size: 14px;
+            width: 100%;
+            transition: all 0.3s;
+            outline: none;
+            font-family: 'Tajawal', sans-serif;
+        }
+        .input-field:focus {
+            border-color: #f26522;
+            box-shadow: 0 0 0 3px rgba(242,101,34,0.12);
+        }
+        .input-field::placeholder { color: #7a7570; }
+
+        /* ═══════ Buttons ═══════ */
+        .btn-orange {
+            background: linear-gradient(135deg, #f26522, #e85d1c);
+            color: white; font-weight: 700;
+            font-size: 14px; padding: 10px 24px;
+            border-radius: 12px; border: none;
+            cursor: pointer; transition: all 0.3s;
+            font-family: 'Tajawal', sans-serif;
+            display: flex; align-items: center; gap: 6px;
+        }
+        .btn-orange:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(242,101,34,0.3);
+        }
+        .btn-orange:active { transform: scale(0.97); }
+        .btn-orange:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
+
+        .btn-ghost {
+            background: transparent;
+            border: 1px solid rgba(89,65,56,0.3);
+            color: #e5e2e1;
+            font-weight: 600; font-size: 13px;
+            padding: 8px 16px; border-radius: 10px;
+            cursor: pointer; transition: all 0.3s;
+            font-family: 'Tajawal', sans-serif;
+            display: flex; align-items: center; gap: 4px;
+        }
+        .btn-ghost:hover { border-color: #f26522; color: #f26522; background: rgba(242,101,34,0.06); }
+
+        /* ═══════ Action Row ═══════ */
+        .action-btn {
+            display: flex; align-items: center; gap: 6px;
+            padding: 8px 12px; border-radius: 10px;
+            color: #7a7570; cursor: pointer;
+            transition: all 0.2s; border: none;
+            background: transparent; font-size: 13px;
+            font-weight: 600; font-family: 'Tajawal', sans-serif;
+        }
+        .action-btn:hover { background: rgba(255,255,255,0.04); }
+        .action-btn.like-active { color: #f26522; }
+        .action-btn.bookmark-active { color: #f26522; }
+
+        /* ═══════ Modal ═══════ */
+        .modal-bg {
+            position: fixed; inset: 0;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(4px);
+            z-index: 100;
+            display: none; align-items: center; justify-content: center;
+            padding: 16px;
+        }
+        .modal-bg.active { display: flex; animation: fadeIn 0.3s ease; }
+        .modal-box {
+            background: #1a1a1a;
+            border: 1px solid rgba(89,65,56,0.3);
+            border-radius: 20px;
+            width: 100%; max-width: 600px;
+            max-height: 90dvh; overflow-y: auto;
+            animation: fadeInUp 0.4s cubic-bezier(0.4,0,0.2,1);
+        }
+
+        /* ═══════ Toast ═══════ */
+        .toast {
+            position: fixed; top: 24px; left: 50%;
+            transform: translateX(-50%) translateY(-100px);
+            z-index: 9999; padding: 14px 28px;
+            border-radius: 14px; font-weight: 700; font-size: 14px;
+            opacity: 0; transition: all 0.5s cubic-bezier(0.68,-0.55,0.265,1.55);
+            display: flex; align-items: center; gap: 10px;
+            backdrop-filter: blur(12px); max-width: 90vw;
+        }
+        .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+        .toast.success { background: rgba(34,197,94,0.15); border: 1px solid rgba(34,197,94,0.3); color: #4ade80; }
+        .toast.error { background: rgba(239,68,68,0.15); border: 1px solid rgba(239,68,68,0.3); color: #f87171; }
+        .toast.info { background: rgba(59,130,246,0.15); border: 1px solid rgba(59,130,246,0.3); color: #60a5fa; }
+
+        /* ═══════ Mention Dropdown ═══════ */
+        .mention-dropdown {
+            position: absolute; bottom: 100%; right: 0;
+            background: #1a1a1a;
+            border: 1px solid rgba(89,65,56,0.3);
+            border-radius: 12px;
+            padding: 6px;
+            min-width: 220px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+            display: none; z-index: 20;
+        }
+        .mention-dropdown.show { display: block; animation: fadeIn 0.2s ease; }
+        .mention-item {
+            display: flex; align-items: center; gap: 10px;
+            padding: 8px 12px; border-radius: 8px;
+            cursor: pointer; transition: all 0.2s;
+        }
+        .mention-item:hover { background: rgba(242,101,34,0.1); }
+        .mention-item img { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; }
+
+        /* ═══════ Hashtag Highlight ═══════ */
+        .ht { color: #f26522; cursor: pointer; font-weight: 600; }
+        .ht:hover { text-decoration: underline; }
+        .mn { color: #60a5fa; cursor: pointer; font-weight: 600; }
+        .mn:hover { text-decoration: underline; }
+
+        /* ═══════ Quote Card ═══════ */
+        .quote-card {
+            border: 1px solid rgba(89,65,56,0.2);
+            border-radius: 14px;
+            padding: 14px;
+            margin-top: 10px;
+            background: rgba(42,42,42,0.3);
+        }
+
+        /* ═══════ Schedule Badge ═══════ */
+        .schedule-badge {
+            display: inline-flex; align-items: center; gap: 4px;
+            background: rgba(59,130,246,0.12);
+            color: #60a5fa;
+            padding: 4px 10px; border-radius: 20px;
+            font-size: 11px; font-weight: 600;
+        }
+
+        /* ═══════ Scrollbar ═══════ */
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #474746; border-radius: 4px; }
+
+        /* ═══════ Responsive ═══════ */
+        @media (max-width: 640px) {
+            .nested-comments { margin-right: 16px; padding-right: 10px; }
+            .action-btn span:last-child { display: none; }
+            .action-btn { padding: 8px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-bg"></div>
+    <div id="toastEl" class="toast"></div>
+
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- TOP BAR -->
+    <!-- ═══════════════════════════════════════════ -->
+    <header class="fixed top-0 w-full z-50 glass-bar border-b border-[#594138]/30 flex items-center justify-between px-4 h-14">
+        <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-[#f26522] to-[#e85d1c] flex items-center justify-center">
+                <span class="material-symbols-outlined text-white text-[18px]" style="font-variation-settings:'FILL' 1;">balance</span>
+            </div>
+            <h1 class="text-lg font-extrabold text-[#f26522]">لو بوك</h1>
+        </div>
+        <div class="flex items-center gap-2">
+            <button class="p-2 rounded-full hover:bg-white/5 transition-colors" onclick="showToast('الإشعارات','info')">
+                <span class="material-symbols-outlined text-[#e1bfb3]">notifications</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- MAIN FEED -->
+    <!-- ═══════════════════════════════════════════ -->
+    <main class="relative z-10 pt-16 pb-24 max-w-xl mx-auto px-4">
+
+        <!-- ═══ POST COMPOSER ═══ -->
+        <div class="composer-box p-4 mb-6" style="animation: fadeIn 0.5s ease;">
+            <div class="flex gap-3">
+                <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop&crop=face" class="w-11 h-11 rounded-full object-cover shrink-0"/>
+                <div class="flex-1 relative">
+                    <textarea id="composerText" class="composer-textarea" rows="2" placeholder="شارك تحديثاً أو سابقة قانونية..." oninput="handleComposerInput(this)"></textarea>
+
+                    <!-- Mention Dropdown -->
+                    <div id="mentionDropdown" class="mention-dropdown">
+                        <!-- Filled dynamically -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Media Preview -->
+            <div id="mediaPreview" class="hidden mt-3">
+                <div id="previewGrid" class="preview-grid"></div>
+            </div>
+
+            <!-- Video Preview -->
+            <div id="videoPreview" class="hidden mt-3">
+                <div class="relative rounded-xl overflow-hidden bg-black">
+                    <video id="previewVideoEl" class="w-full max-h-60 object-contain" controls></video>
+                    <button onclick="removeVideo()" class="absolute top-2 left-2 w-8 h-8 bg-black/70 rounded-full flex items-center justify-center hover:bg-red-500 transition-colors">
+                        <span class="material-symbols-outlined text-white text-[18px]">close</span>
+                    </button>
+                    <div id="videoDuration" class="absolute bottom-2 left-2 bg-black/70 text-white text-xs px-2 py-1 rounded"></div>
+                </div>
+            </div>
+
+            <!-- Poll Builder -->
+            <div id="pollBuilder" class="hidden mt-3 p-4 rounded-xl bg-[#1a1a1a] border border-[#594138]/20">
+                <div class="flex items-center justify-between mb-3">
+                    <h4 class="text-sm font-bold text-[#f26522] flex items-center gap-2">
+                        <span class="material-symbols-outlined text-[18px]">poll</span>
+                        إنشاء استطلاع رأي
+                    </h4>
+                    <button onclick="togglePollBuilder()" class="text-[#7a7570] hover:text-red-400 transition-colors">
+                        <span class="material-symbols-outlined text-[18px]">close</span>
+                    </button>
+                </div>
+                <div id="pollOptions" class="space-y-2 mb-3">
+                    <input type="text" class="input-field" placeholder="الخيار 1" data-idx="0"/>
+                    <input type="text" class="input-field" placeholder="الخيار 2" data-idx="1"/>
+                </div>
+                <div class="flex gap-2 mb-3">
+                    <button onclick="addPollOption()" class="btn-ghost text-xs">
+                        <span class="material-symbols-outlined text-[16px]">add</span>
+                        إضافة خيار
+                    </button>
+                </div>
+                <div>
+                    <label class="text-xs text-[#7a7570] mb-1 block">مدة الاستطلاع</label>
+                    <select id="pollDuration" class="input-field text-sm">
+                        <option value="1">ساعة واحدة</option>
+                        <option value="6">6 ساعات</option>
+                        <option value="24" selected>24 ساعة</option>
+                        <option value="72">3 أيام</option>
+                        <option value="168">أسبوع</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Schedule Picker -->
+            <div id="schedulePicker" class="hidden mt-3 p-4 rounded-xl bg-[#1a1a1a] border border-[#594138]/20">
+                <div class="flex items-center justify-between mb-3">
+                    <h4 class="text-sm font-bold text-blue-400 flex items-center gap-2">
+                        <span class="material-symbols-outlined text-[18px]">schedule</span>
+                        جدولة المنشور
+                    </h4>
+                    <button onclick="toggleSchedulePicker()" class="text-[#7a7570] hover:text-red-400 transition-colors">
+                        <span class="material-symbols-outlined text-[18px]">close</span>
+                    </button>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="text-xs text-[#7a7570] mb-1 block">التاريخ</label>
+                        <input type="date" id="scheduleDate" class="input-field text-sm"/>
+                    </div>
+                    <div>
+                        <label class="text-xs text-[#7a7570] mb-1 block">الوقت</label>
+                        <input type="time" id="scheduleTime" class="input-field text-sm"/>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Composer Toolbar -->
+            <div class="flex items-center justify-between mt-3 pt-3 border-t border-[#594138]/15">
+                <div class="flex gap-1">
+                    <button onclick="document.getElementById('imageInput').click()" class="p-2 rounded-full hover:bg-white/5 text-[#f26522] transition-colors" title="صور">
+                        <span class="material-symbols-outlined text-[22px]">image</span>
+                    </button>
+                    <input type="file" id="imageInput" accept="image/*" multiple class="hidden" onchange="handleImageUpload(this)"/>
+
+                    <button onclick="document.getElementById('videoInput').click()" class="p-2 rounded-full hover:bg-white/5 text-[#f26522] transition-colors" title="فيديو">
+                        <span class="material-symbols-outlined text-[22px]">videocam</span>
+                    </button>
+                    <input type="file" id="videoInput" accept="video/*" class="hidden" onchange="handleVideoUpload(this)"/>
+
+                    <button onclick="togglePollBuilder()" class="p-2 rounded-full hover:bg-white/5 text-[#f26522] transition-colors" title="استطلاع">
+                        <span class="material-symbols-outlined text-[22px]">poll</span>
+                    </button>
+
+                    <button onclick="toggleSchedulePicker()" class="p-2 rounded-full hover:bg-white/5 text-blue-400 transition-colors" title="جدولة">
+                        <span class="material-symbols-outlined text-[22px]">schedule</span>
+                    </button>
+                </div>
+
+                <div class="flex items-center gap-2">
+                    <span id="charCount" class="text-xs text-[#7a7570] hidden">0/2000</span>
+                    <button onclick="publishPost()" class="btn-orange" id="publishBtn">
+                        <span class="material-symbols-outlined text-[18px]">send</span>
+                        نشر
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══ FEED ═══ -->
+        <div id="feedContainer" class="space-y-4">
+            <!-- Posts rendered dynamically -->
+        </div>
+
+        <!-- Load More -->
+        <div id="loadMore" class="text-center py-8">
+            <button onclick="loadMorePosts()" class="btn-ghost mx-auto">
+                <span class="material-symbols-outlined text-[18px]">expand_more</span>
+                تحميل المزيد
+            </button>
+        </div>
+    </main>
+
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- COMMENTS MODAL -->
+    <!-- ═══════════════════════════════════════════ -->
+    <div id="commentsModal" class="modal-bg" onclick="closeModalOutside(event, 'commentsModal')">
+        <div class="modal-box">
+            <div class="sticky top-0 z-10 flex items-center justify-between p-4 border-b border-[#594138]/20" style="background:#1a1a1a;">
+                <h3 class="text-lg font-extrabold text-[#f26522]">التعليقات</h3>
+                <button onclick="closeModal('commentsModal')" class="p-2 rounded-full hover:bg-white/5">
+                    <span class="material-symbols-outlined text-[#7a7570]">close</span>
+                </button>
+            </div>
+            <div id="commentsList" class="p-4 space-y-4 max-h-[50vh] overflow-y-auto">
+                <!-- Filled dynamically -->
+            </div>
+            <div class="p-4 border-t border-[#594138]/20 flex gap-2" style="background:#1a1a1a;">
+                <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=60&h=60&fit=crop&crop=face" class="w-9 h-9 rounded-full object-cover shrink-0"/>
+                <input type="text" id="commentInput" class="input-field flex-1" placeholder="اكتب تعليقاً..." onkeydown="if(event.key==='Enter'){event.preventDefault();submitComment();}"/>
+                <button onclick="submitComment()" class="btn-orange px-4">
+                    <span class="material-symbols-outlined text-[18px]">send</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- QUOTE MODAL -->
+    <!-- ═══════════════════════════════════════════ -->
+    <div id="quoteModal" class="modal-bg" onclick="closeModalOutside(event, 'quoteModal')">
+        <div class="modal-box">
+            <div class="sticky top-0 z-10 flex items-center justify-between p-4 border-b border-[#594138]/20" style="background:#1a1a1a;">
+                <h3 class="text-lg font-extrabold text-[#f26522]">اقتباس المنشور</h3>
+                <button onclick="closeModal('quoteModal')" class="p-2 rounded-full hover:bg-white/5">
+                    <span class="material-symbols-outlined text-[#7a7570]">close</span>
+                </button>
+            </div>
+            <div class="p-4">
+                <textarea id="quoteText" class="input-field mb-3" rows="3" placeholder="أضف تعليقك على هذا المنشور..."></textarea>
+                <div id="quotePreview" class="quote-card mb-3">
+                    <!-- Original post preview -->
+                </div>
+                <button onclick="submitQuote()" class="btn-orange w-full justify-center">
+                    <span class="material-symbols-outlined text-[18px]">format_quote</span>
+                    نشر الاقتباس
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- EDIT POST MODAL -->
+    <!-- ═══════════════════════════════════════════ -->
+    <div id="editModal" class="modal-bg" onclick="closeModalOutside(event, 'editModal')">
+        <div class="modal-box">
+            <div class="sticky top-0 z-10 flex items-center justify-between p-4 border-b border-[#594138]/20" style="background:#1a1a1a;">
+                <h3 class="text-lg font-extrabold text-[#f26522]">تعديل المنشور</h3>
+                <button onclick="closeModal('editModal')" class="p-2 rounded-full hover:bg-white/5">
+                    <span class="material-symbols-outlined text-[#7a7570]">close</span>
+                </button>
+            </div>
+            <div class="p-4">
+                <textarea id="editText" class="input-field mb-3" rows="4" placeholder="محتوى المنشور..."></textarea>
+                <div class="flex gap-2">
+                    <button onclick="closeModal('editModal')" class="btn-ghost flex-1 justify-center">إلغاء</button>
+                    <button onclick="saveEditPost()" class="btn-orange flex-1 justify-center">حفظ التعديل</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- JAVASCRIPT -->
+    <!-- ═══════════════════════════════════════════ -->
+    <script>
+    // ═══════════════════════════════════════════
+    // DATABASE
+    // ═══════════════════════════════════════════
+    const DB = {
+        get(k) { try { return JSON.parse(localStorage.getItem('lb_'+k)); } catch { return null; } },
+        set(k,v) { localStorage.setItem('lb_'+k, JSON.stringify(v)); },
+        rm(k) { localStorage.removeItem('lb_'+k); }
+    };
+
+    // ═══════════════════════════════════════════
+    // CURRENT USER
+    // ═══════════════════════════════════════════
+    const ME = {
+        id: 'usr_001',
+        name: 'عبدالملك بن محمد',
+        username: 'abdulmalik_m',
+        avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop&crop=face',
+        verified: true
+    };
+
+    // ═══════════════════════════════════════════
+    // SAMPLE USERS (for mentions)
+    // ═══════════════════════════════════════════
+    const USERS = [
+        { id:'u1', name:'د. نورة القحطاني', username:'nora_q', avatar:'https://i.pravatar.cc/80?img=5' },
+        { id:'u2', name:'أ. فهد العتيبي', username:'fahad_o', avatar:'https://i.pravatar.cc/80?img=12' },
+        { id:'u3', name:'المكتبة القانونية', username:'law_library', avatar:'https://i.pravatar.cc/80?img=22' },
+        { id:'u4', name:'أ. سارة المنصور', username:'sarah_m', avatar:'https://i.pravatar.cc/80?img=9' },
+        { id:'u5', name:'د. خالد الشمري', username:'khalid_s', avatar:'https://i.pravatar.cc/80?img=15' },
+        { id:'u6', name:'مكتب المحاماة الدولي', username:'intl_law', avatar:'https://i.pravatar.cc/80?img=33' }
+    ];
+
+    // ═══════════════════════════════════════════
+    // STATE
+    // ═══════════════════════════════════════════
+    let posts = DB.get('posts') || [];
+    let composerImages = [];
+    let composerVideo = null;
+    let currentCommentPostId = null;
+    let currentQuotePostId = null;
+    let currentEditPostId = null;
+    let mentionSearchActive = false;
+    let postPage = 0;
+    const POSTS_PER_PAGE = 5;
+
+    // ═══════════════════════════════════════════
+    // GENERATE SAMPLE POSTS
+    // ═══════════════════════════════════════════
+    function generateSamplePosts() {
+        if (posts.length > 0) return;
+
+        const samplePosts = [
+            {
+                id: genId(), author: { ...USERS[2] }, pinned: true,
+                text: '📌 دليل شامل: التعديلات الجديدة على نظام التجارة الإلكترونية لعام 2025.\n\nالنقاط الرئيسية:\n1. التزام المنصات بالشفافية في الأسعار\n2. حق الإرجاع خلال 15 يوماً\n3. حماية البيانات الشخصية\n\n#قانون_تجاري #تجارة_إلكترونية #قانون_المستهلك',
+                images: [
+                    'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?w=800&h=600&fit=crop',
+                    'https://images.unsplash.com/photo-1505664194779-8beaceb93744?w=800&h=600&fit=crop'
+                ],
+                video: null, poll: null, quoteOf: null,
+                scheduled: null, createdAt: twoHoursAgo(),
+                likes: 234, likedBy: [], comments: [
+                    {
+                        id: genId(), author: USERS[0], text: 'معلومات قيمة! شكراً للمشاركة 🙏',
+                        createdAt: oneHourAgo(), likes: 12, likedBy: [],
+                        replies: [
+                            { id: genId(), author: USERS[3], text: 'بالفعل، تغييرات جوهرية', createdAt: thirtyMinAgo(), likes: 3, likedBy: [] }
+                        ]
+                    },
+                    {
+                        id: genId(), author: USERS[1], text: 'هل חלו تغييرات على عقود B2B أيضاً؟',
+                        createdAt: fortyFiveMinAgo(), likes: 5, likedBy: [],
+                        replies: []
+                    }
+                ],
+                shares: 89, bookmarks: [], isBookmarked: false
+            },
+            {
+                id: genId(), author: { ...USERS[0] }, pinned: false,
+                text: 'نصيحة قانونية للمستقلين (Freelancers):\n\nدائماً اجعل العقد مكتوباً حتى لو كان العميل صديقك. العقد الواقي خير من ألف شاهد.\n\n@fahad_o شاركت تجربتك مع هذا الموضوع سابقاً، ما رأيك؟\n\n#قانون_العمل #مستقلون #عقود',
+                images: [], video: null,
+                poll: {
+                    question: 'هل توقع عقداً مع كل عميل؟',
+                    options: [
+                        { text: 'نعم، دائماً', votes: 45 },
+                        { text: 'أحياناً فقط', votes: 23 },
+                        { text: 'لا أحتاج عقود', votes: 8 }
+                    ],
+                    totalVotes: 76, endsAt: inHours(24), voted: null
+                },
+                quoteOf: null, scheduled: null, createdAt: fiveHoursAgo(),
+                likes: 892, likedBy: [], comments: [
+                    {
+                        id: genId(), author: USERS[1], text: 'نصيحة ذهبية! أنا شخصياً وقعت في مشاكل بسبب عدم وجود عقد مكتوب.',
+                        createdAt: fourHoursAgo(), likes: 34, likedBy: [],
+                        replies: [
+                            { id: genId(), author: USERS[4], text: 'نفس التجربة! العقد حماية للطرفين', createdAt: threeHoursAgo(), likes: 8, likedBy: [] }
+                        ]
+                    }
+                ],
+                shares: 445, bookmarks: [], isBookmarked: true
+            },
+            {
+                id: genId(), author: { ...USERS[1] }, pinned: false,
+                text: 'فيديو: شرح مبسط لقانون العمل الجديد — أهم 5 نقاط يجب على كل موظف ومدير معرفتها.',
+                images: [],
+                video: { url: '', poster: 'https://images.unsplash.com/photo-1436491865332-7a61a109db05?w=800&h=450&fit=crop', duration: 185 },
+                poll: null, quoteOf: null, scheduled: null, createdAt: yesterday(),
+                likes: 567, likedBy: [], comments: [], shares: 201, bookmarks: [], isBookmarked: false
+            },
+            {
+                id: genId(), author: { ...USERS[3] }, pinned: false,
+                text: 'اقتباس مهم من محاضرة اليوم عن التحكيم الرقمي:\n\n"التحكيم الإلكتروني ليس مستقبلاً بعيداً، بل هو حاضر يجب أن نتكيف معه."\n\n@khalid_s',
+                images: [], video: null, poll: null,
+                quoteOf: {
+                    author: USERS[4],
+                    text: 'في مؤتمر التقنية والقانون 2025، أكدت على أن التحكيم الرقمي سيحل محل 60% من التقاضي التقليدي خلال 5 سنوات.',
+                    createdAt: twoDaysAgo()
+                },
+                scheduled: null, createdAt: twoDaysAgo(),
+                likes: 156, likedBy: [], comments: [], shares: 67, bookmarks: [], isBookmarked: false
+            },
+            {
+                id: genId(), author: { ...ME }, pinned: false,
+                text: 'شاركت اليوم في ورشة عمل حول حماية الملكية الفكرية في عصر الذكاء الاصطناعي. من أبرز النتائج:\n\n• حاجة ماسة لتحديث قوانين حقوق الطبع\n• ضرورة حماية المحتوى المُنشأ بالـ AI\n• وضع إطارات قانونية واضحة\n\n#ملكية_فكرية #ذكاء_اصطناعي #قانون',
+                images: [
+                    'https://images.unsplash.com/photo-1479142506502-19b3a3b7ff33?w=800&h=600&fit=crop',
+                    'https://images.unsplash.com/photo-1497366216548-37526070297c?w=800&h=600&fit=crop',
+                    'https://images.unsplash.com/photo-1497366811353-6870744d04b2?w=800&h=600&fit=crop'
+                ],
+                video: null, poll: null, quoteOf: null, scheduled: null,
+                createdAt: threeDaysAgo(),
+                likes: 345, likedBy: [], comments: [
+                    {
+                        id: genId(), author: USERS[5], text: 'موضوع مهم جداً! هل هناك توصيات نهائية من الورشة؟',
+                        createdAt: threeDaysAgo(), likes: 7, likedBy: [],
+                        replies: []
+                    }
+                ],
+                shares: 112, bookmarks: [], isBookmarked: false
+            },
+            {
+                id: genId(), author: { ...USERS[4] }, pinned: false,
+                text: 'منشور مجدول: تذكير — يدخل حيز التنفيذ غداً التعديل رقم 15 على نظام المحاكم التجارية.\n\nالنقاط الجديدة:\n- اختصاص رقمي للنزئات أقل من 100,000 ريال\n- جلسات عن بُعد إلزامية\n- أحكام مُعللة إلكترونياً\n\n#محاكم_تجارية #قضاء_رقمي',
+                images: [], video: null, poll: null, quoteOf: null,
+                scheduled: new Date(Date.now() + 3600000).toISOString(),
+                createdAt: new Date().toISOString(),
+                likes: 0, likedBy: [], comments: [], shares: 0, bookmarks: [], isBookmarked: false
+            }
+        ];
+
+        posts = samplePosts;
+        DB.set('posts', posts);
+    }
+
+    // ═══════════════════════════════════════════
+    // TIME HELPERS
+    // ═══════════════════════════════════════════
+    function twoHoursAgo() { return new Date(Date.now() - 7200000).toISOString(); }
+    function oneHourAgo() { return new Date(Date.now() - 3600000).toISOString(); }
+    function thirtyMinAgo() { return new Date(Date.now() - 1800000).toISOString(); }
+    function fortyFiveMinAgo() { return new Date(Date.now() - 2700000).toISOString(); }
+    function fiveHoursAgo() { return new Date(Date.now() - 18000000).toISOString(); }
+    function fourHoursAgo() { return new Date(Date.now() - 14400000).toISOString(); }
+    function threeHoursAgo() { return new Date(Date.now() - 10800000).toISOString(); }
+    function yesterday() { return new Date(Date.now() - 86400000).toISOString(); }
+    function twoDaysAgo() { return new Date(Date.now() - 172800000).toISOString(); }
+    function inHours(h) { return new Date(Date.now() + h * 3600000).toISOString(); }
+    function genId() { return 'p_' + Date.now() + '_' + Math.random().toString(36).substr(2,6); }
+
+    function formatTimeAgo(iso) {
+        const diff = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
+        if (diff < 0) {
+            const future = Math.abs(diff);
+            if (future < 3600) return 'بعد ' + Math.floor(future/60) + ' دقيقة';
+            if (future < 86400) return 'بعد ' + Math.floor(future/3600) + ' ساعة';
+            return 'بعد ' + Math.floor(future/86400) + ' يوم';
+        }
+        if (diff < 60) return 'الآن';
+        if (diff < 3600) return 'منذ ' + Math.floor(diff/60) + ' د';
+        if (diff < 86400) return 'منذ ' + Math.floor(diff/3600) + ' س';
+        if (diff < 604800) return 'منذ ' + Math.floor(diff/86400) + ' ي';
+        return new Date(iso).toLocaleDateString('ar-SA');
+    }
+
+    // ═══════════════════════════════════════════
+    // ESCAPE HTML
+    // ═══════════════════════════════════════════
+    function esc(t) { const d = document.createElement('div'); d.appendChild(document.createTextNode(t)); return d.innerHTML; }
+
+    // ═══════════════════════════════════════════
+    // FORMAT TEXT (hashtags, mentions, links)
+    // ═══════════════════════════════════════════
+    function formatText(text) {
+        let s = esc(text);
+        // Line breaks
+        s = s.replace(/\n/g, '<br>');
+        // Hashtags
+        s = s.replace(/#([\u0600-\u06FFa-zA-Z0-9_]+)/g, '<span class="ht">#$1</span>');
+        // Mentions
+        s = s.replace(/@([a-zA-Z0-9_]+)/g, function(match, username) {
+            const user = USERS.find(u => u.username === username);
+            return user ? `<span class="mn" onclick="showToast('عرض ملف @${username}','info')">@${user.name}</span>` : `<span class="mn">@${username}</span>`;
+        });
+        return s;
+    }
+
+    // ═══════════════════════════════════════════
+    // RENDER FEED
+    // ═══════════════════════════════════════════
+    function renderFeed() {
+        const container = document.getElementById('feedContainer');
+
+        // Sort: pinned first, then by date
+        const sorted = [...posts].sort((a, b) => {
+            if (a.pinned && !b.pinned) return -1;
+            if (!a.pinned && b.pinned) return 1;
+            return new Date(b.createdAt) - new Date(a.createdAt);
+        });
+
+        // Filter out scheduled posts (unless they're in the past)
+        const visible = sorted.filter(p => {
+            if (p.scheduled && new Date(p.scheduled) > new Date()) return p.author.id === ME.id;
+            return true;
+        });
+
+        const paged = visible.slice(0, (postPage + 1) * POSTS_PER_PAGE);
+
+        container.innerHTML = paged.map((post, idx) => renderPostCard(post, idx)).join('');
+
+        // Show/hide load more
+        document.getElementById('loadMore').style.display = paged.length < visible.length ? 'block' : 'none';
+
+        // Init carousels
+        paged.forEach(post => {
+            if (post.images && post.images.length > 1) {
+                initCarousel(post.id);
+            }
+        });
+    }
+
+    // ═══════════════════════════════════════════
+    // RENDER SINGLE POST CARD
+    // ═══════════════════════════════════════════
+    function renderPostCard(post, idx) {
+        const isMine = post.author.id === ME.id;
+        const isLiked = post.likedBy.includes(ME.id);
+        const isBookmarked = post.isBookmarked;
+        const delay = Math.min(idx * 0.08, 0.5);
+        const isScheduled = post.scheduled && new Date(post.scheduled) > new Date();
+
+        return `
+        <article class="post-card ${post.pinned ? 'pinned' : ''}" data-post-id="${post.id}" style="animation: fadeInUp ${0.4 + delay}s ease forwards; opacity: 0;">
+            <!-- Scheduled Badge -->
+            ${isScheduled ? `
+                <div class="px-5 pt-4 pb-0">
+                    <span class="schedule-badge">
+                        <span class="material-symbols-outlined text-[14px]">schedule</span>
+                        مجدول: ${formatTimeAgo(post.scheduled)}
+                    </span>
+                </div>
+            ` : ''}
+
+            <!-- Pinned Badge -->
+            ${post.pinned ? `
+                <div class="px-5 pt-4 pb-0 flex items-center gap-1 text-xs text-[#f26522] font-semibold">
+                    <span class="material-symbols-outlined text-[14px]">push_pin</span>
+                    منشور مثبّت
+                </div>
+            ` : ''}
+
+            <!-- Author Header -->
+            <div class="p-5 pb-0 flex items-center gap-3">
+                <img src="${post.author.avatar}" class="w-11 h-11 rounded-full object-cover cursor-pointer hover:ring-2 hover:ring-[#f26522]/50 transition-all" onclick="showToast('عرض ملف ${esc(post.author.name)}','info')"/>
+                <div class="flex-1 min-w-0">
+                    <h3 class="font-bold text-sm flex items-center gap-1 flex-wrap">
+                        ${esc(post.author.name)}
+                        ${post.author.verified ? '<span class="material-symbols-outlined text-[14px] text-blue-400" style="font-variation-settings:FILL 1">verified</span>' : ''}
+                    </h3>
+                    <p class="text-[11px] text-[#7a7570]">@${esc(post.author.username || '')} · ${formatTimeAgo(post.createdAt)}</p>
+                </div>
+                ${isMine ? `
+                <div class="relative">
+                    <button onclick="togglePostMenu('${post.id}')" class="p-2 rounded-full hover:bg-white/5 text-[#7a7570] transition-colors">
+                        <span class="material-symbols-outlined">more_horiz</span>
+                    </button>
+                    <div id="menu-${post.id}" class="hidden absolute top-full left-0 mt-1 bg-[#1a1a1a] border border-[#594138]/30 rounded-xl p-1 min-w-[160px] shadow-2xl z-10 animate-fadeIn">
+                        ${!post.pinned ? `<button onclick="pinPost('${post.id}')" class="w-full flex items-center gap-2 px-3 py-2.5 rounded-lg hover:bg-white/5 text-sm transition-colors"><span class="material-symbols-outlined text-[18px]">push_pin</span> تثبيت</button>` : `<button onclick="unpinPost('${post.id}')" class="w-full flex items-center gap-2 px-3 py-2.5 rounded-lg hover:bg-white/5 text-sm transition-colors"><span class="material-symbols-outlined text-[18px]">push_pin</span> إلغاء التثبيت</button>`}
+                        <button onclick="openEditPost('${post.id}')" class="w-full flex items-center gap-2 px-3 py-2.5 rounded-lg hover:bg-white/5 text-sm transition-colors"><span class="material-symbols-outlined text-[18px]">edit</span> تعديل</button>
+                        <button onclick="deletePost('${post.id}')" class="w-full flex items-center gap-2 px-3 py-2.5 rounded-lg hover:bg-red-500/10 text-red-400 text-sm transition-colors"><span class="material-symbols-outlined text-[18px]">delete</span> حذف</button>
+                    </div>
+                </div>
+                ` : ''}
+            </div>
+
+            <!-- Content -->
+            <div class="px-5 pt-3">
+                <p class="text-[15px] leading-relaxed whitespace-pre-wrap">${formatText(post.text)}</p>
+            </div>
+
+            <!-- Images Carousel -->
+            ${post.images && post.images.length > 0 ? `
+                <div class="px-5 pt-3">
+                    <div class="carousel-container" id="carousel-${post.id}" data-current="0" data-total="${post.images.length}">
+                        <div class="carousel-track" id="track-${post.id}">
+                            ${post.images.map(img => `<img src="${img}" class="carousel-slide" loading="lazy"/>`).join('')}
+                        </div>
+                        ${post.images.length > 1 ? `
+                            <button class="carousel-btn prev" onclick="slideCarousel('${post.id}', 1)">
+                                <span class="material-symbols-outlined text-[20px]">chevron_right</span>
+                            </button>
+                            <button class="carousel-btn next" onclick="slideCarousel('${post.id}', -1)">
+                                <span class="material-symbols-outlined text-[20px]">chevron_left</span>
+                            </button>
+                            <div class="carousel-dots" id="dots-${post.id}">
+                                ${post.images.map((_, i) => `<div class="carousel-dot ${i===0?'active':''}" onclick="goToSlide('${post.id}', ${i})"></div>`).join('')}
+                            </div>
+                            <div class="carousel-counter" id="counter-${post.id}">1/${post.images.length}</div>
+                        ` : ''}
+                    </div>
+                </div>
+            ` : ''}
+
+            <!-- Video -->
+            ${post.video ? `
+                <div class="px-5 pt-3">
+                    <div class="video-container" id="video-${post.id}" onclick="toggleVideo('${post.id}')">
+                        <video id="vid-el-${post.id}" preload="metadata" poster="${post.video.poster || ''}" ${post.video.url ? `src="${post.video.url}"` : ''}>
+                            المتصفح لا يدعم تشغيل الفيديو
+                        </video>
+                        <div class="video-overlay" id="vid-overlay-${post.id}">
+                            <div class="video-play-btn">
+                                <span class="material-symbols-outlined text-white text-[32px]" style="font-variation-settings:'FILL' 1;">play_arrow</span>
+                            </div>
+                        </div>
+                        <div class="video-progress" id="vid-progress-${post.id}">
+                            <div class="video-progress-fill" id="vid-fill-${post.id}" style="width:0%"></div>
+                        </div>
+                        <div class="video-time" id="vid-time-${post.id}">${formatDuration(post.video.duration || 0)}</div>
+                    </div>
+                </div>
+            ` : ''}
+
+            <!-- Poll -->
+            ${post.poll ? `
+                <div class="px-5 pt-3" id="poll-${post.id}">
+                    <div class="rounded-xl border border-[#594138]/20 overflow-hidden">
+                        <div class="px-4 pt-3 pb-2">
+                            <h4 class="font-bold text-sm flex items-center gap-2">
+                                <span class="material-symbols-outlined text-[#f26522] text-[18px]">poll</span>
+                                ${esc(post.poll.question)}
+                            </h4>
+                            <p class="text-[11px] text-[#7a7570] mt-1">${post.poll.totalVotes} صوت · ينتهي ${formatTimeAgo(post.poll.endsAt)}</p>
+                        </div>
+                        <div class="px-4 pb-3 space-y-2">
+                            ${post.poll.options.map((opt, i) => {
+                                const pct = post.poll.totalVotes > 0 ? Math.round((opt.votes / post.poll.totalVotes) * 100) : 0;
+                                const isVoted = post.poll.voted === i;
+                                return `
+                                <div class="poll-option ${post.poll.voted !== null ? 'voted' : ''}" onclick="votePoll('${post.id}', ${i})" id="poll-opt-${post.id}-${i}">
+                                    <div class="poll-bar" style="width: ${post.poll.voted !== null ? pct : 0}%"></div>
+                                    <div class="poll-option-content">
+                                        <span class="text-sm ${isVoted ? 'font-bold text-[#f26522]': ''}">${isVoted ? '✓ ' : ''}${esc(opt.text)}</span>
+                                        ${post.poll.voted !== null ? `<span class="text-sm font-bold ${isVoted ? 'text-[#f26522]' : 'text-[#7a7570]'}">${pct}%</span>` : ''}
+                                    </div>
+                                </div>`;
+                            }).join('')}
+                        </div>
+                    </div>
+                </div>
+            ` : ''}
+
+            <!-- Quoted Post -->
+            ${post.quoteOf ? `
+                <div class="px-5 pt-3">
+                    <div class="quote-card">
+                        <div class="flex items-center gap-2 mb-2">
+                            <img src="${post.quoteOf.author.avatar}" class="w-7 h-7 rounded-full object-cover"/>
+                            <span class="font-bold text-xs">${esc(post.quoteOf.author.name)}</span>
+                            <span class="text-[10px] text-[#7a7570]">${formatTimeAgo(post.quoteOf.createdAt)}</span>
+                        </div>
+                        <p class="text-sm text-[#e1bfb3] leading-relaxed line-clamp-3">${formatText(post.quoteOf.text)}</p>
+                    </div>
+                </div>
+            ` : ''}
+
+            <!-- Stats -->
+            <div class="px-5 pt-3 flex items-center gap-4 text-xs text-[#7a7570]">
+                ${post.likes > 0 ? `<span class="hover:text-[#f26522] cursor-pointer transition-colors">${post.likes} إعجاب</span>` : ''}
+                ${post.comments.length > 0 ? `<span class="hover:text-blue-400 cursor-pointer transition-colors">${countAllComments(post)} تعليق</span>` : ''}
+                ${post.shares > 0 ? `<span class="hover:text-green-400 cursor-pointer transition-colors">${post.shares} مشاركة</span>` : ''}
+            </div>
+
+            <!-- Actions -->
+            <div class="px-5 py-3 flex justify-between border-t border-[#594138]/10 mt-2">
+                <button class="action-btn ${isLiked ? 'like-active' : ''}" onclick="toggleLike('${post.id}', this)">
+                    <span class="material-symbols-outlined text-[22px] ${isLiked ? 'animate-heart' : ''}" style="${isLiked ? "font-variation-settings:'FILL' 1; color:#f26522;" : ''}">favorite</span>
+                    <span class="like-count">${post.likes}</span>
+                </button>
+                <button class="action-btn" onclick="openComments('${post.id}')">
+                    <span class="material-symbols-outlined text-[22px]">chat_bubble</span>
+                    <span>${countAllComments(post)}</span>
+                </button>
+                <button class="action-btn" onclick="repost('${post.id}')">
+                    <span class="material-symbols-outlined text-[22px]">repeat</span>
+                    <span>${post.shares}</span>
+                </button>
+                <button class="action-btn" onclick="openQuote('${post.id}')">
+                    <span class="material-symbols-outlined text-[22px]">format_quote</span>
+                </button>
+                <button class="action-btn ${isBookmarked ? 'bookmark-active' : ''}" onclick="toggleBookmark('${post.id}', this)">
+                    <span class="material-symbols-outlined text-[22px]" style="${isBookmarked ? "font-variation-settings:'FILL' 1; color:#f26522;" : ''}">bookmark</span>
+                </button>
+            </div>
+        </article>`;
+    }
+
+    // ═══════════════════════════════════════════
+    // COUNT ALL COMMENTS (including replies)
+    // ═══════════════════════════════════════════
+    function countAllComments(post) {
+        let count = post.comments.length;
+        post.comments.forEach(c => { count += (c.replies ? c.replies.length : 0); });
+        return count;
+    }
+
+    // ═══════════════════════════════════════════
+    // FORMAT VIDEO DURATION
+    // ═══════════════════════════════════════════
+    function formatDuration(sec) {
+        const m = Math.floor(sec / 60);
+        const s = Math.floor(sec % 60);
+        return m + ':' + (s < 10 ? '0' : '') + s;
+    }
+
+    // ═══════════════════════════════════════════
+    // CAROUSEL
+    // ═══════════════════════════════════════════
+    function initCarousel(postId) {
+        const carousel = document.getElementById('carousel-' + postId);
+        if (!carousel) return;
+
+        let startX = 0;
+        carousel.addEventListener('touchstart', e => { startX = e.touches[0].clientX; }, { passive: true });
+        carousel.addEventListener('touchend', e => {
+            const diff = startX - e.changedTouches[0].clientX;
+            if (Math.abs(diff) > 50) {
+                slideCarousel(postId, diff > 0 ? -1 : 1);
+            }
+        }, { passive: true });
+    }
+
+    function slideCarousel(postId, dir) {
+        const carousel = document.getElementById('carousel-' + postId);
+        const track = document.getElementById('track-' + postId);
+        const dots = document.getElementById('dots-' + postId);
+        const counter = document.getElementById('counter-' + postId);
+        if (!carousel || !track) return;
+
+        let current = parseInt(carousel.dataset.current);
+        const total = parseInt(carousel.dataset.total);
+        current += dir;
+        if (current < 0) current = total - 1;
+        if (current >= total) current = 0;
+
+        carousel.dataset.current = current;
+        track.style.transform = `translateX(${current * 100}%)`;
+
+        if (dots) {
+            dots.querySelectorAll('.carousel-dot').forEach((d, i) => {
+                d.classList.toggle('active', i === current);
+            });
+        }
+        if (counter) counter.textContent = (current + 1) + '/' + total;
+    }
+
+    function goToSlide(postId, index) {
+        const carousel = document.getElementById('carousel-' + postId);
+        const track = document.getElementById('track-' + postId);
+        const dots = document.getElementById('dots-' + postId);
+        const counter = document.getElementById('counter-' + postId);
+        if (!carousel || !track) return;
+
+        carousel.dataset.current = index;
+        track.style.transform = `translateX(${index * 100}%)`;
+
+        if (dots) {
+            dots.querySelectorAll('.carousel-dot').forEach((d, i) => {
+                d.classList.toggle('active', i === index);
+            });
+        }
+        const total = parseInt(carousel.dataset.total);
+        if (counter) counter.textContent = (index + 1) + '/' + total;
+    }
+
+    // ═══════════════════════════════════════════
+    // VIDEO PLAYER
+    // ═══════════════════════════════════════════
+    function toggleVideo(postId) {
+        const vid = document.getElementById('vid-el-' + postId);
+        const container = document.getElementById('video-' + postId);
+        const overlay = document.getElementById('vid-overlay-' + postId);
+        const fill = document.getElementById('vid-fill-' + postId);
+        const timeEl = document.getElementById('vid-time-' + postId);
+
+        if (!vid) return;
+
+        if (vid.paused) {
+            // Pause all other videos
+            document.querySelectorAll('video').forEach(v => { if (v !== vid) v.pause(); });
+            document.querySelectorAll('.video-container').forEach(c => c.classList.remove('playing'));
+
+            vid.play();
+            container.classList.add('playing');
+
+            vid.ontimeupdate = () => {
+                if (vid.duration) {
+                    const pct = (vid.currentTime / vid.duration) * 100;
+                    fill.style.width = pct + '%';
+                    timeEl.textContent = formatDuration(vid.duration - vid.currentTime);
+                }
+            };
+            vid.onended = () => {
+                container.classList.remove('playing');
+                fill.style.width = '0%';
+            };
+        } else {
+            vid.pause();
+            container.classList.remove('playing');
+        }
+    }
+
+    // ═══════════════════════════════════════════
+    // LIKE / BOOKMARK / REPOST
+    // ═══════════════════════════════════════════
+    function toggleLike(postId, btn) {
+        const post = posts.find(p => p.id === postId);
+        if (!post) return;
+
+        const idx = post.likedBy.indexOf(ME.id);
+        if (idx === -1) {
+            post.likedBy.push(ME.id);
+            post.likes++;
+            btn.classList.add('like-active');
+            const icon = btn.querySelector('.material-symbols-outlined');
+            icon.style.fontVariationSettings = "'FILL' 1";
+            icon.style.color = '#f26522';
+            icon.classList.add('animate-heart');
+            setTimeout(() => icon.classList.remove('animate-heart'), 500);
+        } else {
+            post.likedBy.splice(idx, 1);
+            post.likes--;
+            btn.classList.remove('like-active');
+            const icon = btn.querySelector('.material-symbols-outlined');
+            icon.style.fontVariationSettings = "'FILL' 0";
+            icon.style.color = '';
+        }
+
+        const countEl = btn.querySelector('.like-count');
+        if (countEl) {
+            countEl.textContent = post.likes;
+            countEl.classList.add('animate-countPop');
+            setTimeout(() => countEl.classList.remove('animate-countPop'), 300);
+        }
+
+        savePosts();
+    }
+
+    function toggleBookmark(postId, btn) {
+        const post = posts.find(p => p.id === postId);
+        if (!post) return;
+
+        post.isBookmarked = !post.isBookmarked;
+        const icon = btn.querySelector('.material-symbols-outlined');
+
+        if (post.isBookmarked) {
+            btn.classList.add('bookmark-active');
+            icon.style.fontVariationSettings = "'FILL' 1";
+            icon.style.color = '#f26522';
+            showToast('تم حفظ المنشور', 'success');
+        } else {
+            btn.classList.remove('bookmark-active');
+            icon.style.fontVariationSettings = "'FILL' 0";
+            icon.style.color = '';
+            showToast('تمت إزالة المنشور من المحفوظات', 'info');
+        }
+
+        savePosts();
+    }
+
+    function repost(postId) {
+        const post = posts.find(p => p.id === postId);
+        if (!post) return;
+        post.shares++;
+        showToast('تمت مشاركة المنشور', 'success');
+        savePosts();
+        renderFeed();
+    }
+
+    // ═══════════════════════════════════════════
+    // PIN / UNPIN
+    // ═══════════════════════════════════════════
+    function pinPost(postId) {
+        posts.forEach(p => p.pinned = false);
+        const post = posts.find(p => p.id === postId);
+        if (post) {
+            post.pinned = true;
+            showToast('تم تثبيت المنشور', 'success');
+        }
+        savePosts();
+        renderFeed();
+    }
+
+    function unpinPost(postId) {
+        const post = posts.find(p => p.id === postId);
+        if (post) {
+            post.pinned = false;
+            showToast('تم إلغاء التثبيت', 'info');
+        }
+        savePosts();
+        renderFeed();
+    }
+
+    // ═══════════════════════════════════════════
+    // POST MENU
+    // ═══════════════════════════════════════════
+    function togglePostMenu(postId) {
+        const menu = document.getElementById('menu-' + postId);
+        // Close all other menus
+        document.querySelectorAll('[id^="menu-"]').forEach(m => { if (m.id !== 'menu-'+postId) m.classList.add('hidden'); });
+        menu.classList.toggle('hidden');
+    }
+
+    // Close menus when clicking outside
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('[id^="menu-"]') && !e.target.closest('[onclick*="togglePostMenu"]')) {
+            document.querySelectorAll('[id^="menu-"]').forEach(m => m.classList.add('hidden'));
+        }
+    });
+
+    // ═══════════════════════════════════════════
+    // EDIT POST
+    // ═══════════════════════════════════════════
+    function openEditPost(postId) {
+        const post = posts.find(p => p.id === postId);
+        if (!post) return;
+
+        currentEditPostId = postId;
+        document.getElementById('editText').value = post.text;
+        openModal('editModal');
+    }
+
+    function saveEditPost() {
+        const post = posts.find(p => p.id === currentEditPostId);
+        if (!post) return;
+
+        const newText = document.getElementById('editText').value.trim();
+        if (!newText) {
+            showToast('لا يمكن أن يكون المنشور فارغاً', 'error');
+            return;
+        }
+
+        post.text = newText;
+        savePosts();
+        closeModal('editModal');
+        renderFeed();
+        showToast('تم تعديل المنشور', 'success');
+    }
+
+    // ═══════════════════════════════════════════
+    // DELETE POST
+    // ═══════════════════════════════════════════
+    function deletePost(postId) {
+        if (!confirm('هل أنت متأكد من حذف هذا المنشور؟ لا يمكن التراجع.')) return;
+
+        posts = posts.filter(p => p.id !== postId);
+        savePosts();
+        renderFeed();
+        showToast('تم حذف المنشور', 'success');
+    }
+
+    // ═══════════════════════════════════════════
+    // POLL SYSTEM
+    // ═══════════════════════════════════════════
+    function togglePollBuilder() {
+        const builder = document.getElementById('pollBuilder');
+        builder.classList.toggle('hidden');
+        if (!builder.classList.contains('hidden')) {
+            document.getElementById('schedulePicker').classList.add('hidden');
+        }
+    }
+
+    function addPollOption() {
+        const container = document.getElementById('pollOptions');
+        const count = container.children.length;
+        if (count >= 6) {
+            showToast('الحد الأقصى 6 خيارات', 'error');
+            return;
+        }
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.className = 'input-field';
+        input.placeholder = 'الخيار ' + (count + 1);
+        input.dataset.idx = count;
+        container.appendChild(input);
+    }
+
+    function votePoll(postId, optIndex) {
+        const post = posts.find(p => p.id === postId);
+        if (!post || !post.poll || post.poll.voted !== null) return;
+
+        post.poll.voted = optIndex;
+        post.poll.options[optIndex].votes++;
+        post.poll.totalVotes++;
+
+        savePosts();
+        renderFeed();
+        showToast('تم تسجيل صوتك', 'success');
+    }
+
+    // ═══════════════════════════════════════════
+    // SCHEDULE PICKER
+    // ═══════════════════════════════════════════
+    function toggleSchedulePicker() {
+        const picker = document.getElementById('schedulePicker');
+        picker.classList.toggle('hidden');
+        if (!picker.classList.contains('hidden')) {
+            document.getElementById('pollBuilder').classList.add('hidden');
+            // Set default date to tomorrow
+            const tomorrow = new Date(Date.now() + 86400000);
+            document.getElementById('scheduleDate').value = tomorrow.toISOString().split('T')[0];
+            document.getElementById('scheduleTime').value = '09:00';
+        }
+    }
+
+    // ═══════════════════════════════════════════
+    // COMMENTS SYSTEM
+    // ═══════════════════════════════════════════
+    function openComments(postId) {
+        currentCommentPostId = postId;
+        renderComments(postId);
+        openModal('commentsModal');
+    }
+
+    function renderComments(postId) {
+        const post = posts.find(p => p.id === postId);
+        if (!post) return;
+
+        const container = document.getElementById('commentsList');
+
+        if (post.comments.length === 0) {
+            container.innerHTML = `
+                <div class="text-center py-12 text-[#7a7570]">
+                    <span class="material-symbols-outlined text-5xl mb-3 block">chat_bubble_outline</span>
+                    <p class="font-bold">لا تعليقات بعد</p>
+                    <p class="text-sm mt-1">كن أول من يعلّق</p>
+                </div>`;
+            return;
+        }
+
+        container.innerHTML = post.comments.map(comment => renderComment(comment, postId, false)).join('');
+    }
+
+    function renderComment(comment, postId, isReply) {
+        const isLiked = comment.likedBy && comment.likedBy.includes(ME.id);
+
+        return `
+        <div class="animate-slideIn ${isReply ? '' : ''}" data-comment-id="${comment.id}">
+            <div class="flex gap-3">
+                <img src="${comment.author.avatar}" class="w-8 h-8 rounded-full object-cover shrink-0 mt-1"/>
+                <div class="flex-1">
+                    <div class="comment-bubble">
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="font-bold text-sm">${esc(comment.author.name)}</span>
+                            <span class="text-[10px] text-[#7a7570]">${formatTimeAgo(comment.createdAt)}</span>
+                        </div>
+                        <p class="text-sm text-[#e1bfb3] leading-relaxed">${esc(comment.text)}</p>
+                    </div>
+                    <div class="flex items-center gap-3 mt-1.5 mr-2">
+                        <button class="text-xs flex items-center gap-1 ${isLiked ? 'text-[#f26522]' : 'text-[#7a7570]'} hover:text-[#f26522] transition-colors" onclick="toggleCommentLike('${postId}', '${comment.id}')">
+                            <span class="material-symbols-outlined text-[16px]" style="${isLiked ? "font-variation-settings:'FILL' 1" : ''}">favorite</span>
+                            ${comment.likes || 0}
+                        </button>
+                        ${!isReply ? `<button class="text-xs text-[#7a7570] hover:text-blue-400 transition-colors" onclick="startReply('${postId}', '${comment.id}')">رد</button>` : ''}
+                    </div>
+
+                    <!-- Nested Replies -->
+                    ${comment.replies && comment.replies.length > 0 ? `
+                        <div class="nested-comments mt-3 space-y-3">
+                            ${comment.replies.map(reply => renderComment(reply, postId, true)).join('')}
+                        </div>
+                    ` : ''}
+
+                    <!-- Reply Input -->
+                    <div id="reply-input-${comment.id}" class="hidden mt-2">
+                        <div class="flex gap-2 items-center">
+                            <input type="text" class="input-field flex-1 text-sm" placeholder="اكتب رداً..." onkeydown="if(event.key==='Enter'){event.preventDefault();submitReply('${postId}','${comment.id}',this);}"/>
+                            <button onclick="submitReply('${postId}','${comment.id}', this.previousElementSibling)" class="text-[#f26522] p-1">
+                                <span class="material-symbols-outlined text-[20px]">send</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>`;
+    }
+
+    function submitComment() {
+        const input = document.getElementById('commentInput');
+        const text = input.value.trim();
+        if (!text) return;
+
+        const post = posts.find(p => p.id === currentCommentPostId);
+        if (!post) return;
+
+        post.comments.push({
+            id: genId(),
+            author: { id: ME.id, name: ME.name, avatar: ME.avatar },
+            text: text,
+            createdAt: new Date().toISOString(),
+            likes: 0,
+            likedBy: [],
+            replies: []
+        });
+
+        input.value = '';
+        savePosts();
+        renderComments(currentCommentPostId);
+        renderFeed();
+    }
+
+    function startReply(postId, commentId) {
+        const replyInput = document.getElementById('reply-input-' + commentId);
+        if (replyInput) {
+            replyInput.classList.toggle('hidden');
+            if (!replyInput.classList.contains('hidden')) {
+                replyInput.querySelector('input').focus();
+            }
+        }
+    }
+
+    function submitReply(postId, commentId, inputEl) {
+        const text = inputEl.value.trim();
+        if (!text) return;
+
+        const post = posts.find(p => p.id === postId);
+        if (!post) return;
+
+        const comment = post.comments.find(c => c.id === commentId);
+        if (!comment) return;
+
+        if (!comment.replies) comment.replies = [];
+
+        comment.replies.push({
+            id: genId(),
+            author: { id: ME.id, name: ME.name, avatar: ME.avatar },
+            text: text,
+            createdAt: new Date().toISOString(),
+            likes: 0,
+            likedBy: []
+        });
+
+        savePosts();
+        renderComments(postId);
+        renderFeed();
+    }
+
+    function toggleCommentLike(postId, commentId) {
+        const post = posts.find(p => p.id === postId);
+        if (!post) return;
+
+        // Search in top-level and replies
+        for (const comment of post.comments) {
+            if (comment.id === commentId) {
+                toggleLikeOnComment(comment);
+                break;
+            }
+            if (comment.replies) {
+                for (const reply of comment.replies) {
+                    if (reply.id === commentId) {
+                        toggleLikeOnComment(reply);
+                        break;
+                    }
+                }
+            }
+        }
+
+        savePosts();
+        renderComments(postId);
+    }
+
+    function toggleLikeOnComment(comment) {
+        if (!comment.likedBy) comment.likedBy = [];
+        const idx = comment.likedBy.indexOf(ME.id);
+        if (idx === -1) {
+            comment.likedBy.push(ME.id);
+            comment.likes = (comment.likes || 0) + 1;
+        } else {
+            comment.likedBy.splice(idx, 1);
+            comment.likes = Math.max(0, (comment.likes || 0) - 1);
+        }
+    }
+
+    // ═══════════════════════════════════════════
+    // QUOTE POST
+    // ═══════════════════════════════════════════
+    function openQuote(postId) {
+        currentQuotePostId = postId;
+        const post = posts.find(p => p.id === postId);
+        if (!post) return;
+
+        document.getElementById('quoteText').value = '';
+        document.getElementById('quotePreview').innerHTML = `
+            <div class="flex items-center gap-2 mb-2">
+                <img src="${post.author.avatar}" class="w-7 h-7 rounded-full object-cover"/>
+                <span class="font-bold text-xs">${esc(post.author.name)}</span>
+            </div>
+            <p class="text-sm text-[#7a7570] line-clamp-3">${esc(post.text.substring(0, 200))}${post.text.length > 200 ? '...' : ''}</p>
+        `;
+
+        openModal('quoteModal');
+    }
+
+    function submitQuote() {
+        const text = document.getElementById('quoteText').value.trim();
+        if (!text) {
+            showToast('اكتب تعليقك قبل النشر', 'error');
+            return;
+        }
+
+        const original = posts.find(p => p.id === currentQuotePostId);
+        if (!original) return;
+
+        const newPost = {
+            id: genId(),
+            author: { ...ME },
+            pinned: false,
+            text: text,
+            images: [],
+            video: null,
+            poll: null,
+            quoteOf: {
+                author: { ...original.author },
+                text: original.text,
+                createdAt: original.createdAt
+            },
+            scheduled: null,
+            createdAt: new Date().toISOString(),
+            likes: 0,
+            likedBy: [],
+            comments: [],
+            shares: 0,
+            bookmarks: [],
+            isBookmarked: false
+        };
+
+        posts.unshift(newPost);
+        original.shares++;
+
+        savePosts();
+        closeModal('quoteModal');
+        renderFeed();
+        showToast('تم نشر الاقتباس', 'success');
+    }
+
+    // ═══════════════════════════════════════════
+    // COMPOSER: IMAGE UPLOAD
+    // ═══════════════════════════════════════════
+    function handleImageUpload(input) {
+        const files = Array.from(input.files);
+        const remaining = 10 - composerImages.length;
+        const toAdd = files.slice(0, remaining);
+
+        if (files.length > remaining) {
+            showToast(`الحد الأقصى 10 صور. تم إضافة ${remaining} فقط`, 'error');
+        }
+
+        toAdd.forEach(file => {
+            if (file.size > 10 * 1024 * 1024) {
+                showToast('حجم الصورة يتجاوز 10MB: ' + file.name, 'error');
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                composerImages.push(e.target.result);
+                renderComposerPreviews();
+            };
+            reader.readAsDataURL(file);
+        });
+
+        input.value = '';
+    }
+
+    function renderComposerPreviews() {
+        const preview = document.getElementById('mediaPreview');
+        const grid = document.getElementById('previewGrid');
+
+        if (composerImages.length === 0) {
+            preview.classList.add('hidden');
+            return;
+        }
+
+        preview.classList.remove('hidden');
+        const cols = composerImages.length === 1 ? 'cols-1' :
+                     composerImages.length === 2 ? 'cols-2' :
+                     composerImages.length <= 4 ? 'cols-4' : 'cols-3';
+
+        grid.className = 'preview-grid ' + cols;
+        grid.innerHTML = composerImages.map((img, i) => `
+            <div class="preview-thumb">
+                <img src="${img}"/>
+                <div class="preview-remove" onclick="removeComposerImage(${i})">
+                    <span class="material-symbols-outlined text-white text-[16px]">close</span>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function removeComposerImage(index) {
+        composerImages.splice(index, 1);
+        renderComposerPreviews();
+    }
+
+    // ═══════════════════════════════════════════
+    // COMPOSER: VIDEO UPLOAD
+    // ═══════════════════════════════════════════
+    function handleVideoUpload(input) {
+        const file = input.files[0];
+        if (!file) return;
+
+        if (file.size > 100 * 1024 * 1024) {
+            showToast('حجم الفيديو يتجاوز 100MB', 'error');
+            input.value = '';
+            return;
+        }
+
+        composerImages = [];
+        renderComposerPreviews();
+
+        const url = URL.createObjectURL(file);
+        composerVideo = { url: url, file: file };
+
+        const preview = document.getElementById('videoPreview');
+        const vidEl = document.getElementById('previewVideoEl');
+        vidEl.src = url;
+        preview.classList.remove('hidden');
+
+        vidEl.onloadedmetadata = () => {
+            const duration = vidEl.duration;
+            if (duration > 300) {
+                showToast('الفيديو يتجاوز 5 دقائق', 'error');
+                removeVideo();
+                return;
+            }
+            document.getElementById('videoDuration').textContent = formatDuration(duration);
+            composerVideo.duration = duration;
+        };
+
+        input.value = '';
+    }
+
+    function removeVideo() {
+        composerVideo = null;
+        document.getElementById('videoPreview').classList.add('hidden');
+        document.getElementById('previewVideoEl').src = '';
+    }
+
+    // ═══════════════════════════════════════════
+    // COMPOSER: MENTIONS
+    // ═══════════════════════════════════════════
+    function handleComposerInput(textarea) {
+        const text = textarea.value;
+        const cursorPos = textarea.selectionStart;
+
+        // Character count
+        const countEl = document.getElementById('charCount');
+        countEl.textContent = text.length + '/2000';
+        countEl.classList.toggle('hidden', text.length === 0);
+        countEl.style.color = text.length > 1800 ? '#ef4444' : '#7a7570';
+
+        // Auto-resize
+        textarea.style.height = 'auto';
+        textarea.style.height = Math.min(textarea.scrollHeight, 200) + 'px';
+
+        // Mention detection
+        const beforeCursor = text.substring(0, cursorPos);
+        const mentionMatch = beforeCursor.match(/@(\w*)$/);
+
+        const dropdown = document.getElementById('mentionDropdown');
+        if (mentionMatch) {
+            const query = mentionMatch[1].toLowerCase();
+            const matches = USERS.filter(u =>
+                u.username.toLowerCase().includes(query) ||
+                u.name.toLowerCase().includes(query)
+            ).slice(0, 5);
+
+            if (matches.length > 0) {
+                dropdown.innerHTML = matches.map(user => `
+                    <div class="mention-item" onclick="insertMention('${user.username}')">
+                        <img src="${user.avatar}"/>
+                        <div>
+                            <p class="font-bold text-sm">${esc(user.name)}</p>
+                            <p class="text-[11px] text-[#7a7570]">@${user.username}</p>
+                        </div>
+                    </div>
+                `).join('');
+                dropdown.classList.add('show');
+                mentionSearchActive = true;
+            } else {
+                dropdown.classList.remove('show');
+                mentionSearchActive = false;
+            }
+        } else {
+            dropdown.classList.remove('show');
+            mentionSearchActive = false;
+        }
+    }
+
+    function insertMention(username) {
+        const textarea = document.getElementById('composerText');
+        const text = textarea.value;
+        const cursorPos = textarea.selectionStart;
+        const beforeCursor = text.substring(0, cursorPos);
+        const afterCursor = text.substring(cursorPos);
+
+        const newBefore = beforeCursor.replace(/@\w*$/, '@' + username + ' ');
+        textarea.value = newBefore + afterCursor;
+        textarea.focus();
+        textarea.selectionStart = textarea.selectionEnd = newBefore.length;
+
+        document.getElementById('mentionDropdown').classList.remove('show');
+        mentionSearchActive = false;
+    }
+
+    // ═══════════════════════════════════════════
+    // PUBLISH POST
+    // ═══════════════════════════════════════════
+    function publishPost() {
+        const text = document.getElementById('composerText').value.trim();
+
+        // Check if there's content
+        if (!text && composerImages.length === 0 && !composerVideo) {
+            showToast('اكتب شيئاً أو أرفق وسائط', 'error');
+            return;
+        }
+
+        if (text.length > 2000) {
+            showToast('المنشور يتجاوز 2000 حرف', 'error');
+            return;
+        }
+
+        // Build poll data
+        let poll = null;
+        const pollBuilder = document.getElementById('pollBuilder');
+        if (!pollBuilder.classList.contains('hidden')) {
+            const optionInputs = document.querySelectorAll('#pollOptions input');
+            const options = Array.from(optionInputs).map(i => i.value.trim()).filter(v => v);
+            if (options.length < 2) {
+                showToast('يجب إضافة خيارين على الأقل للاستطلاع', 'error');
+                return;
+            }
+            const duration = parseInt(document.getElementById('pollDuration').value);
+            poll = {
+                question: text || 'استطلاع رأي',
+                options: options.map(o => ({ text: o, votes: 0 })),
+                totalVotes: 0,
+                endsAt: inHours(duration),
+                voted: null
+            };
+        }
+
+        // Build schedule
+        let scheduled = null;
+        const schedulePicker = document.getElementById('schedulePicker');
+        if (!schedulePicker.classList.contains('hidden')) {
+            const date = document.getElementById('scheduleDate').value;
+            const time = document.getElementById('scheduleTime').value;
+            if (date && time) {
+                scheduled = new Date(date + 'T' + time).toISOString();
+                if (new Date(scheduled) <= new Date()) {
+                    showToast('تاريخ الجدولة يجب أن يكون في المستقبل', 'error');
+                    return;
+                }
+            }
+        }
+
+        // Build video data
+        let videoData = null;
+        if (composerVideo) {
+            videoData = {
+                url: composerVideo.url,
+                poster: '',
+                duration: composerVideo.duration || 0
+            };
+        }
+
+        const newPost = {
+            id: genId(),
+            author: { ...ME },
+            pinned: false,
+            text: text,
+            images: [...composerImages],
+            video: videoData,
+            poll: poll,
+            quoteOf: null,
+            scheduled: scheduled,
+            createdAt: new Date().toISOString(),
+            likes: 0,
+            likedBy: [],
+            comments: [],
+            shares: 0,
+            bookmarks: [],
+            isBookmarked: false
+        };
+
+        posts.unshift(newPost);
+        savePosts();
+
+        // Reset composer
+        document.getElementById('composerText').value = '';
+        document.getElementById('composerText').style.height = 'auto';
+        composerImages = [];
+        composerVideo = null;
+        document.getElementById('mediaPreview').classList.add('hidden');
+        document.getElementById('videoPreview').classList.add('hidden');
+        document.getElementById('pollBuilder').classList.add('hidden');
+        document.getElementById('schedulePicker').classList.add('hidden');
+        document.getElementById('charCount').classList.add('hidden');
+
+        renderFeed();
+
+        if (scheduled) {
+            showToast('تم جدولة المنشور بنجاح!', 'success');
+        } else {
+            showToast('تم نشر التحديث بنجاح!', 'success');
+        }
+    }
+
+    // ═══════════════════════════════════════════
+    // LOAD MORE
+    // ═══════════════════════════════════════════
+    function loadMorePosts() {
+        postPage++;
+        renderFeed();
+        showToast('تم تحميل المزيد', 'info');
+    }
+
+    // ═══════════════════════════════════════════
+    // MODAL HELPERS
+    // ═══════════════════════════════════════════
+    function openModal(id) {
+        document.getElementById(id).classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeModal(id) {
+        document.getElementById(id).classList.remove('active');
+        document.body.style.overflow = '';
+    }
+
+    function closeModalOutside(e, id) {
+        if (e.target === e.currentTarget) closeModal(id);
+    }
+
+    // ═══════════════════════════════════════════
+    // SAVE POSTS
+    // ═══════════════════════════════════════════
+    function savePosts() {
+        DB.set('posts', posts);
+    }
+
+    // ═══════════════════════════════════════════
+    // TOAST
+    // ═══════════════════════════════════════════
+    function showToast(msg, type = 'info') {
+        const t = document.getElementById('toastEl');
+        const icons = { success: 'check_circle', error: 'error', info: 'info' };
+        t.className = 'toast ' + type;
+        t.innerHTML = `<span class="material-symbols-outlined text-[20px]">${icons[type]}</span> ${msg}`;
+        setTimeout(() => t.classList.add('show'), 10);
+        setTimeout(() => t.classList.remove('show'), 3500);
+    }
+
+    // ═══════════════════════════════════════════
+    // SCROLL ANIMATIONS (Intersection Observer)
+    // ═══════════════════════════════════════════
+    function initScrollAnimations() {
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+
+        document.querySelectorAll('.post-card').forEach(card => {
+            observer.observe(card);
+        });
+    }
+
+    // ═══════════════════════════════════════════
+    // KEYBOARD SHORTCUTS
+    // ═══════════════════════════════════════════
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeModal('commentsModal');
+            closeModal('quoteModal');
+            closeModal('editModal');
+        }
+    });
+
+    // ═══════════════════════════════════════════
+    // INITIALIZATION
+    // ═══════════════════════════════════════════
+    document.addEventListener('DOMContentLoaded', function() {
+        generateSamplePosts();
+        renderFeed();
+        initScrollAnimations();
+
+        console.log('%c لو بوك | نظام المنشورات ', 'background: #f26522; color: white; font-size: 14px; font-weight: bold; border-radius: 8px; padding: 6px 14px;');
+    });
+    </script>
+</body>
+</html>

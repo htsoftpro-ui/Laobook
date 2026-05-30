@@ -1,0 +1,927 @@
+<!DOCTYPE html>
+<html class="dark" lang="ar" dir="rtl">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>لو بوك | البحث</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <style>
+        *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+        body{font-family:'Tajawal',sans-serif;min-height:100dvh;overflow-x:hidden;background:#0a0a0a;color:#e5e2e1}
+        .material-symbols-outlined{font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24;transition:all .2s ease}
+        .filled{font-variation-settings:'FILL' 1;color:#f26522!important}
+
+        .app-bg{position:fixed;inset:0;z-index:0;background:radial-gradient(ellipse at 20% 0%,rgba(242,101,34,.06) 0%,transparent 50%),radial-gradient(ellipse at 80% 100%,rgba(242,101,34,.04) 0%,transparent 50%),#0a0a0a}
+        .app-bg::after{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");opacity:.3;pointer-events:none}
+        .glass{background:rgba(32,31,31,.85);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
+
+        @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+        @keyframes fadeInUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+        @keyframes scaleIn{from{opacity:0;transform:scale(.9)}to{opacity:1;transform:scale(1)}}
+        @keyframes slideUp{from{opacity:0;transform:translateY(100%)}to{opacity:1;transform:translateY(0)}}
+        @keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
+        @keyframes pop{0%{transform:scale(1)}50%{transform:scale(1.15)}100%{transform:scale(1)}}
+        @keyframes fireFlicker{0%,100%{transform:scale(1) rotate(0)}25%{transform:scale(1.1) rotate(-3deg)}50%{transform:scale(.95) rotate(2deg)}75%{transform:scale(1.05) rotate(-1deg)}}
+
+        .anim-fade{animation:fadeIn .3s ease}
+        .anim-fadeUp{animation:fadeInUp .35s ease}
+        .anim-scaleIn{animation:scaleIn .3s cubic-bezier(.4,0,.2,1)}
+        .anim-slideUp{animation:slideUp .4s cubic-bezier(.4,0,.2,1)}
+        .anim-pop{animation:pop .3s ease}
+
+        /* ═══════ Search Bar ═══════ */
+        .search-bar{position:relative}
+        .search-bar input{width:100%;background:rgba(42,42,42,.6);border:2px solid rgba(89,65,56,.2);border-radius:16px;padding:14px 50px 14px 50px;color:#e5e2e1;font-size:15px;outline:none;transition:all .3s;font-family:'Tajawal',sans-serif;font-weight:500}
+        .search-bar input:focus{border-color:#f26522;box-shadow:0 0 0 4px rgba(242,101,34,.1);background:rgba(42,42,42,.8)}
+        .search-bar input::placeholder{color:#7a7570;font-weight:400}
+        .search-bar .search-icon{position:absolute;right:16px;top:50%;transform:translateY(-50%);color:#7a7570;transition:color .3s}
+        .search-bar input:focus ~ .search-icon,.search-bar:focus-within .search-icon{color:#f26522}
+        .search-bar .clear-btn{position:absolute;left:12px;top:50%;transform:translateY(-50%);width:28px;height:28px;border-radius:50%;display:none;align-items:center;justify-content:center;cursor:pointer;transition:all .2s;background:rgba(89,65,56,.3)}
+        .search-bar .clear-btn:hover{background:rgba(239,68,68,.2);color:#ef4444}
+        .search-bar .clear-btn.show{display:flex}
+
+        /* ═══════ Suggestions ═══════ */
+        .suggestions-dropdown{position:absolute;top:calc(100% + 8px);left:0;right:0;z-index:30;background:#1a1a1a;border:1px solid rgba(89,65,56,.25);border-radius:16px;max-height:360px;overflow-y:auto;box-shadow:0 12px 40px rgba(0,0,0,.6);display:none}
+        .suggestions-dropdown.show{display:block;animation:scaleIn .2s ease;transform-origin:top}
+        .suggestion-item{display:flex;align-items:center;gap:12px;padding:12px 16px;cursor:pointer;transition:all .2s}
+        .suggestion-item:hover,.suggestion-item.highlighted{background:rgba(242,101,34,.06)}
+        .suggestion-item:last-child{border:none}
+        .suggestion-item .match{color:#f26522;font-weight:700}
+
+        /* ═══════ Tabs ═══════ */
+        .search-tabs{display:flex;overflow-x:auto;scrollbar-width:none;gap:4px;padding:4px;background:rgba(26,26,26,.5);border-radius:14px;border:1px solid rgba(89,65,56,.12)}
+        .search-tabs::-webkit-scrollbar{display:none}
+        .search-tab{padding:10px 16px;border-radius:10px;font-weight:600;font-size:13px;cursor:pointer;transition:all .3s;border:none;background:transparent;color:#7a7570;font-family:'Tajawal',sans-serif;white-space:nowrap;display:flex;align-items:center;gap:6px}
+        .search-tab:hover{color:#e5e2e1;background:rgba(255,255,255,.04)}
+        .search-tab.active{background:rgba(242,101,34,.15);color:#f26522}
+
+        /* ═══════ Result Cards ═══════ */
+        .person-card{display:flex;gap:14px;padding:14px;border-radius:16px;cursor:pointer;transition:all .3s;border:1px solid transparent}
+        .person-card:hover{background:rgba(242,101,34,.04);border-color:rgba(89,65,56,.1)}
+
+        .post-card{background:rgba(42,42,42,.3);border:1px solid rgba(89,65,56,.1);border-radius:16px;padding:16px;cursor:pointer;transition:all .3s}
+        .post-card:hover{border-color:rgba(242,101,34,.2);background:rgba(242,101,34,.03)}
+
+        .hashtag-card{display:flex;align-items:center;gap:14px;padding:16px;border-radius:16px;cursor:pointer;transition:all .3s;border:1px solid transparent}
+        .hashtag-card:hover{background:rgba(242,101,34,.04);border-color:rgba(89,65,56,.1)}
+
+        .group-card{display:flex;gap:14px;padding:14px;border-radius:16px;cursor:pointer;transition:all .3s;border:1px solid transparent;align-items:center}
+        .group-card:hover{background:rgba(242,101,34,.04);border-color:rgba(89,65,56,.1)}
+
+        /* ═══════ Trending ═══════ */
+        .trending-item{display:flex;align-items:center;gap:14px;padding:14px 16px;border-radius:14px;cursor:pointer;transition:all .3s;position:relative}
+        .trending-item:hover{background:rgba(242,101,34,.04)}
+        .trending-rank{font-size:20px;font-weight:900;width:32px;text-align:center;flex-shrink:0}
+        .trending-rank.hot{color:#ef4444}
+        .trending-rank.warm{color:#f26522}
+        .trending-bar{height:3px;border-radius:2px;background:rgba(89,65,56,.2);overflow:hidden;margin-top:6px}
+        .trending-bar-fill{height:100%;border-radius:2px;transition:width .8s ease}
+
+        /* ═══════ Advanced Filters ═══════ */
+        .filter-panel{background:#1a1a1a;border:1px solid rgba(89,65,56,.25);border-radius:16px;overflow:hidden;display:none}
+        .filter-panel.show{display:block;animation:fadeInUp .3s ease}
+        .filter-section{padding:16px;border-bottom:1px solid rgba(89,65,56,.1)}
+        .filter-section:last-child{border-bottom:none}
+        .filter-chip{padding:8px 16px;border-radius:10px;font-weight:600;font-size:12px;cursor:pointer;transition:all .3s;border:1px solid rgba(89,65,56,.3);background:transparent;color:#7a7570;font-family:'Tajawal',sans-serif;white-space:nowrap}
+        .filter-chip:hover{border-color:#f26522;color:#f26522}
+        .filter-chip.active{background:rgba(242,101,34,.15);color:#f26522;border-color:rgba(242,101,34,.4)}
+
+        /* ═══════ Recent Searches ═══════ */
+        .recent-item{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid rgba(89,65,56,.08);cursor:pointer;transition:all .2s}
+        .recent-item:last-child{border:none}
+        .recent-item:hover{color:#f26522}
+
+        /* ═══════ Buttons ═══════ */
+        .btn-orange{background:linear-gradient(135deg,#f26522,#e85d1c);color:white;font-weight:700;font-size:13px;padding:8px 18px;border-radius:10px;border:none;cursor:pointer;transition:all .3s;font-family:'Tajawal',sans-serif;display:flex;align-items:center;gap:4px}
+        .btn-orange:hover{transform:translateY(-1px);box-shadow:0 4px 16px rgba(242,101,34,.3)}
+        .btn-ghost{background:transparent;border:1px solid rgba(89,65,56,.3);color:#e5e2e1;font-weight:600;font-size:13px;padding:8px 16px;border-radius:10px;cursor:pointer;transition:all .3s;font-family:'Tajawal',sans-serif;display:flex;align-items:center;gap:4px}
+        .btn-ghost:hover{border-color:#f26522;color:#f26522;background:rgba(242,101,34,.06)}
+
+        /* ═══════ Toast ═══════ */
+        .toast{position:fixed;top:24px;left:50%;transform:translateX(-50%) translateY(-100px);z-index:9999;padding:14px 28px;border-radius:14px;font-weight:700;font-size:14px;opacity:0;transition:all .5s cubic-bezier(.68,-.55,.265,1.55);display:flex;align-items:center;gap:10px;backdrop-filter:blur(12px);max-width:90vw;color:white}
+        .toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+        .toast.success{background:rgba(34,197,94,.2);border:1px solid rgba(34,197,94,.4)}
+        .toast.error{background:rgba(239,68,68,.2);border:1px solid rgba(239,68,68,.4)}
+        .toast.info{background:rgba(59,130,246,.2);border:1px solid rgba(59,130,246,.4)}
+
+        /* ═══════ Empty ═══════ */
+        .empty-state{text-align:center;padding:60px 20px}
+
+        /* ═══════ Scrollbar ═══════ */
+        ::-webkit-scrollbar{width:4px;height:4px}
+        ::-webkit-scrollbar-track{background:transparent}
+        ::-webkit-scrollbar-thumb{background:#474746;border-radius:4px}
+    </style>
+</head>
+<body>
+<div class="app-bg"></div>
+<div id="toastEl" class="toast"></div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- HEADER -->
+<!-- ═══════════════════════════════════════════ -->
+<header class="fixed top-0 w-full z-50 glass border-b border-[#594138]/30 px-4 h-14 flex items-center gap-3">
+    <button class="p-2 rounded-full hover:bg-white/5 shrink-0" onclick="goBack()">
+        <span class="material-symbols-outlined text-[#e1bfb3]">arrow_forward</span>
+    </button>
+    <h1 class="text-lg font-extrabold text-[#f26522] shrink-0">البحث</h1>
+</header>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- MAIN -->
+<!-- ═══════════════════════════════════════════ -->
+<main class="relative z-10 pt-16 pb-8 max-w-2xl mx-auto px-4">
+
+    <!-- ═══ Search Bar ═══ -->
+    <div class="search-bar mb-4" style="animation:fadeIn .4s ease">
+        <input type="text" id="searchInput" placeholder="ابحث عن أشخاص، منشورات، وسوم..." autocomplete="off" oninput="handleInput(this.value)" onkeydown="handleKeydown(event)"/>
+        <span class="material-symbols-outlined search-icon text-[22px]">search</span>
+        <div class="clear-btn" id="clearBtn" onclick="clearSearch()">
+            <span class="material-symbols-outlined text-[16px] text-[#7a7570]">close</span>
+        </div>
+
+        <!-- Suggestions -->
+        <div class="suggestions-dropdown" id="suggestionsDropdown"></div>
+    </div>
+
+    <!-- ═══ Advanced Filters Toggle ═══ -->
+    <div class="flex items-center justify-between mb-3" style="animation:fadeIn .45s ease">
+        <button onclick="toggleFilters()" class="btn-ghost text-xs" id="filterToggleBtn">
+            <span class="material-symbols-outlined text-[16px]">tune</span>
+            بحث متقدم
+            <span class="material-symbols-outlined text-[14px]" id="filterArrow">expand_more</span>
+        </button>
+        <span id="activeFilterCount" class="hidden text-xs text-[#f26522] bg-[#f26522]/10 px-2 py-0.5 rounded-full font-bold"></span>
+    </div>
+
+    <!-- ═══ Advanced Filters Panel ═══ -->
+    <div class="filter-panel mb-4" id="filterPanel">
+        <!-- Date Filter -->
+        <div class="filter-section">
+            <p class="text-xs font-bold text-[#e1bfb3] mb-3">التاريخ</p>
+            <div class="flex flex-wrap gap-2" id="dateFilters">
+                <button class="filter-chip active" onclick="setFilter('date','any',this)">أي وقت</button>
+                <button class="filter-chip" onclick="setFilter('date','today',this)">اليوم</button>
+                <button class="filter-chip" onclick="setFilter('date','week',this)">هذا الأسبوع</button>
+                <button class="filter-chip" onclick="setFilter('date','month',this)">هذا الشهر</button>
+                <button class="filter-chip" onclick="setFilter('date','year',this)">هذه السنة</button>
+            </div>
+        </div>
+        <!-- Type Filter -->
+        <div class="filter-section">
+            <p class="text-xs font-bold text-[#e1bfb3] mb-3">نوع المحتوى</p>
+            <div class="flex flex-wrap gap-2" id="typeFilters">
+                <button class="filter-chip active" onclick="setFilter('type','any',this)">الكل</button>
+                <button class="filter-chip" onclick="setFilter('type','text',this)">نص</button>
+                <button class="filter-chip" onclick="setFilter('type','image',this)">صور</button>
+                <button class="filter-chip" onclick="setFilter('type','video',this)">فيديو</button>
+                <button class="filter-chip" onclick="setFilter('type','article',this)">مقالات</button>
+                <button class="filter-chip" onclick="setFilter('type','poll',this)">استطلاعات</button>
+            </div>
+        </div>
+        <!-- Language Filter -->
+        <div class="filter-section">
+            <p class="text-xs font-bold text-[#e1bfb3] mb-3">اللغة</p>
+            <div class="flex flex-wrap gap-2" id="langFilters">
+                <button class="filter-chip active" onclick="setFilter('lang','any',this)">الكل</button>
+                <button class="filter-chip" onclick="setFilter('lang','ar',this)">العربية</button>
+                <button class="filter-chip" onclick="setFilter('lang','en',this)">الإنجليزية</button>
+            </div>
+        </div>
+        <!-- Sort Filter -->
+        <div class="filter-section">
+            <p class="text-xs font-bold text-[#e1bfb3] mb-3">ترتيب النتائج</p>
+            <div class="flex flex-wrap gap-2" id="sortFilters">
+                <button class="filter-chip active" onclick="setFilter('sort','relevant',this)">الأكثر صلة</button>
+                <button class="filter-chip" onclick="setFilter('sort','recent',this)">الأحدث</button>
+                <button class="filter-chip" onclick="setFilter('sort','popular',this)">الأكثر شعبية</button>
+            </div>
+        </div>
+        <!-- Actions -->
+        <div class="filter-section flex gap-3">
+            <button onclick="resetFilters()" class="btn-ghost flex-1 justify-center text-xs">مسح الفلاتر</button>
+            <button onclick="applyFilters();toggleFilters()" class="btn-orange flex-1 justify-center text-xs">
+                <span class="material-symbols-outlined text-[16px]">done</span>
+                تطبيق
+            </button>
+        </div>
+    </div>
+
+    <!-- ═══ Search Tabs ═══ -->
+    <div class="search-tabs mb-4" id="searchTabs" style="display:none">
+        <button class="search-tab active" onclick="switchTab('people',this)">
+            <span class="material-symbols-outlined text-[16px]">people</span>
+            الأشخاص
+            <span class="text-[10px] bg-[#f26522]/10 text-[#f26522] px-1.5 py-0.5 rounded" id="tabPeopleCount">0</span>
+        </button>
+        <button class="search-tab" onclick="switchTab('posts',this)">
+            <span class="material-symbols-outlined text-[16px]">article</span>
+            المنشورات
+            <span class="text-[10px] bg-[#f26522]/10 text-[#f26522] px-1.5 py-0.5 rounded" id="tabPostsCount">0</span>
+        </button>
+        <button class="search-tab" onclick="switchTab('hashtags',this)">
+            <span class="material-symbols-outlined text-[16px]">tag</span>
+            الوسوم
+            <span class="text-[10px] bg-[#f26522]/10 text-[#f26522] px-1.5 py-0.5 rounded" id="tabTagsCount">0</span>
+        </button>
+        <button class="search-tab" onclick="switchTab('groups',this)">
+            <span class="material-symbols-outlined text-[16px]">groups</span>
+            المجموعات
+            <span class="text-[10px] bg-[#f26522]/10 text-[#f26522] px-1.5 py-0.5 rounded" id="tabGroupsCount">0</span>
+        </button>
+    </div>
+
+    <!-- ═══ Default State: Recent + Trending ═══ -->
+    <div id="defaultView">
+        <!-- Recent Searches -->
+        <div id="recentSection" class="mb-6" style="animation:fadeIn .5s ease">
+            <div class="flex items-center justify-between mb-3">
+                <h3 class="font-extrabold text-base flex items-center gap-2">
+                    <span class="material-symbols-outlined text-[#7a7570] text-[20px]">history</span>
+                    عمليات البحث الأخيرة
+                </h3>
+                <button onclick="clearRecent()" class="text-xs text-[#7a7570] hover:text-[#f26522] transition-colors font-semibold">مسح الكل</button>
+            </div>
+            <div id="recentList"></div>
+        </div>
+
+        <!-- Trending Hashtags -->
+        <div style="animation:fadeIn .6s ease">
+            <div class="flex items-center justify-between mb-3">
+                <h3 class="font-extrabold text-base flex items-center gap-2">
+                    <span class="material-symbols-outlined text-[#ef4444] text-[20px]" style="font-variation-settings:'FILL' 1;animation:fireFlicker 1.5s ease infinite">local_fire_department</span>
+                    الوسوم الرائجة
+                </h3>
+                <button onclick="showTrendingPage()" class="text-xs text-[#f26522] hover:underline font-semibold flex items-center gap-1">
+                    عرض الكل
+                    <span class="material-symbols-outlined text-[14px]">chevron_left</span>
+                </button>
+            </div>
+            <div id="trendingList"></div>
+        </div>
+    </div>
+
+    <!-- ═══ Search Results ═══ -->
+    <div id="resultsView" style="display:none">
+        <div id="resultsList" class="space-y-2"></div>
+        <div id="resultsEmpty" class="hidden empty-state">
+            <div class="w-20 h-20 rounded-full bg-[#1a1a1a] flex items-center justify-center mx-auto mb-4">
+                <span class="material-symbols-outlined text-[40px] text-[#353534]">search_off</span>
+            </div>
+            <h3 class="text-xl font-bold text-[#353534] mb-2">لا نتائج</h3>
+            <p class="text-sm text-[#7a7570]" id="emptyResultsText">جرّب كلمات بحث مختلفة</p>
+        </div>
+    </div>
+</main>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- TRENDING PAGE -->
+<!-- ═══════════════════════════════════════════ -->
+<div id="trendingPage" style="display:none;position:fixed;inset:0;z-index:60;overflow-y:auto" class="glass">
+    <div class="max-w-2xl mx-auto px-4">
+        <header class="flex items-center gap-3 py-4 sticky top-0 z-10 glass -mx-4 px-4 border-b border-[#594138]/20">
+            <button onclick="closeTrendingPage()" class="p-2 rounded-full hover:bg-white/5">
+                <span class="material-symbols-outlined text-[#e1bfb3]">arrow_forward</span>
+            </button>
+            <h2 class="text-lg font-extrabold text-[#f26522] flex items-center gap-2">
+                <span class="material-symbols-outlined text-[22px]" style="font-variation-settings:'FILL' 1;animation:fireFlicker 1.5s ease infinite">local_fire_department</span>
+                الوسوم الرائجة
+            </h2>
+        </header>
+        <div id="trendingFullList" class="py-4 space-y-1"></div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- JAVASCRIPT -->
+<!-- ═══════════════════════════════════════════ -->
+<script>
+const DB={get(k){try{return JSON.parse(localStorage.getItem('lb_'+k))}catch{return null}},set(k,v){localStorage.setItem('lb_'+k,JSON.stringify(v))},rm(k){localStorage.removeItem('lb_'+k)}};
+
+const ME={id:'usr_001',name:'عبدالملك بن محمد',username:'abdulmalik_m',avatar:'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop&crop=face'};
+
+function esc(t){const d=document.createElement('div');d.appendChild(document.createTextNode(t));return d.innerHTML}
+function genId(){return 's_'+Date.now()+'_'+Math.random().toString(36).substr(2,6)}
+function formatNum(n){if(n>=1000000)return(n/1000000).toFixed(1)+'M';if(n>=1000)return(n/1000).toFixed(1)+'K';return n.toString()}
+function ago(m){return new Date(Date.now()-m*60000).toISOString()}
+
+// ═══════════════════════════════════════════
+// DATA
+// ═══════════════════════════════════════════
+const PEOPLE = [
+    {id:'u1',name:'د. نورة القحطاني',username:'nora_q',avatar:'https://i.pravatar.cc/100?img=5',bio:'أستاذة قانون تجاري — جامعة الملك سعود',verified:true,followers:12400,following:true},
+    {id:'u2',name:'أ. فهد العتيبي',username:'fahad_o',avatar:'https://i.pravatar.cc/100?img=12',bio:'محامي مرخص — قانون مدني وتجاري',verified:true,followers:8900,following:true},
+    {id:'u3',name:'المكتبة القانونية',username:'law_library',avatar:'https://i.pravatar.cc/100?img=22',bio:'أكبر مكتبة قانونية عربية — كتب ومراجع',verified:true,followers:45600,following:false},
+    {id:'u4',name:'أ. سارة المنصور',username:'sarah_m',avatar:'https://i.pravatar.cc/100?img=9',bio:'متخصصة في قانون الأسرة',verified:false,followers:3200,following:true},
+    {id:'u5',name:'د. خالد الشمري',username:'khalid_s',avatar:'https://i.pravatar.cc/100?img=15',bio:'أستاذ قانون دولي — جامعة الملك عبدالعزيز',verified:true,followers:18700,following:false},
+    {id:'u6',name:'مكتب المحاماة الدولي',username:'intl_law',avatar:'https://i.pravatar.cc/100?img=33',bio:'استشارات قانونية دولية — تأسس 2005',verified:true,followers:23100,following:false},
+    {id:'u7',name:'أحمد البقمي',username:'ahmed_b',avatar:'https://i.pravatar.cc/100?img=51',bio:'طالب قانون — جامعة الملك سعود',verified:false,followers:890,following:false},
+    {id:'u8',name:'منى الحربي',username:'mona_h',avatar:'https://i.pravatar.cc/100?img=44',bio:'محامية قضايا تجارية وشركات',verified:false,followers:4100,following:true},
+    {id:'u9',name:'مؤسسة العدالة للتدريب',username:'adala_org',avatar:'https://i.pravatar.cc/100?img=60',bio:'دورات تدريبية في المجال القانوني',verified:true,followers:15800,following:false},
+    {id:'u10',name:'محمد السالم',username:'m_salem',avatar:'https://i.pravatar.cc/100?img=53',bio:'مستشار قانوني — مكتب الراجحي',verified:false,followers:2100,following:false}
+];
+
+const POSTS = [
+    {id:'p1',author:PEOPLE[0],text:'نصيحة قانونية مهمة: عند توقيع أي عقد تجاري، تأكد من وجود بند التحكيم لتسوية النزاعات. هذا يوفر عليك وقتاً وأموالاً طائلة. #قانون #عقود #نصائح_قانونية',likes:2340,comments:189,type:'text',time:ago(120),lang:'ar'},
+    {id:'p2',author:PEOPLE[1],text:'المحكمة العليا أصدرت قراراً جديداً يعزز حقوق المستهلك في العقود الإلكترونية. القرار رقم 456/2024 يُعد مرجعاً مهماً. #قضاء #حقوق_المستهلك',likes:5670,comments:432,type:'text',time:ago(300),lang:'ar'},
+    {id:'p3',author:PEOPLE[2],text:'📚 أفضل 5 كتب للمبتدئين في القانون التجاري: 1) مبادئ القانون التجاري 2) العقود التجارية 3) الشركات التجارية 4) الأوراق التجارية 5) الإفلاس #كتب #قانون_تجاري',likes:8920,comments:567,type:'text',time:ago(600),lang:'ar'},
+    {id:'p4',author:PEOPLE[3],text:'كيف تحمي نفسك قانونياً عند تأسيس شركتك؟ نصائح عملية من خبرة 15 سنة في قانون الشركات #شركات #تأسيس',likes:3450,comments:234,type:'text',time:ago(180),lang:'ar'},
+    {id:'p5',author:PEOPLE[4],text:'The new amendments to the International Arbitration Law bring significant changes to dispute resolution. Key highlights thread below. #InternationalLaw #Arbitration',likes:4210,comments:198,type:'text',time:ago(450),lang:'en'},
+    {id:'p6',author:PEOPLE[5],text:'هل تعلم؟ يمكنك الآن تقديم شكوى إلكترونية عبر منصة وزارة العدل مباشرة. الخطوات بسيطة وسريعة. #وزارة_العدل # شكوى',likes:15600,comments:890,type:'text',time:ago(90),lang:'ar'},
+    {id:'p7',author:PEOPLE[7],text:'案例分享: كيف ربحت قضية تجارية بقيمة 5 ملايين ريال باستخدام بند التحكيم الذكي. تفاصيل القضية كاملة. #قضية #نجاح #تحكيم',likes:9800,comments:456,type:'text',time:ago(240),lang:'ar'},
+    {id:'p8',author:PEOPLE[8],text:'إعلان هام: دورة جديدة في أساسيات القانون التجاري تبدأ الأسبوع القادم. التسجيل مفتوح! #دورة #تدريب #قانون_تجاري',likes:2100,comments:178,type:'text',time:ago(50),lang:'ar'},
+    {id:'p9',author:PEOPLE[0],text:'التعديلات الجديدة على نظام العمل — ما يجب أن يعرفه كل موظف وصاحب عمل. ملخص شامل. #قانون_العمل #تعديلات #موظف',likes:7650,comments:534,type:'text',time:ago(720),lang:'ar'},
+    {id:'p10',author:PEOPLE[9],text:'نصائح لاختيار المحامي المناسب: 1) تأكد من الترخيص 2) اسأل عن خبرته 3) تعرف على رسومه 4) اقرأ تقييمات العملاء #محاماة #نصائح',likes:1890,comments:145,type:'text',time:ago(150),lang:'ar'}
+];
+
+const HASHTAGS = [
+    {tag:'#قانون',posts:45600,trend:'up',growth:12},
+    {tag:'#.Contracts',posts:23400,trend:'up',growth:8},
+    {tag:'#نصائح_قانونية',posts:18900,trend:'up',growth:25},
+    {tag:'#قضاء',posts:15600,trend:'stable',growth:3},
+    {tag:'#تحكيم',posts:12300,trend:'up',growth:18},
+    {tag:'#قانون_تجاري',posts:11200,trend:'up',growth:15},
+    {tag:'#حقوق_المستهلك',posts:9800,trend:'up',growth:42},
+    {tag:'#قانون_العمل',posts:8700,trend:'up',growth:35},
+    {tag:'#شركات',posts:7600,trend:'stable',growth:2},
+    {tag:'#محاماة',posts:6500,trend:'up',growth:9},
+    {tag:'#وزارة_العدل',posts:5400,trend:'up',growth:28},
+    {tag:'#قانون_الأسرة',posts:4300,trend:'up',growth:11},
+    {tag:'#ملكية_فكرية',posts:3200,trend:'up',growth:55},
+    {tag:'#قانون_دولي',posts:2800,trend:'stable',growth:1},
+    {tag:'#إفلاس',posts:2100,trend:'down',growth:-5},
+    {tag:'#عقود',posts:8900,trend:'up',growth:20},
+    {tag:'#تحكيم_دولي',posts:4100,trend:'up',growth:38},
+    {tag:'#جرائم_إلكترونية',posts:3500,trend:'up',growth:65},
+    {tag:'#محكمة_عليا',posts:6200,trend:'up',growth:7},
+    {tag:'#استشارة_قانونية',posts:5100,trend:'up',growth:14}
+];
+
+const GROUPS = [
+    {id:'g1',name:'محامي السعودية',members:12400,avatar:null,color:'#22c55e',desc:'مجتمع المحامين السعوديين',category:'law'},
+    {id:'g2',name:'قانون الشركات',members:8900,avatar:null,color:'#3b82f6',desc:'مناقشة قضايا الشركات',category:'law'},
+    {id:'g3',name:'طلاب القانون',members:15600,avatar:null,color:'#a855f7',desc:'مجتمع طلاب كليات الحقوق',category:'education'},
+    {id:'g4',name:'القانون التجاري',members:6700,avatar:null,color:'#f26522',desc:'كل ما يخص القانون التجاري',category:'law'},
+    {id:'g5',name:'نساء في القانون',members:4500,avatar:null,color:'#ec4899',desc:'تمكين المرأة في المجال القانوني',category:'law'},
+    {id:'g6',name:'التحكيم الدولي',members:3200,avatar:null,color:'#facc15',desc:'مجتمع المختصين بالتحكيم',category:'law'},
+    {id:'g7',name:'قانون العمل',members:7800,avatar:null,color:'#14b8a6',desc:'مناقشة قضايا العمل والتوظيف',category:'law'},
+    {id:'g8',name:'التكنولوجيا والقانون',members:5400,avatar:null,color:'#8b5cf6',desc:'تقاطع التكنولوجيا مع القانون',category:'tech'}
+];
+
+// ═══════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════
+let recentSearches = DB.get('recent_searches') || ['قانون تجاري', 'تحكيم', 'نورة القحطاني', 'حقوق المستهلك'];
+let activeFilters = {date:'any',type:'any',lang:'any',sort:'relevant'};
+let currentTab = 'people';
+let searchQuery = '';
+let suggestionIdx = -1;
+let filteredSuggestions = [];
+
+function save(){DB.set('recent_searches',recentSearches)}
+
+// ═══════════════════════════════════════════
+// SEARCH INPUT HANDLING
+// ═══════════════════════════════════════════
+function handleInput(val){
+    searchQuery = val.trim();
+    const clearBtn = document.getElementById('clearBtn');
+    clearBtn.classList.toggle('show', val.length > 0);
+
+    if(val.length === 0){
+        document.getElementById('suggestionsDropdown').classList.remove('show');
+        showDefaultView();
+        return;
+    }
+
+    if(val.length >= 1){
+        showSuggestions(val);
+    }
+}
+
+function handleKeydown(e){
+    const dropdown = document.getElementById('suggestionsDropdown');
+    if(!dropdown.classList.contains('show')){
+        if(e.key==='Enter' && searchQuery.length > 0){
+            executeSearch(searchQuery);
+        }
+        return;
+    }
+
+    if(e.key==='ArrowDown'){
+        e.preventDefault();
+        suggestionIdx = Math.min(suggestionIdx+1, filteredSuggestions.length-1);
+        highlightSuggestion();
+    } else if(e.key==='ArrowUp'){
+        e.preventDefault();
+        suggestionIdx = Math.max(suggestionIdx-1, -1);
+        highlightSuggestion();
+    } else if(e.key==='Enter'){
+        e.preventDefault();
+        if(suggestionIdx >= 0 && filteredSuggestions[suggestionIdx]){
+            selectSuggestion(filteredSuggestions[suggestionIdx]);
+        } else if(searchQuery.length > 0){
+            executeSearch(searchQuery);
+        }
+    } else if(e.key==='Escape'){
+        dropdown.classList.remove('show');
+    }
+}
+
+// ═══════════════════════════════════════════
+// SUGGESTIONS
+// ═══════════════════════════════════════════
+function showSuggestions(query){
+    const dropdown = document.getElementById('suggestionsDropdown');
+    const q = query.toLowerCase();
+    filteredSuggestions = [];
+    suggestionIdx = -1;
+
+    // People suggestions
+    PEOPLE.filter(p=>p.name.toLowerCase().includes(q)||p.username.toLowerCase().includes(q)).slice(0,3).forEach(p=>{
+        filteredSuggestions.push({type:'person',data:p,label:p.name,sub:'@'+p.username,icon:'person',avatar:p.avatar});
+    });
+
+    // Hashtag suggestions
+    HASHTAGS.filter(h=>h.tag.toLowerCase().includes(q)).slice(0,3).forEach(h=>{
+        filteredSuggestions.push({type:'hashtag',data:h,label:h.tag,sub:formatNum(h.posts)+' منشور',icon:'trending_up'});
+    });
+
+    // Group suggestions
+    GROUPS.filter(g=>g.name.toLowerCase().includes(q)).slice(0,2).forEach(g=>{
+        filteredSuggestions.push({type:'group',data:g,label:g.name,sub:formatNum(g.members)+' عضو',icon:'groups'});
+    });
+
+    // Text search suggestion
+    filteredSuggestions.push({type:'search',data:query,label:'البحث عن "'+esc(query)+'"',sub:'اضغط Enter للبحث',icon:'search'});
+
+    if(filteredSuggestions.length === 0){
+        dropdown.classList.remove('show');
+        return;
+    }
+
+    dropdown.innerHTML = filteredSuggestions.map((s,idx)=>{
+        const matchIdx = s.label.toLowerCase().indexOf(q);
+        let displayLabel = esc(s.label);
+        if(matchIdx >= 0 && s.type !== 'search'){
+            const before = esc(s.label.substring(0,matchIdx));
+            const match = esc(s.label.substring(matchIdx,matchIdx+q.length));
+            const after = esc(s.label.substring(matchIdx+q.length));
+            displayLabel = before + '<span class="match">' + match + '</span>' + after;
+        }
+
+        return `
+        <div class="suggestion-item ${idx===0?'highlighted':''}" data-idx="${idx}" onclick="selectSuggestion(filteredSuggestions[${idx}])">
+            ${s.avatar?`<img src="${s.avatar}" class="w-9 h-9 rounded-full object-cover shrink-0"/>`:`<span class="material-symbols-outlined text-[#f26522] text-[20px] shrink-0">${s.icon}</span>`}
+            <div class="flex-1 min-w-0">
+                <p class="text-sm font-bold truncate">${displayLabel}</p>
+                <p class="text-xs text-[#7a7570] truncate">${s.sub}</p>
+            </div>
+            <span class="material-symbols-outlined text-[#7a7570] text-[16px] shrink-0">north_west</span>
+        </div>`;
+    }).join('');
+
+    dropdown.classList.add('show');
+}
+
+function highlightSuggestion(){
+    document.querySelectorAll('.suggestion-item').forEach((el,idx)=>{
+        el.classList.toggle('highlighted', idx===suggestionIdx);
+    });
+}
+
+function selectSuggestion(suggestion){
+    const dropdown = document.getElementById('suggestionsDropdown');
+    dropdown.classList.remove('show');
+
+    switch(suggestion.type){
+        case 'person':
+            showToast('عرض ملف '+suggestion.data.name,'info');
+            break;
+        case 'hashtag':
+            document.getElementById('searchInput').value = suggestion.data.tag;
+            executeSearch(suggestion.data.tag);
+            break;
+        case 'group':
+            showToast('عرض مجموعة '+suggestion.data.name,'info');
+            break;
+        case 'search':
+            executeSearch(suggestion.data);
+            break;
+    }
+}
+
+// ═══════════════════════════════════════════
+// EXECUTE SEARCH
+// ═══════════════════════════════════════════
+function executeSearch(query){
+    searchQuery = query;
+    document.getElementById('searchInput').value = query;
+    document.getElementById('suggestionsDropdown').classList.remove('show');
+    document.getElementById('clearBtn').classList.add('show');
+
+    // Add to recent
+    addRecent(query);
+
+    // Show results
+    document.getElementById('defaultView').style.display = 'none';
+    document.getElementById('resultsView').style.display = '';
+    document.getElementById('searchTabs').style.display = '';
+
+    renderResults();
+}
+
+function clearSearch(){
+    document.getElementById('searchInput').value = '';
+    searchQuery = '';
+    document.getElementById('clearBtn').classList.remove('show');
+    document.getElementById('suggestionsDropdown').classList.remove('show');
+    showDefaultView();
+}
+
+function showDefaultView(){
+    document.getElementById('defaultView').style.display = '';
+    document.getElementById('resultsView').style.display = 'none';
+    document.getElementById('searchTabs').style.display = 'none';
+    renderRecent();
+}
+
+// ═══════════════════════════════════════════
+// TABS
+// ═══════════════════════════════════════════
+function switchTab(tab, btn){
+    currentTab = tab;
+    document.querySelectorAll('.search-tab').forEach(t=>t.classList.remove('active'));
+    btn.classList.add('active');
+    renderResults();
+}
+
+// ═══════════════════════════════════════════
+// RENDER RESULTS
+// ═══════════════════════════════════════════
+function renderResults(){
+    const container = document.getElementById('resultsList');
+    const empty = document.getElementById('resultsEmpty');
+    const q = searchQuery.toLowerCase();
+
+    // Update tab counts
+    const pCount = PEOPLE.filter(p=>matchPerson(p,q)).length;
+    const poCount = POSTS.filter(p=>matchPost(p,q)).length;
+    const hCount = HASHTAGS.filter(h=>h.tag.toLowerCase().includes(q)).length;
+    const gCount = GROUPS.filter(g=>g.name.toLowerCase().includes(q)).length;
+    document.getElementById('tabPeopleCount').textContent = pCount;
+    document.getElementById('tabPostsCount').textContent = poCount;
+    document.getElementById('tabTagsCount').textContent = hCount;
+    document.getElementById('tabGroupsCount').textContent = gCount;
+
+    let html = '';
+
+    switch(currentTab){
+        case 'people':
+            const people = PEOPLE.filter(p=>matchPerson(p,q));
+            if(people.length===0){html='';empty.classList.remove('hidden');break}
+            empty.classList.add('hidden');
+            html = people.map((p,idx)=>renderPersonCard(p,idx)).join('');
+            break;
+
+        case 'posts':
+            const posts = POSTS.filter(p=>matchPost(p,q));
+            if(posts.length===0){html='';empty.classList.remove('hidden');break}
+            empty.classList.add('hidden');
+            html = posts.map((p,idx)=>renderPostCard(p,idx)).join('');
+            break;
+
+        case 'hashtags':
+            const tags = HASHTAGS.filter(h=>h.tag.toLowerCase().includes(q));
+            if(tags.length===0){html='';empty.classList.remove('hidden');break}
+            empty.classList.add('hidden');
+            html = tags.map((h,idx)=>renderHashtagCard(h,idx)).join('');
+            break;
+
+        case 'groups':
+            const groups = GROUPS.filter(g=>g.name.toLowerCase().includes(q));
+            if(groups.length===0){html='';empty.classList.remove('hidden');break}
+            empty.classList.add('hidden');
+            html = groups.map((g,idx)=>renderGroupCard(g,idx)).join('');
+            break;
+    }
+
+    container.innerHTML = html;
+}
+
+function matchPerson(p,q){
+    return p.name.toLowerCase().includes(q)||p.username.toLowerCase().includes(q)||p.bio.toLowerCase().includes(q);
+}
+
+function matchPost(p,q){
+    return p.text.toLowerCase().includes(q);
+}
+
+function renderPersonCard(p,idx){
+    const delay = Math.min(idx*0.06,0.4);
+    return `
+    <div class="person-card anim-fadeUp" style="animation-delay:${delay}s;opacity:0">
+        <img src="${p.avatar}" class="w-12 h-12 rounded-full object-cover shrink-0"/>
+        <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-1.5 flex-wrap">
+                <h4 class="font-bold text-sm">${esc(p.name)}</h4>
+                ${p.verified?'<span class="material-symbols-outlined text-[14px] text-blue-400" style="font-variation-settings:FILL 1">verified</span>':''}
+            </div>
+            <p class="text-xs text-[#7a7570]">@${esc(p.username)}</p>
+            <p class="text-xs text-[#7a7570] mt-1 truncate">${esc(p.bio)}</p>
+            <p class="text-[10px] text-[#7a7570] mt-1">${formatNum(p.followers)} متابع</p>
+        </div>
+        <button class="btn-orange text-xs shrink-0" onclick="event.stopPropagation();showToast('${p.following?'متابَع':'تمت المتابعة'}','${p.following?'info':'success'}')">
+            <span class="material-symbols-outlined text-[14px]">${p.following?'check':'person_add'}</span>
+            ${p.following?'متابَع':'متابعة'}
+        </button>
+    </div>`;
+}
+
+function renderPostCard(p,idx){
+    const delay = Math.min(idx*0.06,0.4);
+    let textHtml = esc(p.text);
+    textHtml = textHtml.replace(/#([\u0600-\u06FFa-zA-Z0-9_]+)/g,'<span style="color:#f26522;font-weight:700">#$1</span>');
+
+    const typeIcons = {text:'article',image:'image',video:'play_circle',article:'menu_book',poll:'bar_chart'};
+
+    return `
+    <div class="post-card anim-fadeUp" style="animation-delay:${delay}s;opacity:0">
+        <div class="flex items-center gap-3 mb-3">
+            <img src="${p.author.avatar}" class="w-9 h-9 rounded-full object-cover"/>
+            <div class="flex-1">
+                <span class="font-bold text-sm flex items-center gap-1">${esc(p.author.name)}${p.author.verified?'<span class="material-symbols-outlined text-[12px] text-blue-400" style="font-variation-settings:FILL 1">verified</span>':''}</span>
+                <span class="text-[10px] text-[#7a7570]">${formatTimeAgo(p.time)}</span>
+            </div>
+            <span class="material-symbols-outlined text-[#7a7570] text-[16px]">${typeIcons[p.type]||'article'}</span>
+        </div>
+        <p class="text-sm leading-relaxed text-[#e1bfb3] mb-3" style="display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden">${textHtml}</p>
+        <div class="flex items-center gap-4 text-xs text-[#7a7570]">
+            <span class="flex items-center gap-1"><span class="material-symbols-outlined text-[14px]" style="font-variation-settings:FILL 1;color:#ef4444">favorite</span>${formatNum(p.likes)}</span>
+            <span class="flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">chat_bubble</span>${formatNum(p.comments)}</span>
+        </div>
+    </div>`;
+}
+
+function renderHashtagCard(h,idx){
+    const delay = Math.min(idx*0.06,0.4);
+    const trendColors = {up:'#22c55e',stable:'#7a7570',down:'#ef4444'};
+    const trendIcons = {up:'trending_up',stable:'trending_flat',down:'trending_down'};
+    const maxPosts = Math.max(...HASHTAGS.map(x=>x.posts));
+    const barWidth = (h.posts/maxPosts)*100;
+
+    return `
+    <div class="hashtag-card anim-fadeUp" style="animation-delay:${delay}s;opacity:0" onclick="executeSearch('${esc(h.tag)}')">
+        <div class="w-12 h-12 rounded-xl bg-[#f26522]/10 flex items-center justify-center shrink-0">
+            <span class="material-symbols-outlined text-[#f26522] text-[24px]">tag</span>
+        </div>
+        <div class="flex-1 min-w-0">
+            <h4 class="font-bold text-sm">${esc(h.tag)}</h4>
+            <p class="text-xs text-[#7a7570]">${formatNum(h.posts)} منشور</p>
+            <div class="trending-bar"><div class="trending-bar-fill" style="width:${barWidth}%;background:${trendColors[h.trend]}"></div></div>
+        </div>
+        <div class="flex items-center gap-1 shrink-0" style="color:${trendColors[h.trend]}">
+            <span class="material-symbols-outlined text-[18px]">${trendIcons[h.trend]}</span>
+            <span class="text-xs font-bold">${h.growth>0?'+':''}${h.growth}%</span>
+        </div>
+    </div>`;
+}
+
+function renderGroupCard(g,idx){
+    const delay = Math.min(idx*0.06,0.4);
+    return `
+    <div class="group-card anim-fadeUp" style="animation-delay:${delay}s;opacity:0">
+        <div class="w-12 h-12 rounded-xl flex items-center justify-center shrink-0" style="background:${g.color}20">
+            <span class="material-symbols-outlined text-[24px]" style="color:${g.color};font-variation-settings:'FILL' 1">groups</span>
+        </div>
+        <div class="flex-1 min-w-0">
+            <h4 class="font-bold text-sm">${esc(g.name)}</h4>
+            <p class="text-xs text-[#7a7570] truncate">${esc(g.desc)}</p>
+            <p class="text-[10px] text-[#7a7570] mt-1">${formatNum(g.members)} عضو</p>
+        </div>
+        <button class="btn-ghost text-xs shrink-0" onclick="event.stopPropagation();showToast('تمت إضافة طلب الانضمام','success')">
+            <span class="material-symbols-outlined text-[14px]">group_add</span>
+            انضمام
+        </button>
+    </div>`;
+}
+
+function formatTimeAgo(iso){
+    const d=Math.floor((Date.now()-new Date(iso).getTime())/1000);
+    if(d<60)return'الآن';if(d<3600)return'منذ '+Math.floor(d/60)+' د';
+    if(d<86400)return'منذ '+Math.floor(d/3600)+' س';
+    return new Date(iso).toLocaleDateString('ar-SA',{month:'short',day:'numeric'});
+}
+
+// ═══════════════════════════════════════════
+// ADVANCED FILTERS
+// ═══════════════════════════════════════════
+function toggleFilters(){
+    const panel = document.getElementById('filterPanel');
+    const arrow = document.getElementById('filterArrow');
+    panel.classList.toggle('show');
+    arrow.textContent = panel.classList.contains('show')?'expand_less':'expand_more';
+}
+
+function setFilter(group, value, btn){
+    activeFilters[group] = value;
+    const container = btn.parentElement;
+    container.querySelectorAll('.filter-chip').forEach(c=>c.classList.remove('active'));
+    btn.classList.add('active');
+}
+
+function resetFilters(){
+    activeFilters = {date:'any',type:'any',lang:'any',sort:'relevant'};
+    document.querySelectorAll('.filter-chip').forEach(c=>c.classList.remove('active'));
+    document.querySelectorAll('.filter-chip:first-child').forEach(c=>c.classList.add('active'));
+    document.getElementById('activeFilterCount').classList.add('hidden');
+    showToast('تم مسح جميع الفلاتر','info');
+}
+
+function applyFilters(){
+    const active = Object.values(activeFilters).filter(v=>v!=='any').length;
+    const badge = document.getElementById('activeFilterCount');
+    if(active>0){
+        badge.textContent = active+' فلتر نشط';
+        badge.classList.remove('hidden');
+    } else {
+        badge.classList.add('hidden');
+    }
+    if(searchQuery) renderResults();
+    showToast('تم تطبيق الفلاتر','success');
+}
+
+// ═══════════════════════════════════════════
+// RECENT SEARCHES
+// ═══════════════════════════════════════════
+function renderRecent(){
+    const container = document.getElementById('recentList');
+    const section = document.getElementById('recentSection');
+
+    if(recentSearches.length===0){
+        section.classList.add('hidden');
+        return;
+    }
+
+    section.classList.remove('hidden');
+    container.innerHTML = recentSearches.map((s,idx)=>`
+        <div class="recent-item" onclick="executeSearch('${esc(s)}')">
+            <span class="material-symbols-outlined text-[#7a7570] text-[18px]">history</span>
+            <span class="flex-1 text-sm">${esc(s)}</span>
+            <button onclick="event.stopPropagation();removeRecent(${idx})" class="p-1 rounded-full hover:bg-white/5 text-[#7a7570] hover:text-red-400 transition-colors">
+                <span class="material-symbols-outlined text-[16px]">close</span>
+            </button>
+        </div>
+    `).join('');
+}
+
+function addRecent(query){
+    recentSearches = recentSearches.filter(s=>s!==query);
+    recentSearches.unshift(query);
+    if(recentSearches.length>10) recentSearches=recentSearches.slice(0,10);
+    save();
+}
+
+function removeRecent(idx){
+    recentSearches.splice(idx,1);
+    save();
+    renderRecent();
+}
+
+function clearRecent(){
+    recentSearches=[];
+    save();
+    renderRecent();
+    showToast('تم مسح سجل البحث','info');
+}
+
+// ═══════════════════════════════════════════
+// TRENDING
+// ═══════════════════════════════════════════
+function renderTrending(){
+    const container = document.getElementById('trendingList');
+    const sorted = [...HASHTAGS].sort((a,b)=>b.posts-a.posts).slice(0,5);
+    const maxPosts = sorted[0]?.posts || 1;
+
+    container.innerHTML = sorted.map((h,idx)=>{
+        const barWidth = (h.posts/maxPosts)*100;
+        const colors = ['#ef4444','#f26522','#facc15','#22c55e','#3b82f6'];
+        return `
+        <div class="trending-item" onclick="executeSearch('${esc(h.tag)}')">
+            <span class="trending-rank ${idx<3?'hot':'warm'}">${idx+1}</span>
+            <div class="flex-1">
+                <p class="font-bold text-sm">${esc(h.tag)}</p>
+                <p class="text-xs text-[#7a7570]">${formatNum(h.posts)} منشور</p>
+                <div class="trending-bar"><div class="trending-bar-fill" style="width:${barWidth}%;background:${colors[idx]}"></div></div>
+            </div>
+            <span class="text-xs font-bold" style="color:${h.growth>0?'#22c55e':'#ef4444'}">${h.growth>0?'+':''}${h.growth}%</span>
+        </div>`;
+    }).join('');
+}
+
+function showTrendingPage(){
+    const page = document.getElementById('trendingPage');
+    page.style.display = 'block';
+    document.body.style.overflow = 'hidden';
+    renderTrendingFull();
+}
+
+function closeTrendingPage(){
+    document.getElementById('trendingPage').style.display = 'none';
+    document.body.style.overflow = '';
+}
+
+function renderTrendingFull(){
+    const container = document.getElementById('trendingFullList');
+    const sorted = [...HASHTAGS].sort((a,b)=>b.posts-a.posts);
+    const maxPosts = sorted[0]?.posts || 1;
+    const trendColors = {up:'#22c55e',stable:'#7a7570',down:'#ef4444'};
+    const trendIcons = {up:'trending_up',stable:'trending_flat',down:'trending_down'};
+
+    container.innerHTML = sorted.map((h,idx)=>{
+        const barWidth = (h.posts/maxPosts)*100;
+        const rankColor = idx<3?['#ef4444','#f26522','#facc15'][idx]:'#7a7570';
+        return `
+        <div class="trending-item anim-fadeUp" style="animation-delay:${Math.min(idx*0.04,0.5)}s;opacity:0" onclick="executeSearch('${esc(h.tag)}');closeTrendingPage()">
+            <span class="trending-rank" style="color:${rankColor}">${idx+1}</span>
+            <div class="flex-1">
+                <div class="flex items-center justify-between">
+                    <p class="font-bold text-sm">${esc(h.tag)}</p>
+                    <div class="flex items-center gap-1" style="color:${trendColors[h.trend]}">
+                        <span class="material-symbols-outlined text-[16px]">${trendIcons[h.trend]}</span>
+                        <span class="text-[11px] font-bold">${h.growth>0?'+':''}${h.growth}%</span>
+                    </div>
+                </div>
+                <p class="text-xs text-[#7a7570] mt-0.5">${formatNum(h.posts)} منشور</p>
+                <div class="trending-bar"><div class="trending-bar-fill" style="width:${barWidth}%;background:${rankColor}"></div></div>
+            </div>
+        </div>`;
+    }).join('');
+}
+
+// ═══════════════════════════════════════════
+// TOAST
+// ═══════════════════════════════════════════
+function showToast(msg,type='info'){
+    const t=document.getElementById('toastEl');
+    const icons={success:'check_circle',error:'error',info:'info'};
+    t.className='toast '+type;
+    t.innerHTML=`<span class="material-symbols-outlined text-[20px]">${icons[type]}</span> ${msg}`;
+    setTimeout(()=>t.classList.add('show'),10);
+    setTimeout(()=>t.classList.remove('show'),3500);
+}
+
+// ═══════════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════════
+function goBack(){
+    if(document.getElementById('trendingPage').style.display==='block'){
+        closeTrendingPage();
+        return;
+    }
+    if(searchQuery){
+        clearSearch();
+        return;
+    }
+    showToast('العودة','info');
+}
+
+// ═══════════════════════════════════════════
+// CLICK OUTSIDE
+// ═══════════════════════════════════════════
+document.addEventListener('click',e=>{
+    if(!e.target.closest('.search-bar')){
+        document.getElementById('suggestionsDropdown').classList.remove('show');
+    }
+});
+
+// ═══════════════════════════════════════════
+// KEYBOARD
+// ═══════════════════════════════════════════
+document.addEventListener('keydown',e=>{
+    if(e.key==='Escape'){
+        if(document.getElementById('trendingPage').style.display==='block') closeTrendingPage();
+        else if(document.getElementById('filterPanel').classList.contains('show')) toggleFilters();
+        else document.getElementById('suggestionsDropdown').classList.remove('show');
+    }
+    // Focus search on /
+    if(e.key==='/' && document.activeElement.tagName!=='INPUT'){
+        e.preventDefault();
+        document.getElementById('searchInput').focus();
+    }
+});
+
+// ═══════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════
+document.addEventListener('DOMContentLoaded',function(){
+    renderRecent();
+    renderTrending();
+
+    console.log('%c لو بوك | البحث ','background:#f26522;color:white;font-size:14px;font-weight:bold;border-radius:8px;padding:6px 14px');
+});
+</script>
+</body>
+</html>

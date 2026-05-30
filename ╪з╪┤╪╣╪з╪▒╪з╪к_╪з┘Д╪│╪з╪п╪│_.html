@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html class="dark" lang="ar" dir="rtl">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>لو بوك | الإشعارات</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <style>
+        *{box-sizing:border-box}
+        body{font-family:'Tajawal',sans-serif;min-height:100dvh;overflow-x:hidden;background:#0a0a0a;color:#e5e2e1}
+        .material-symbols-outlined{font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24;transition:all .2s ease}
+        .filled{font-variation-settings:'FILL' 1;color:#f26522!important}
+
+        .app-bg{position:fixed;inset:0;z-index:0;background:radial-gradient(ellipse at 20% 0%,rgba(242,101,34,.06) 0%,transparent 50%),radial-gradient(ellipse at 80% 100%,rgba(242,101,34,.04) 0%,transparent 50%),#0a0a0a}
+        .app-bg::after{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");opacity:.3;pointer-events:none}
+        .glass{background:rgba(32,31,31,.85);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
+
+        @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+        @keyframes fadeInUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+        @keyframes slideInRight{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
+        @keyframes pop{0%{transform:scale(1)}50%{transform:scale(1.2)}100%{transform:scale(1)}}
+        @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+        @keyframes bellShake{0%,100%{transform:rotate(0)}10%{transform:rotate(14deg)}20%{transform:rotate(-14deg)}30%{transform:rotate(10deg)}40%{transform:rotate(-8deg)}50%{transform:rotate(4deg)}60%{transform:rotate(0)}}
+        @keyframes dotPulse{0%{box-shadow:0 0 0 0 rgba(59,130,246,.5)}70%{box-shadow:0 0 0 6px rgba(59,130,246,0)}100%{box-shadow:0 0 0 0 rgba(59,130,246,0)}}
+        @keyframes notifEnter{from{opacity:0;transform:translateX(-20px) scale(.95)}to{opacity:1;transform:translateX(0) scale(1)}}
+
+        .anim-fade{animation:fadeIn .3s ease}
+        .anim-fadeUp{animation:fadeInUp .4s ease}
+        .anim-slideR{animation:slideInRight .3s ease}
+        .anim-pop{animation:pop .3s ease}
+        .anim-notif{animation:notifEnter .4s cubic-bezier(.4,0,.2,1) forwards;opacity:0}
+
+        /* ═══════ Tabs ═══════ */
+        .notif-tabs{display:flex;overflow-x:auto;scrollbar-width:none;gap:4px;padding:4px;background:rgba(26,26,26,.5);border-radius:14px;border:1px solid rgba(89,65,56,.12)}
+        .notif-tabs::-webkit-scrollbar{display:none}
+        .notif-tab{padding:10px 16px;border-radius:10px;font-weight:600;font-size:13px;cursor:pointer;transition:all .3s;border:none;background:transparent;color:#7a7570;font-family:'Tajawal',sans-serif;white-space:nowrap;display:flex;align-items:center;gap:6px;position:relative}
+        .notif-tab:hover{color:#e5e2e1;background:rgba(255,255,255,.04)}
+        .notif-tab.active{background:rgba(242,101,34,.15);color:#f26522}
+        .notif-tab .tab-dot{width:6px;height:6px;border-radius:50%;background:#f26522;position:absolute;top:6px;left:6px;animation:dotPulse 2s infinite}
+
+        /* ═══════ Notification Card ═══════ */
+        .notif-card{display:flex;gap:14px;padding:16px;border-radius:16px;cursor:pointer;transition:all .3s;border:1px solid transparent;position:relative;overflow:hidden}
+        .notif-card:hover{background:rgba(242,101,34,.04);border-color:rgba(89,65,56,.1)}
+        .notif-card.unread{background:rgba(59,130,246,.04);border-color:rgba(59,130,246,.1)}
+        .notif-card.unread::before{content:'';position:absolute;top:0;right:0;bottom:0;width:3px;background:#3b82f6;border-radius:0 4px 4px 0}
+        .notif-card .unread-dot{width:8px;height:8px;background:#3b82f6;border-radius:50%;flex-shrink:0;margin-top:6px;animation:dotPulse 2s infinite;display:none}
+        .notif-card.unread .unread-dot{display:block}
+
+        .notif-icon-wrap{width:44px;height:44px;border-radius:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;position:relative}
+        .notif-icon-wrap .avatar-mini{position:absolute;bottom:-4px;left:-4px;width:22px;height:22px;border-radius:50%;border:2px solid #0a0a0a;object-fit:cover}
+
+        .notif-type-like .notif-icon-wrap{background:rgba(239,68,68,.12)}
+        .notif-type-like .notif-icon-wrap .material-symbols-outlined{color:#ef4444}
+        .notif-type-comment .notif-icon-wrap{background:rgba(59,130,246,.12)}
+        .notif-type-comment .notif-icon-wrap .material-symbols-outlined{color:#3b82f6}
+        .notif-type-follow .notif-icon-wrap{background:rgba(34,197,94,.12)}
+        .notif-type-follow .notif-icon-wrap .material-symbols-outlined{color:#22c55e}
+        .notif-type-message .notif-icon-wrap{background:rgba(168,85,247,.12)}
+        .notif-type-message .notif-icon-wrap .material-symbols-outlined{color:#a855f7}
+        .notif-type-live .notif-icon-wrap{background:rgba(239,68,68,.12)}
+        .notif-type-live .notif-icon-wrap .material-symbols-outlined{color:#ef4444;animation:pulse 1.5s infinite}
+        .notif-type-repost .notif-icon-wrap{background:rgba(34,197,94,.12)}
+        .notif-type-repost .notif-icon-wrap .material-symbols-outlined{color:#22c55e}
+        .notif-type-mention .notif-icon-wrap{background:rgba(242,101,34,.12)}
+        .notif-type-mention .notif-icon-wrap .material-symbols-outlined{color:#f26522}
+        .notif-type-system .notif-icon-wrap{background:rgba(156,163,175,.12)}
+        .notif-type-system .notif-icon-wrap .material-symbols-outlined{color:#9ca3af}
+
+        /* ═══════ Settings Toggle ═══════ */
+        .toggle-track{width:44px;height:24px;border-radius:12px;background:#353534;cursor:pointer;transition:background .3s;position:relative;flex-shrink:0}
+        .toggle-track.on{background:#f26522}
+        .toggle-dot{position:absolute;top:2px;width:20px;height:20px;border-radius:50%;background:white;transition:all .3s;box-shadow:0 2px 4px rgba(0,0,0,.3)}
+        .toggle-track .toggle-dot{right:2px}
+        .toggle-track.on .toggle-dot{right:22px}
+
+        /* ═══════ Toast Realtime ═══════ */
+        .rt-toast-container{position:fixed;top:16px;left:50%;transform:translateX(-50%);z-index:9998;display:flex;flex-direction:column;gap:8px;max-width:420px;width:calc(100% - 32px)}
+        .rt-toast{background:rgba(32,31,31,.95);backdrop-filter:blur(20px);border:1px solid rgba(89,65,56,.2);border-right:4px solid #f26522;border-radius:16px;padding:14px 16px;display:flex;gap:12px;align-items:center;box-shadow:0 8px 32px rgba(0,0,0,.5);cursor:pointer;transition:all .3s;animation:notifEnter .4s cubic-bezier(.4,0,.2,1) forwards;opacity:0}
+        .rt-toast:hover{border-color:rgba(242,101,34,.4)}
+        .rt-toast.closing{opacity:0;transform:translateX(-30px);transition:all .3s}
+
+        /* ═══════ Modal ═══════ */
+        .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);z-index:100;display:none;align-items:center;justify-content:center;padding:16px}
+        .modal-bg.active{display:flex;animation:fadeIn .3s ease}
+        .modal-box{background:#1a1a1a;border:1px solid rgba(89,65,56,.3);border-radius:20px;width:100%;max-width:480px;max-height:90dvh;overflow-y:auto;animation:fadeInUp .4s cubic-bezier(.4,0,.2,1)}
+
+        /* ═══════ Buttons ═══════ */
+        .btn-orange{background:linear-gradient(135deg,#f26522,#e85d1c);color:white;font-weight:700;font-size:14px;padding:10px 20px;border-radius:12px;border:none;cursor:pointer;transition:all .3s;font-family:'Tajawal',sans-serif;display:flex;align-items:center;gap:6px}
+        .btn-orange:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(242,101,34,.3)}
+        .btn-ghost{background:transparent;border:1px solid rgba(89,65,56,.3);color:#e5e2e1;font-weight:600;font-size:13px;padding:8px 16px;border-radius:10px;cursor:pointer;transition:all .3s;font-family:'Tajawal',sans-serif;display:flex;align-items:center;gap:4px}
+        .btn-ghost:hover{border-color:#f26522;color:#f26522;background:rgba(242,101,34,.06)}
+
+        /* ═══════ Toast ═══════ */
+        .toast{position:fixed;top:24px;left:50%;transform:translateX(-50%) translateY(-100px);z-index:9999;padding:14px 28px;border-radius:14px;font-weight:700;font-size:14px;opacity:0;transition:all .5s cubic-bezier(.68,-.55,.265,1.55);display:flex;align-items:center;gap:10px;backdrop-filter:blur(12px);max-width:90vw}
+        .toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+        .toast.success{background:rgba(34,197,94,.15);border:1px solid rgba(34,197,94,.3);color:#4ade80}
+        .toast.error{background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.3);color:#f87171}
+        .toast.info{background:rgba(59,130,246,.15);border:1px solid rgba(59,130,246,.3);color:#60a5fa}
+
+        /* ═══════ Empty ═══════ */
+        .empty-state{text-align:center;padding:80px 20px}
+
+        /* ═══════ Scrollbar ═══════ */
+        ::-webkit-scrollbar{width:4px;height:4px}
+        ::-webkit-scrollbar-track{background:transparent}
+        ::-webkit-scrollbar-thumb{background:#474746;border-radius:4px}
+
+        /* ═══════ Responsive ═══════ */
+        @media(max-width:640px){
+            .notif-tab{padding:8px 12px;font-size:12px}
+            .notif-card{padding:12px;gap:10px}
+            .notif-icon-wrap{width:38px;height:38px;border-radius:12px}
+        }
+    </style>
+</head>
+<body>
+<div class="app-bg"></div>
+<div id="toastEl" class="toast"></div>
+<div id="rtToastContainer" class="rt-toast-container"></div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- TOP BAR -->
+<!-- ═══════════════════════════════════════════ -->
+<header class="fixed top-0 w-full z-50 glass border-b border-[#594138]/30 flex items-center justify-between px-4 h-14">
+    <div class="flex items-center gap-3">
+        <button class="p-2 rounded-full hover:bg-white/5 transition-colors">
+            <span class="material-symbols-outlined text-[#e1bfb3]">arrow_forward</span>
+        </button>
+        <h1 class="text-lg font-extrabold text-[#f26522]">الإشعارات</h1>
+        <span id="unreadCountBadge" class="hidden bg-[#f26522] text-white text-[11px] font-bold px-2 py-0.5 rounded-full">0</span>
+    </div>
+    <div class="flex items-center gap-1">
+        <button onclick="markAllRead()" class="p-2 rounded-full hover:bg-white/5 text-[#7a7570] hover:text-[#f26522] transition-colors" title="تحديد الكل كمقروء">
+            <span class="material-symbols-outlined">done_all</span>
+        </button>
+        <button onclick="openSettings()" class="p-2 rounded-full hover:bg-white/5 text-[#7a7570] hover:text-[#f26522] transition-colors" title="إعدادات الإشعارات">
+            <span class="material-symbols-outlined">tune</span>
+        </button>
+    </div>
+</header>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- MAIN -->
+<!-- ═══════════════════════════════════════════ -->
+<main class="relative z-10 pt-16 pb-8 max-w-2xl mx-auto px-4">
+
+    <!-- Filter Tabs -->
+    <div class="notif-tabs mb-6 anim-fade" id="filterTabs">
+        <button class="notif-tab active" data-filter="all" onclick="setFilter('all',this)">
+            <span class="material-symbols-outlined text-[18px]">notifications</span>
+            الكل
+            <span class="tab-dot hidden" id="dotAll"></span>
+        </button>
+        <button class="notif-tab" data-filter="follow" onclick="setFilter('follow',this)">
+            <span class="material-symbols-outlined text-[18px]">person_add</span>
+            المتابعة
+            <span class="tab-dot hidden" id="dotFollow"></span>
+        </button>
+        <button class="notif-tab" data-filter="like" onclick="setFilter('like',this)">
+            <span class="material-symbols-outlined text-[18px]">favorite</span>
+            الإعجابات
+            <span class="tab-dot hidden" id="dotLike"></span>
+        </button>
+        <button class="notif-tab" data-filter="comment" onclick="setFilter('comment',this)">
+            <span class="material-symbols-outlined text-[18px]">chat_bubble</span>
+            التعليقات
+            <span class="tab-dot hidden" id="dotComment"></span>
+        </button>
+        <button class="notif-tab" data-filter="message" onclick="setFilter('message',this)">
+            <span class="material-symbols-outlined text-[18px]">mail</span>
+            الرسائل
+            <span class="tab-dot hidden" id="dotMessage"></span>
+        </button>
+        <button class="notif-tab" data-filter="live" onclick="setFilter('live',this)">
+            <span class="material-symbols-outlined text-[18px]">podcasts</span>
+            البث المباشر
+            <span class="tab-dot hidden" id="dotLive"></span>
+        </button>
+    </div>
+
+    <!-- Notifications List -->
+    <div id="notifList" class="space-y-2">
+        <!-- Rendered dynamically -->
+    </div>
+
+    <!-- Empty State -->
+    <div id="emptyState" class="hidden empty-state">
+        <div class="w-20 h-20 rounded-full bg-[#1a1a1a] flex items-center justify-center mx-auto mb-4">
+            <span class="material-symbols-outlined text-[40px] text-[#353534]">notifications_off</span>
+        </div>
+        <h3 class="text-xl font-bold text-[#353534] mb-2">لا إشعارات</h3>
+        <p class="text-sm text-[#7a7570]" id="emptyText">ستظهر الإشعارات هنا عند حدوث نشاط جديد</p>
+    </div>
+
+    <!-- Load More -->
+    <div id="loadMoreWrap" class="text-center py-6 hidden">
+        <button onclick="loadMore()" class="btn-ghost mx-auto">
+            <span class="material-symbols-outlined text-[18px]">expand_more</span>
+            تحميل المزيد
+        </button>
+    </div>
+</main>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- SETTINGS MODAL -->
+<!-- ═══════════════════════════════════════════ -->
+<div id="settingsModal" class="modal-bg" onclick="if(event.target===this)closeSettings()">
+    <div class="modal-box">
+        <div class="flex items-center justify-between p-5 border-b border-[#594138]/20">
+            <h3 class="text-lg font-extrabold text-[#f26522] flex items-center gap-2">
+                <span class="material-symbols-outlined text-[22px]">tune</span>
+                إعدادات الإشعارات
+            </h3>
+            <button onclick="closeSettings()" class="p-2 rounded-full hover:bg-white/5">
+                <span class="material-symbols-outlined text-[#7a7570]">close</span>
+            </button>
+        </div>
+        <div class="p-5 space-y-1" id="settingsList">
+            <!-- Rendered dynamically -->
+        </div>
+        <div class="p-5 pt-0">
+            <button onclick="saveSettings();closeSettings()" class="btn-orange w-full justify-center">
+                <span class="material-symbols-outlined text-[18px]">save</span>
+                حفظ الإعدادات
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- JAVASCRIPT -->
+<!-- ═══════════════════════════════════════════ -->
+<script>
+// ═══════════════════════════════════════════
+// DATABASE
+// ═══════════════════════════════════════════
+const DB={get(k){try{return JSON.parse(localStorage.getItem('lb_'+k))}catch{return null}},set(k,v){localStorage.setItem('lb_'+k,JSON.stringify(v))},rm(k){localStorage.removeItem('lb_'+k)}};
+
+// ═══════════════════════════════════════════
+// USERS
+// ═══════════════════════════════════════════
+const USERS=[
+    {id:'u1',name:'د. نورة القحطاني',avatar:'https://i.pravatar.cc/80?img=5'},
+    {id:'u2',name:'أ. فهد العتيبي',avatar:'https://i.pravatar.cc/80?img=12'},
+    {id:'u3',name:'المكتبة القانونية',avatar:'https://i.pravatar.cc/80?img=22'},
+    {id:'u4',name:'أ. سارة المنصور',avatar:'https://i.pravatar.cc/80?img=9'},
+    {id:'u5',name:'د. خالد الشمري',avatar:'https://i.pravatar.cc/80?img=15'},
+    {id:'u6',name:'مكتب المحاماة الدولي',avatar:'https://i.pravatar.cc/80?img=33'},
+    {id:'u7',name:'أحمد البقمي',avatar:'https://i.pravatar.cc/80?img=51'},
+    {id:'u8',name:'منى الحربي',avatar:'https://i.pravatar.cc/80?img=44'}
+];
+
+// ═══════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════
+let notifications = DB.get('notif_v3') || [];
+let settings = DB.get('notif_settings') || {
+    like:true, comment:true, follow:true, message:true, live:true, repost:true, mention:true, system:true
+};
+let currentFilter = 'all';
+let displayCount = 15;
+
+function ago(m){return new Date(Date.now()-m*60000).toISOString()}
+function genId(){return 'n_'+Date.now()+'_'+Math.random().toString(36).substr(2,6)}
+function esc(t){const d=document.createElement('div');d.appendChild(document.createTextNode(t));return d.innerHTML}
+
+function formatTimeAgo(iso){
+    const diff=Math.floor((Date.now()-new Date(iso).getTime())/1000);
+    if(diff<0){const f=Math.abs(diff);if(f<3600)return 'بعد '+Math.floor(f/60)+' د';if(f<86400)return 'بعد '+Math.floor(f/3600)+' س';return 'بعد '+Math.floor(f/86400)+' ي'}
+    if(diff<60) return 'الآن';
+    if(diff<3600) return 'منذ '+Math.floor(diff/60)+' د';
+    if(diff<86400) return 'منذ '+Math.floor(diff/3600)+' س';
+    if(diff<604800) return 'منذ '+Math.floor(diff/86400)+' ي';
+    return new Date(iso).toLocaleDateString('ar-SA',{month:'short',day:'numeric'});
+}
+
+function saveNotifs(){DB.set('notif_v3',notifications)}
+function saveSettings(){DB.set('notif_settings',settings)}
+
+// ═══════════════════════════════════════════
+// NOTIFICATION TYPE CONFIG
+// ═══════════════════════════════════════════
+const TYPE_CONFIG = {
+    like:     {icon:'favorite',       label:'إعجاب',      color:'#ef4444', setting:'like'},
+    comment:  {icon:'chat_bubble',    label:'تعليق',      color:'#3b82f6', setting:'comment'},
+    follow:   {icon:'person_add',     label:'متابعة',     color:'#22c55e', setting:'follow'},
+    message:  {icon:'mail',           label:'رسالة',      color:'#a855f7', setting:'message'},
+    live:     {icon:'podcasts',       label:'بث مباشر',   color:'#ef4444', setting:'live'},
+    repost:   {icon:'repeat',         label:'مشاركة',     color:'#22c55e', setting:'repost'},
+    mention:  {icon:'alternate_email',label:'منشن',       color:'#f26522', setting:'mention'},
+    system:   {icon:'info',           label:'نظام',       color:'#9ca3af', setting:'system'}
+};
+
+// ═══════════════════════════════════════════
+// GENERATE SAMPLES
+// ═══════════════════════════════════════════
+function generateSamples(){
+    if(notifications.length>0) return;
+
+    const samples = [
+        {id:genId(),type:'like',user:USERS[0],read:false,text:'أعجبت بمنشورك: "نصيحة قانونية عند توقيع العقود التجارية"',postId:'p1',time:ago(3)},
+        {id:genId(),type:'comment',user:USERS[1],read:false,text:'علّق على منشورك: "معلومة ممتازة! أنا شخصياً واجهت مشكلة بسبب غياب بند التحكيم"',postId:'p1',time:ago(8)},
+        {id:genId(),type:'follow',user:USERS[6],read:false,text:'بدأ بمتابعتك',time:ago(15)},
+        {id:genId(),type:'like',user:USERS[3],read:false,text:'أعجبت بتعليقك على منشور "التعديلات الجديدة"',postId:'p2',time:ago(20)},
+        {id:genId(),type:'message',user:USERS[3],read:false,text:'أرسلت لك رسالة جديدة: "عبدالملك، ممكن تراجع العقد المرفق؟"',chatId:'ch4',time:ago(25)},
+        {id:genId(),type:'comment',user:USERS[4],read:true,text:'ردّ على تعليقك: "صحيح تماماً. القرار القضائي رقم 127/2023 مرجع ممتاز"',postId:'p2',time:ago(35)},
+        {id:genId(),type:'live',user:USERS[2],read:true,text:'بدأت بثاً مباشراً: "مناقشة التعديلات على قانون العمل الجديد"',liveId:'live1',time:ago(45)},
+        {id:genId(),type:'repost',user:USERS[7],read:true,text:'شارك منشورك: "نصيحة قانونية عند توقيع العقود التجارية"',postId:'p1',time:ago(50)},
+        {id:genId(),type:'mention',user:USERS[1],read:true,text:'ذكرك في منشور: "@abdulmalik_m شاركت تجربتك مع هذا الموضوع سابقاً"',postId:'p3',time:ago(60)},
+        {id:genId(),type:'like',user:USERS[0],read:true,text:'أعجبت بمنشورك: "ورشة عمل حول حماية الملكية الفكرية"',postId:'p4',time:ago(70)},
+        {id:genId(),type:'follow',user:USERS[7],read:true,text:'بدأت متابعتك',time:ago(80)},
+        {id:genId(),type:'comment',user:USERS[0],read:true,text:'علّق على منشورك: "هل חלו تغييرات على عقود B2B أيضاً؟"',postId:'p1',time:ago(90)},
+        {id:genId(),type:'like',user:USERS[4],read:true,text:'أعجبت بتعليقك في منشور "التحكيم الرقمي"',postId:'p5',time:ago(100)},
+        {id:genId(),type:'live',user:USERS[5],read:true,text:'انتهى البث المباشر: "المحاضرة الأسبوعية عن القانون التجاري"',liveId:'live2',time:ago(120)},
+        {id:genId(),type:'system',user:null,read:true,text:'تم توثيق حسابك بنجاح! شارة التوثيق تظهر الآن بجانب اسمك.',time:ago(180)},
+        {id:genId(),type:'like',user:USERS[1],read:true,text:'أعجبت بمنشورك: "التحكيم الإلكتروني ليس مستقبلاً بعيداً"',postId:'p6',time:ago(200)},
+        {id:genId(),type:'message',user:USERS[5],read:true,text:'أرسل لك رسالة: "نود التعاون معكم في قضية دولية"',chatId:'ch5',time:ago(240)},
+        {id:genId(),type:'repost',user:USERS[0],read:true,text:'شاركت منشورك: "ورشة عمل حول حماية الملكية الفكرية"',postId:'p4',time:ago(300)},
+        {id:genId(),type:'mention',user:USERS[4],read:true,text:'ذكرك في تعليق: "هل يمكن @abdulmalik_m توضيح هذا الأمر؟"',postId:'p7',time:ago(350)},
+        {id:genId(),type:'system',user:null,read:true,text:'مرحباً بك في لو بوك! ابدأ بنشر أول منشور لك.',time:ago(1000)}
+    ];
+
+    notifications = samples;
+    saveNotifs();
+}
+
+// ═══════════════════════════════════════════
+// FILTER & RENDER
+// ═══════════════════════════════════════════
+function setFilter(filter, btn){
+    currentFilter = filter;
+    displayCount = 15;
+    document.querySelectorAll('.notif-tab').forEach(t=>t.classList.remove('active'));
+    btn.classList.add('active');
+    renderList();
+}
+
+function getFiltered(){
+    if(currentFilter === 'all') return notifications;
+    return notifications.filter(n => n.type === currentFilter);
+}
+
+function renderList(){
+    const container = document.getElementById('notifList');
+    const empty = document.getElementById('emptyState');
+    const loadMore = document.getElementById('loadMoreWrap');
+
+    const filtered = getFiltered();
+    const visible = filtered.slice(0, displayCount);
+
+    // Type-specific empty text
+    const emptyTexts = {
+        all:'ستظهر الإشعارات هنا عند حدوث نشاط جديد',
+        follow:'سيظهر إشعار عندما يتابعك شخص جديد',
+        like:'سيظهر إشعار عندما يعجب شخص بمنشورك',
+        comment:'سيظهر إشعار عند التعليق على منشوراتك',
+        message:'سيظهر إشعار عند تلقي رسالة جديدة',
+        live:'سيظهر إشعار عند بدء بث مباشر'
+    };
+    document.getElementById('emptyText').textContent = emptyTexts[currentFilter] || emptyTexts.all;
+
+    if(visible.length === 0){
+        container.innerHTML = '';
+        empty.classList.remove('hidden');
+        loadMore.classList.add('hidden');
+        return;
+    }
+
+    empty.classList.add('hidden');
+
+    container.innerHTML = visible.map((n, idx) => {
+        const cfg = TYPE_CONFIG[n.type] || TYPE_CONFIG.system;
+        const delay = Math.min(idx * 0.05, 0.5);
+        const userAvatar = n.user ? n.user.avatar : null;
+        const userName = n.user ? n.user.name : null;
+
+        return `
+        <div class="notif-card notif-type-${n.type} ${n.read?'':'unread'} anim-notif" style="animation-delay:${delay}s" onclick="clickNotif('${n.id}')">
+            <div class="unread-dot"></div>
+            <div class="notif-icon-wrap">
+                <span class="material-symbols-outlined text-[22px]" style="color:${cfg.color}">${cfg.icon}</span>
+                ${userAvatar?`<img src="${userAvatar}" class="avatar-mini"/>`:''}
+            </div>
+            <div class="flex-1 min-w-0">
+                <p class="text-sm leading-relaxed ${n.read?'text-[#7a7570]':'text-[#e5e2e1]'}">
+                    ${userName?`<strong class="${n.read?'text-[#e1bfb3]':'text-white'}">${esc(userName)}</strong> `:''}
+                    ${esc(n.text)}
+                </p>
+                <div class="flex items-center gap-3 mt-1.5">
+                    <span class="text-[11px] text-[#7a7570] flex items-center gap-1">
+                        <span class="material-symbols-outlined text-[13px]">schedule</span>
+                        ${formatTimeAgo(n.time)}
+                    </span>
+                    <span class="text-[10px] px-2 py-0.5 rounded-full font-semibold" style="background:${cfg.color}15;color:${cfg.color}">${cfg.label}</span>
+                    ${n.type==='live'?`<span class="inline-flex items-center gap-1 text-[10px] text-red-400 bg-red-500/10 px-2 py-0.5 rounded-full font-semibold"><span class="w-1.5 h-1.5 bg-red-400 rounded-full" style="animation:pulse 1s infinite"></span> مباشر</span>`:''}
+                </div>
+            </div>
+            ${!n.read?'<button onclick="event.stopPropagation();markRead(\''+n.id+'\')" class="p-1.5 rounded-full hover:bg-blue-500/10 text-blue-400 transition-colors shrink-0" title="تحديد كمقروء"><span class="material-symbols-outlined text-[18px]">done</span></button>':''}
+            <button onclick="event.stopPropagation();deleteNotif('${n.id}')" class="p-1.5 rounded-full hover:bg-red-500/10 text-[#7a7570] hover:text-red-400 transition-colors shrink-0" title="حذف">
+                <span class="material-symbols-outlined text-[18px]">close</span>
+            </button>
+        </div>`;
+    }).join('');
+
+    loadMore.style.display = filtered.length > displayCount ? 'block' : 'none';
+    updateBadges();
+}
+
+function loadMore(){
+    displayCount += 15;
+    renderList();
+}
+
+// ═══════════════════════════════════════════
+// ACTIONS
+// ═══════════════════════════════════════════
+function markRead(id){
+    const n = notifications.find(x=>x.id===id);
+    if(n){
+        n.read = true;
+        saveNotifs();
+        renderList();
+        showToast('تم تحديد كمقروء','info');
+    }
+}
+
+function markAllRead(){
+    const unread = notifications.filter(n=>!n.read).length;
+    if(unread === 0){
+        showToast('كل الإشعارات مقروءة بالفعل','info');
+        return;
+    }
+    notifications.forEach(n=>n.read=true);
+    saveNotifs();
+    renderList();
+    showToast(`تم تحديد ${unread} إشعار كمقروء`,'success');
+}
+
+function deleteNotif(id){
+    notifications = notifications.filter(n=>n.id!==id);
+    saveNotifs();
+    renderList();
+    showToast('تم حذف الإشعار','info');
+}
+
+function clickNotif(id){
+    const n = notifications.find(x=>x.id===id);
+    if(!n) return;
+
+    // Mark as read
+    if(!n.read){
+        n.read = true;
+        saveNotifs();
+    }
+
+    // Navigate based on type
+    switch(n.type){
+        case 'like': case 'comment': case 'repost': case 'mention':
+            showToast('عرض المنشور...','info');
+            break;
+        case 'follow':
+            showToast('عرض الملف الشخصي...','info');
+            break;
+        case 'message':
+            showToast('فتح المحادثة...','info');
+            break;
+        case 'live':
+            showToast('الانضمام للبث المباشر...','info');
+            break;
+        case 'system':
+            showToast('عرض التفاصيل...','info');
+            break;
+    }
+
+    renderList();
+}
+
+// ═══════════════════════════════════════════
+// BADGES & TAB DOTS
+// ═══════════════════════════════════════════
+function updateBadges(){
+    const unreadAll = notifications.filter(n=>!n.read).length;
+
+    // Header badge
+    const badge = document.getElementById('unreadCountBadge');
+    if(unreadAll > 0){
+        badge.textContent = unreadAll > 99 ? '99+' : unreadAll;
+        badge.classList.remove('hidden');
+    } else {
+        badge.classList.add('hidden');
+    }
+
+    // Tab dots
+    const types = ['follow','like','comment','message','live'];
+    types.forEach(type=>{
+        const count = notifications.filter(n=>!n.read&&n.type===type).length;
+        const dot = document.getElementById('dot'+type.charAt(0).toUpperCase()+type.slice(1));
+        if(dot){
+            dot.classList.toggle('hidden', count===0);
+        }
+    });
+
+    // "All" tab dot
+    document.getElementById('dotAll').classList.toggle('hidden', unreadAll===0);
+}
+
+// ═══════════════════════════════════════════
+// SETTINGS MODAL
+// ═══════════════════════════════════════════
+function openSettings(){
+    document.getElementById('settingsModal').classList.add('active');
+    renderSettings();
+    document.body.style.overflow='hidden';
+}
+
+function closeSettings(){
+    document.getElementById('settingsModal').classList.remove('active');
+    document.body.style.overflow='';
+}
+
+function renderSettings(){
+    const container = document.getElementById('settingsList');
+    const items = [
+        {key:'like',    icon:'favorite',       label:'إشعارات الإعجابات',   desc:'عندما يعجب شخص بمنشورك أو تعليقك',color:'#ef4444'},
+        {key:'comment', icon:'chat_bubble',    label:'إشعارات التعليقات',   desc:'عندما يعلّق شخص على منشورك أو يرد عليك',color:'#3b82f6'},
+        {key:'follow',  icon:'person_add',     label:'إشعارات المتابعة',    desc:'عندما يتابعك شخص جديد',color:'#22c55e'},
+        {key:'message', icon:'mail',           label:'إشعارات الرسائل',     desc:'عندما تتلقى رسالة جديدة',color:'#a855f7'},
+        {key:'live',    icon:'podcasts',       label:'إشعارات البث المباشر',desc:'عندما يبدأ شخص تتابعه بثاً مباشراً',color:'#ef4444'},
+        {key:'repost',  icon:'repeat',         label:'إشعارات المشاركات',   desc:'عندما يشارك شخص منشورك',color:'#22c55e'},
+        {key:'mention', icon:'alternate_email', label:'إشعارات المنشن',     desc:'عندما يذكرك شخص في منشور أو تعليق',color:'#f26522'},
+        {key:'system',  icon:'info',           label:'إشعارات النظام',      desc:'تحديثات الحساب والمنصة',color:'#9ca3af'}
+    ];
+
+    container.innerHTML = items.map(item=>`
+        <div class="flex items-center gap-4 p-4 rounded-xl hover:bg-white/5 transition-colors">
+            <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style="background:${item.color}12">
+                <span class="material-symbols-outlined text-[20px]" style="color:${item.color}">${item.icon}</span>
+            </div>
+            <div class="flex-1 min-w-0">
+                <p class="font-bold text-sm">${item.label}</p>
+                <p class="text-xs text-[#7a7570] mt-0.5 truncate">${item.desc}</p>
+            </div>
+            <div class="toggle-track ${settings[item.key]?'on':''}" data-key="${item.key}" onclick="toggleSetting('${item.key}',this)">
+                <div class="toggle-dot"></div>
+            </div>
+        </div>
+    `).join('') + `
+        <div class="border-t border-[#594138]/20 pt-4 mt-4">
+            <button onclick="toggleAllSettings()" class="btn-ghost w-full justify-center">
+                <span class="material-symbols-outlined text-[18px]">select_all</span>
+                ${Object.values(settings).every(v=>v)?'تعطيل الكل':'تفعيل الكل'}
+            </button>
+        </div>
+    `;
+}
+
+function toggleSetting(key, el){
+    settings[key] = !settings[key];
+    el.classList.toggle('on', settings[key]);
+    saveSettings();
+}
+
+function toggleAllSettings(){
+    const allOn = Object.values(settings).every(v=>v);
+    Object.keys(settings).forEach(k=>settings[k]=!allOn);
+    saveSettings();
+    renderSettings();
+    showToast(allOn?'تم تعطيل جميع الإشعارات':'تم تفعيل جميع الإشعارات','info');
+}
+
+// ═══════════════════════════════════════════
+// REALTIME TOAST NOTIFICATIONS
+// ═══════════════════════════════════════════
+function showRealtimeNotif(notif){
+    // Check if this type is enabled
+    const cfg = TYPE_CONFIG[notif.type];
+    if(cfg && settings[cfg.setting] === false) return;
+
+    const container = document.getElementById('rtToastContainer');
+    const el = document.createElement('div');
+    el.className = 'rt-toast';
+    const iconColor = cfg ? cfg.color : '#9ca3af';
+    const iconName = cfg ? cfg.icon : 'info';
+    const userAvatar = notif.user ? notif.user.avatar : null;
+
+    el.innerHTML = `
+        <div class="relative shrink-0">
+            <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background:${iconColor}15">
+                <span class="material-symbols-outlined text-[20px]" style="color:${iconColor}">${iconName}</span>
+            </div>
+            ${userAvatar?`<img src="${userAvatar}" class="absolute -bottom-1 -left-1 w-5 h-5 rounded-full border-2 border-[#1a1a1a] object-cover"/>`:''}
+        </div>
+        <div class="flex-1 min-w-0">
+            <p class="text-sm font-bold truncate">${notif.user?esc(notif.user.name):'إشعار'}</p>
+            <p class="text-xs text-[#7a7570] truncate mt-0.5">${esc(notif.text)}</p>
+        </div>
+        <span class="text-[10px] text-[#7a7570] shrink-0">الآن</span>
+    `;
+
+    el.onclick = function(){
+        el.classList.add('closing');
+        setTimeout(()=>el.remove(),300);
+        clickNotif(notif.id);
+    };
+
+    container.appendChild(el);
+
+    // Auto remove
+    setTimeout(()=>{
+        if(el.parentNode){
+            el.classList.add('closing');
+            setTimeout(()=>{if(el.parentNode)el.remove()},300);
+        }
+    },5000);
+}
+
+// ═══════════════════════════════════════════
+// SIMULATE REALTIME NOTIFICATIONS
+// ═══════════════════════════════════════════
+function startRealtimeSimulation(){
+    const realtimePool = [
+        {type:'like',user:USERS[0],text:'أعجبت بمنشورك الجديد'},
+        {type:'comment',user:USERS[1],text:'علّق على منشورك: "ممتاز!"'},
+        {type:'follow',user:USERS[6],text:'بدأ بمتابعتك'},
+        {type:'like',user:USERS[3],text:'أعجبت بتعليقك'},
+        {type:'message',user:USERS[4],text:'أرسل لك رسالة جديدة'},
+        {type:'mention',user:USERS[7],text:'ذكرك في منشور جديد'},
+        {type:'live',user:USERS[2],text:'بدأت بثاً مباشراً الآن!'},
+        {type:'repost',user:USERS[5],text:'شارك منشورك'}
+    ];
+
+    // Send a random notification every 15-30 seconds
+    function scheduleNext(){
+        const delay = 15000 + Math.random() * 15000;
+        setTimeout(()=>{
+            const template = realtimePool[Math.floor(Math.random()*realtimePool.length)];
+            const newNotif = {
+                id:genId(),
+                type:template.type,
+                user:template.user,
+                read:false,
+                text:template.text,
+                time:new Date().toISOString()
+            };
+
+            notifications.unshift(newNotif);
+            saveNotifs();
+            renderList();
+            showRealtimeNotif(newNotif);
+
+            scheduleNext();
+        }, delay);
+    }
+
+    // First notification after 8 seconds
+    setTimeout(()=>{
+        const first = {
+            id:genId(), type:'like',
+            user:USERS[0], read:false,
+            text:'أعجبت بتعليقك على منشور "التحكيم الرقمي"',
+            time:new Date().toISOString()
+        };
+        notifications.unshift(first);
+        saveNotifs();
+        renderList();
+        showRealtimeNotif(first);
+        scheduleNext();
+    }, 8000);
+}
+
+// ═══════════════════════════════════════════
+// TOAST
+// ═══════════════════════════════════════════
+function showToast(msg,type='info'){
+    const t=document.getElementById('toastEl');
+    const icons={success:'check_circle',error:'error',info:'info'};
+    t.className='toast '+type;
+    t.innerHTML=`<span class="material-symbols-outlined text-[20px]">${icons[type]}</span> ${msg}`;
+    setTimeout(()=>t.classList.add('show'),10);
+    setTimeout(()=>t.classList.remove('show'),3500);
+}
+
+// ═══════════════════════════════════════════
+// KEYBOARD
+// ═══════════════════════════════════════════
+document.addEventListener('keydown',e=>{
+    if(e.key==='Escape') closeSettings();
+});
+
+// ═══════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════
+document.addEventListener('DOMContentLoaded',function(){
+    generateSamples();
+    renderList();
+    startRealtimeSimulation();
+
+    console.log('%c لو بوك | نظام الإشعارات ','background:#f26522;color:white;font-size:14px;font-weight:bold;border-radius:8px;padding:6px 14px');
+});
+</script>
+</body>
+</html>

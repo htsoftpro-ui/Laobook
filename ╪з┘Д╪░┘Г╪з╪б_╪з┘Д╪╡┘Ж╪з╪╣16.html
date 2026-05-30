@@ -1,0 +1,965 @@
+<!DOCTYPE html>
+<html class="dark" lang="ar" dir="rtl">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>لو بوك | الذكاء الاصطناعي</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <style>
+        *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+        body{font-family:'Tajawal',sans-serif;min-height:100dvh;overflow-x:hidden;background:#0a0a0a;color:#e5e2e1}
+        .material-symbols-outlined{font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24;transition:all .2s ease}
+
+        .app-bg{position:fixed;inset:0;z-index:0;background:radial-gradient(ellipse at 20% 0%,rgba(242,101,34,.06) 0%,transparent 50%),radial-gradient(ellipse at 80% 100%,rgba(242,101,34,.04) 0%,transparent 50%),#0a0a0a}
+        .app-bg::after{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");opacity:.3;pointer-events:none}
+        .glass{background:rgba(32,31,31,.85);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
+
+        @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+        @keyframes fadeInUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+        @keyframes scaleIn{from{opacity:0;transform:scale(.9)}to{opacity:1;transform:scale(1)}}
+        @keyframes typing{0%,60%,100%{opacity:.3;transform:translateY(0)}30%{opacity:1;transform:translateY(-4px)}}
+        @keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
+        @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+        @keyframes orbFloat{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-8px) scale(1.05)}}
+        @keyframes sparkle{0%,100%{opacity:0;transform:scale(0) rotate(0)}50%{opacity:1;transform:scale(1) rotate(180deg)}}
+        @keyframes brainPulse{0%{box-shadow:0 0 0 0 rgba(168,85,247,.3)}70%{box-shadow:0 0 0 15px rgba(168,85,247,0)}100%{box-shadow:0 0 0 0 rgba(168,85,247,0)}}
+        @keyframes slideUp{from{opacity:0;transform:translateY(100%)}to{opacity:1;transform:translateY(0)}}
+        @keyframes wordFade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+
+        .anim-fade{animation:fadeIn .3s ease}
+        .anim-fadeUp{animation:fadeInUp .35s ease}
+        .anim-scaleIn{animation:scaleIn .3s cubic-bezier(.4,0,.2,1)}
+
+        /* ═══════ AI Chat ═══════ */
+        .chat-container{display:flex;flex-direction:column;height:calc(100dvh - 56px);position:relative}
+        .chat-messages{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px}
+
+        .msg-ai{display:flex;gap:10px;max-width:88%;align-self:flex-start;animation:fadeInUp .3s ease}
+        .msg-ai .ai-avatar{width:36px;height:36px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;animation:brainPulse 3s infinite}
+        .msg-ai .ai-bubble{background:rgba(42,42,42,.6);border:1px solid rgba(168,85,247,.15);border-radius:18px 18px 18px 4px;padding:12px 16px;font-size:13px;line-height:1.7}
+
+        .msg-user{display:flex;gap:10px;max-width:85%;align-self:flex-end;flex-direction:row-reverse;animation:fadeInUp .3s ease}
+        .msg-user .user-bubble{background:linear-gradient(135deg,#f26522,#e85d1c);color:white;border-radius:18px 18px 4px 18px;padding:12px 16px;font-size:13px;line-height:1.7}
+
+        .typing-indicator{display:flex;gap:4px;align-items:center;padding:12px 16px}
+        .typing-indicator span{width:7px;height:7px;background:#a855f7;border-radius:50%;animation:typing 1.4s ease-in-out infinite}
+        .typing-indicator span:nth-child(2){animation-delay:.2s}
+        .typing-indicator span:nth-child(3){animation-delay:.4s}
+
+        .chat-input-bar{padding:12px 16px;border-top:1px solid rgba(89,65,56,.15);display:flex;gap:8px;align-items:center}
+        .chat-input{flex:1;background:rgba(42,42,42,.5);border:1px solid rgba(89,65,56,.2);border-radius:24px;padding:10px 16px;color:#e5e2e1;font-size:14px;outline:none;transition:all .3s;font-family:'Tajawal',sans-serif}
+        .chat-input:focus{border-color:#a855f7;box-shadow:0 0 0 3px rgba(168,85,247,.1)}
+        .chat-input::placeholder{color:#7a7570}
+
+        .suggested-chips{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding:8px 16px}
+        .suggested-chips::-webkit-scrollbar{display:none}
+        .suggested-chip{padding:8px 14px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;transition:all .3s;border:1px solid rgba(168,85,247,.25);background:rgba(168,85,247,.06);color:#c084fc;font-family:'Tajawal',sans-serif;white-space:nowrap;flex-shrink:0}
+        .suggested-chip:hover{background:rgba(168,85,247,.15);border-color:#a855f7;transform:translateY(-1px)}
+
+        .chat-history-item{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:12px;cursor:pointer;transition:all .2s}
+        .chat-history-item:hover{background:rgba(168,85,247,.06)}
+
+        /* ═══════ AI Post Features ═══════ */
+        .ai-feature-btn{display:inline-flex;align-items:center;gap:4px;padding:6px 12px;border-radius:8px;font-size:11px;font-weight:600;cursor:pointer;transition:all .3s;border:none;font-family:'Tajawal',sans-serif}
+        .btn-summarize{background:rgba(168,85,247,.12);color:#c084fc}
+        .btn-summarize:hover{background:rgba(168,85,247,.2);transform:translateY(-1px)}
+        .btn-translate{background:rgba(59,130,246,.12);color:#60a5fa}
+        .btn-translate:hover{background:rgba(59,130,246,.2);transform:translateY(-1px)}
+
+        .ai-result-box{margin-top:10px;padding:12px 14px;border-radius:12px;font-size:12px;line-height:1.6;animation:fadeInUp .3s ease}
+        .ai-result-box.summary{background:rgba(168,85,247,.08);border:1px solid rgba(168,85,247,.15);color:#e1bfb3}
+        .ai-result-box.translation{background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.15);color:#e1bfb3}
+        .ai-result-box .ai-label{display:flex;align-items:center;gap:4px;font-size:10px;font-weight:700;margin-bottom:6px}
+        .ai-result-box .ai-label.summary-label{color:#a855f7}
+        .ai-result-box .ai-label.translate-label{color:#3b82f6}
+
+        /* ═══════ Spam Filter ═══════ */
+        .spam-warning{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);border-radius:12px;padding:10px 14px;display:flex;align-items:center;gap:8px;font-size:12px;color:#f87171;animation:fadeInUp .3s ease}
+        .spam-blocked{background:rgba(239,68,68,.05);border:2px dashed rgba(239,68,68,.3);border-radius:12px;padding:20px;text-align:center;animation:scaleIn .3s ease}
+
+        /* ═══════ Content Suggestion ═══════ */
+        .suggest-card{background:rgba(42,42,42,.25);border:1px solid rgba(89,65,56,.1);border-radius:16px;padding:16px;transition:all .3s;cursor:pointer}
+        .suggest-card:hover{border-color:rgba(168,85,247,.2);transform:translateY(-2px);box-shadow:0 4px 16px rgba(0,0,0,.2)}
+        .suggest-card .suggest-reason{font-size:10px;color:#a855f7;font-weight:600;display:flex;align-items:center;gap:4px}
+
+        /* ═══════ Tabs ═══════ */
+        .ai-tabs{display:flex;overflow-x:auto;scrollbar-width:none;gap:4px;padding:4px;background:rgba(26,26,26,.5);border-radius:14px;border:1px solid rgba(89,65,56,.12)}
+        .ai-tabs::-webkit-scrollbar{display:none}
+        .ai-tab{padding:10px 16px;border-radius:10px;font-weight:600;font-size:13px;cursor:pointer;transition:all .3s;border:none;background:transparent;color:#7a7570;font-family:'Tajawal',sans-serif;white-space:nowrap;display:flex;align-items:center;gap:6px}
+        .ai-tab:hover{color:#e5e2e1;background:rgba(255,255,255,.04)}
+        .ai-tab.active{background:rgba(168,85,247,.12);color:#c084fc}
+
+        /* ═══════ Post Card ═══════ */
+        .post-card{background:rgba(42,42,42,.25);border:1px solid rgba(89,65,56,.1);border-radius:16px;padding:16px;transition:all .3s}
+        .post-card:hover{border-color:rgba(89,65,56,.2)}
+        .post-card .post-actions{display:flex;gap:2px;margin-top:10px;padding-top:10px;border-top:1px solid rgba(89,65,56,.08);flex-wrap:wrap}
+
+        /* ═══════ Buttons ═══════ */
+        .btn-orange{background:linear-gradient(135deg,#f26522,#e85d1c);color:white;font-weight:700;font-size:13px;padding:10px 20px;border-radius:12px;border:none;cursor:pointer;transition:all .3s;font-family:'Tajawal',sans-serif;display:flex;align-items:center;gap:6px}
+        .btn-orange:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(242,101,34,.3)}
+        .btn-ghost{background:transparent;border:1px solid rgba(89,65,56,.3);color:#e5e2e1;font-weight:600;font-size:13px;padding:10px 20px;border-radius:12px;cursor:pointer;transition:all .3s;font-family:'Tajawal',sans-serif;display:flex;align-items:center;gap:4px}
+        .btn-ghost:hover{border-color:#a855f7;color:#c084fc;background:rgba(168,85,247,.06)}
+
+        /* ═══════ Toast ═══════ */
+        .toast{position:fixed;top:24px;left:50%;transform:translateX(-50%) translateY(-100px);z-index:9999;padding:14px 28px;border-radius:14px;font-weight:700;font-size:14px;opacity:0;transition:all .5s cubic-bezier(.68,-.55,.265,1.55);display:flex;align-items:center;gap:10px;backdrop-filter:blur(12px);max-width:90vw;color:white}
+        .toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+        .toast.success{background:rgba(34,197,94,.2);border:1px solid rgba(34,197,94,.4)}
+        .toast.error{background:rgba(239,68,68,.2);border:1px solid rgba(239,68,68,.4)}
+        .toast.info{background:rgba(59,130,246,.2);border:1px solid rgba(59,130,246,.4)}
+        .toast.warning{background:rgba(234,179,8,.2);border:1px solid rgba(234,179,8,.4)}
+
+        ::-webkit-scrollbar{width:4px;height:4px}
+        ::-webkit-scrollbar-track{background:transparent}
+        ::-webkit-scrollbar-thumb{background:#474746;border-radius:4px}
+    </style>
+</head>
+<body>
+<div class="app-bg"></div>
+<div id="toastEl" class="toast"></div>
+
+<header class="fixed top-0 w-full z-50 glass border-b border-[#594138]/30 flex items-center justify-between px-4 h-14">
+    <div class="flex items-center gap-3">
+        <button class="p-2 rounded-full hover:bg-white/5"><span class="material-symbols-outlined text-[#e1bfb3]">arrow_forward</span></button>
+        <h1 class="text-lg font-extrabold" style="color:#c084fc">الذكاء الاصطناعي</h1>
+        <div class="w-2 h-2 rounded-full bg-green-400" style="animation:pulse 2s infinite"></div>
+    </div>
+</header>
+
+<main class="relative z-10 pt-16 pb-4 max-w-2xl mx-auto px-4">
+    <!-- Tabs -->
+    <div class="ai-tabs mb-4 anim-fade">
+        <button class="ai-tab active" onclick="switchAiTab('chat',this)"><span class="material-symbols-outlined text-[16px]">smart_toy</span>المساعد القانوني</button>
+        <button class="ai-tab" onclick="switchAiTab('feed',this)"><span class="material-symbols-outlined text-[16px]">auto_awesome</span>محتوى مقترح</button>
+        <button class="ai-tab" onclick="switchAiTab('tools',this)"><span class="material-symbols-outlined text-[16px]">build</span>أدوات ذكية</button>
+    </div>
+
+    <div id="aiContent"></div>
+</main>
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+// ██  AI ENGINE  ██
+// ═══════════════════════════════════════════════════════════════
+const AI = {
+
+    // ─────────────────────────────────────────
+    // 1. SPAM DETECTION
+    // ─────────────────────────────────────────
+    _bannedWords: [
+        'spam','scam','hack','xxx','赌博','垃圾',
+        'غش','احتيال','نصب','سرقة','تهديد','شتيمة',
+        'spam link','click here','free money','earn now'
+    ],
+
+    _suspiciousPatterns: [
+        /https?:\/\/[^\s]+/gi,           // Suspicious URLs
+        /(.)\1{5,}/g,                     // Repeated chars (aaaaaaa)
+        /[A-Z\s]{20,}/g,                  // ALL CAPS walls
+        /(شراء|بيع|مجاني|اربح|مجانا)\s*( الآن|فوري|سريع)/gi
+    ],
+
+    scanForSpam(text){
+        const warnings = [];
+        const lower = text.toLowerCase();
+
+        // Check banned words
+        this._bannedWords.forEach(word => {
+            if(lower.includes(word.toLowerCase())){
+                warnings.push({type:'banned_word', word, severity:'high', message:'كلمة مسيئة/ممنوعة'});
+            }
+        });
+
+        // Check patterns
+        this._suspiciousPatterns.forEach((pattern, idx) => {
+            const matches = text.match(pattern);
+            if(matches){
+                const types = ['رابط مشبوه','تكرار مفرط','نص بأحرف كبيرة','محتوى ترويجي'];
+                warnings.push({type:'suspicious_pattern', matches:matches.slice(0,3), severity:idx<1?'high':'medium', message:types[idx]||'نمط مشبوه'});
+            }
+        });
+
+        // Spam score
+        let score = 0;
+        warnings.forEach(w => { score += w.severity === 'high' ? 40 : 20; });
+        score = Math.min(score, 100);
+
+        const isSpam = score >= 60;
+        const level = score >= 80 ? 'blocked' : score >= 40 ? 'warning' : 'safe';
+
+        return {isSpam, score, level, warnings};
+    },
+
+    // ─────────────────────────────────────────
+    // 2. POST SUMMARIZATION
+    // ─────────────────────────────────────────
+    summarize(text){
+        if(!text || text.length < 150) return null;
+
+        // Smart extraction-based summarization
+        const sentences = text.replace(/([.!؟])/g, '$1|').split('|').filter(s => s.trim().length > 15);
+
+        if(sentences.length <= 2) return text;
+
+        // Score sentences by importance
+        const scored = sentences.map((s, i) => {
+            let score = 0;
+            const lower = s.toLowerCase();
+
+            // First sentence bonus
+            if(i === 0) score += 3;
+            // Last sentence bonus
+            if(i === sentences.length - 1) score += 2;
+
+            // Important keywords
+            const keywords = ['مهم','رئيسي','أساسي','判决','قانون','محكمة','قرار','تعديل','جديد','يجب','نصيحة','هام','عاجل','تحديث'];
+            keywords.forEach(k => { if(lower.includes(k)) score += 2; });
+
+            // Numbers boost
+            if(/\d/.test(s)) score += 1;
+
+            // Hashtags boost
+            if(/#[\u0600-\u06FF]/.test(s)) score += 1;
+
+            // Short sentence penalty
+            if(s.trim().length < 30) score -= 1;
+
+            return {text: s.trim(), score, index: i};
+        });
+
+        // Sort by score, take top 2
+        const top = scored.sort((a, b) => b.score - a.score).slice(0, 2);
+        top.sort((a, b) => a.index - b.index); // Restore order
+
+        return top.map(s => s.text).join(' ').substring(0, 250);
+    },
+
+    // ─────────────────────────────────────────
+    // 3. TRANSLATION (Simulated)
+    // ─────────────────────────────────────────
+    _translations: {
+        'ar-en': {
+            'القانون':'Law','محكمة':'Court','عقد':'Contract','محامي':'Lawyer',
+            'حقوق':'Rights','عدالة':'Justice','قضاء':'Judiciary','نظام':'System',
+            'تعديل':'Amendment','判决':'Verdict','استشارة':'Consultation','شركة':'Company',
+            'العمل':'Labor','تجاري':'Commercial','مدني':'Civil','دولي':'International',
+            'نصيحة':'Advice',' مهمة':'Important','جديد':'New','تحديث':'Update'
+        },
+        'en-ar': {
+            'law':'قانون','court':'محكمة','contract':'عقد','lawyer':'محامي',
+            'rights':'حقوق','justice':'عدالة','judge':'قاضي','legal':'قانوني',
+            'company':'شركة','new':'جديد','important':'مهم','update':'تحديث'
+        }
+    },
+
+    translate(text, fromLang, toLang){
+        // Smart word-by-word translation simulation
+        const dict = this._translations[fromLang+'-'+toLang] || {};
+        let translated = text;
+
+        // Replace known words
+        Object.entries(dict).forEach(([from, to]) => {
+            const regex = new RegExp(from.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'gi');
+            translated = translated.replace(regex, to);
+        });
+
+        // If same result, provide a simulated translation
+        if(translated === text){
+            if(toLang === 'en'){
+                translated = '[EN] ' + text.replace(/[\u0600-\u06FF]+/g, '[translated]').substring(0, 200);
+            } else {
+                translated = '[AR] ' + text.replace(/[a-zA-Z]+/g, '[مترجم]').substring(0, 200);
+            }
+        }
+
+        return translated;
+    },
+
+    detectLanguage(text){
+        const arabicRatio = (text.match(/[\u0600-\u06FF]/g) || []).length / text.length;
+        return arabicRatio > 0.3 ? 'ar' : 'en';
+    },
+
+    // ─────────────────────────────────────────
+    // 4. LEGAL AI ASSISTANT
+    // ─────────────────────────────────────────
+    _responsePatterns: [
+        {keywords:['مرحبا','اهلا','السلام','هاي','hi','hello'], response:'مرحباً بك! 👋 أنا المساعد القانوني الذكي. كيف يمكنني مساعدتك اليوم في أي استفسار قانوني؟'},
+        {keywords:['عقد','contracts','توقيع','تعاقدي'], response:'بخصوص العقود، هناك عدة نقاط مهمة يجب مراعاتها:\n\n1. **قراءة جميع البنود** قبل التوقيع\n2. **بند التحكيم** لحل النزاعات\n3. **شروط الإنهاء** والغرامات\n4. **فترة الضمان** والمسؤوليات\n\nهل تحتاج توضيحاً حول نقطة معينة؟'},
+        {keywords:['محامي','استشارة','advocate','مكتب'], response:'للحصول على استشارة قانونية:\n\n• **وزارة العدل** — بوابة الاستشارات المجانية\n• **جمعية المحامين** — قائمة المرخصين\n• **مكاتب المحاماة** — استشارة متخصصة\n\nأنصحك بالتحقق من ترخيص المحامي عبر موقع وزارة العدل. هل تريد مساعدة في اختيار تخصص معين؟'},
+        {keywords:['قانون العمل','عمل','موظف','راتب','إجازة','فصل','employment'], response:'قانون العمل السعودي يوفر حماية شاملة للموظفين:\n\n• **ساعات العمل**: 8 ساعات/يوم، 48 ساعة/أسبوع\n• **الإجازة السنوية**: 21 يوم (تزيد بعد 5 سنوات)\n• **نهاية الخدمة**: نصف شهر للسنوات الخمس الأولى\n• **الفصل التعسفي**: تعويض يصل لراتبين\n\nهل لديك حالة محددة تحتاج توضيح؟'},
+        {keywords:['شركة','تأسيس','تجاري','سجل','commercial','register'], response:'خطوات تأسيس شركة في السعودية:\n\n1. **اختيار نوع الشركة** (ذات مسؤولية، مساهمة...)\n2. **السجل التجاري** عبر منصة بلدي\n3. **الاشتراك في الغرفة التجارية**\n4. **الزكاة والضريبة** — التسجيل\n5. **التأمينات الاجتماعية**\n\nالتكلفة تبدأ من 1,500 ريال تقريباً. هل تريد تفاصيل عن نوع شركة محدد؟'},
+        {keywords:['طلاق','زواج','أسرة','حضانة','نفقة','marriage','divorce'], response:'قانون الأسرة السعودي:\n\n• **الطلاق**: يتم عبر المحكمة الشرعية\n• **الحضانة**: للأم حتى سن 7 للذكور، 9 للإناث\n• **النفقة**: حق ثابت يحددها القاضي\n• **الخلع**: حق المرأة في طلب الطلاق بتعويض\n\nهذه معلومات عامة. للحالات الخاصة أنصح باستشارة محامي أسرة متخصص.'},
+        {keywords:['جريمة','جنائي','criminal','سرقة','قتل','مخدرات'], response:'القانون الجنائي السعودي يُعامل الجرائم بجدية:\n\n• **الجرائم المعلوماتية**: عقوبات مشددة\n• **السرقة**: تبدأ من السجن والغرامة\n• **المخدرات**: عقوبات صارمة جداً\n• **الاحتيال**: سجن + غرامة + تعويض\n\nفي حالات الطوارئ اتصل بـ **911**. هل تحتاج معلومات عن جريمة محددة؟'},
+        {keywords:['تحكيم','arbitration','نزاع','تسوية'], response:'التحكيم بديل فعال لتسوية النزاعات:\n\n• **أقل تكلفة** من المحاكم التقليدية\n• **أسرع** — أسابيع بدلاً من أشهر\n• **سري** — لا يُنشر للعلن\n• **مركز التحكيم السعودي** — المرجع المحلي\n• **ICC** — للنزاعات الدولية\n\nهل لديك نزاع قانوني تريد حله بالتحكيم؟'},
+        {keywords:['شكر','ممتاز','thanks','great','مفيد'], response:'شكراً لك! 😊 يسعدني أن المعلومات كانت مفيدة. لا تتردد في السؤال عن أي موضوع قانوني آخر. أنا هنا لمساعدتك!'},
+        {keywords:['مساعدة','help','ما هو','كيف','لماذا','what','how','why'], response:'يمكنني مساعدتك في المواضيع القانونية التالية:\n\n🏛️ **القانون التجاري** — عقود، شركات، إفلاس\n👷 **قانون العمل** — حقوق الموظفين\n👨‍👩‍👧 **قانون الأسرة** — زواج، طلاق، حضانة\n⚖️ **القانون الجنائي** — جرائم وعقوبات\n🌍 **القانون الدولي** — تحكيم، معاهدات\n📋 **الاستشارات** — إرشادات عامة\n\nما الموضوع الذي يهمك؟'},
+    ],
+
+    _defaultResponse: 'شكراً لسؤالك! هذا موضوع قانوني مهم. للحصول على إجابة دقيقة ومفصلة، أنصحك بـ:\n\n1. **استشارة محامي متخصص**\n2. **مراجعة موقع وزارة العدل**\n3. **الاطلاع على الأنظمة الرسمية**\n\nهل لديك سؤال محدد يمكنني مساعدتك به؟',
+
+    _suggestedQuestions: [
+        'ما هي حقوق الموظف عند الفصل التعسفي؟',
+        'كيف أسجل علامة تجارية؟',
+        'ما الفرق بين المحاكم والتحكيم؟',
+        'ما هي خطوات تأسيس شركة ناشئة؟',
+        'كيف أحمي حقوقي في العقد الإلكتروني؟',
+        'ما هي إجراءات رفع قضية مدنية؟',
+        'هل يمكن لغير السعودي فتح شركة؟',
+        'ما هي عقوبة جريمة الاحتيال الإلكتروني؟'
+    ],
+
+    getResponse(message){
+        const lower = message.toLowerCase();
+
+        for(const pattern of this._responsePatterns){
+            for(const kw of pattern.keywords){
+                if(lower.includes(kw)){
+                    return pattern.response;
+                }
+            }
+        }
+
+        return this._defaultResponse;
+    },
+
+    getSuggestions(){
+        const shuffled = [...this._suggestedQuestions].sort(() => Math.random() - 0.5);
+        return shuffled.slice(0, 4);
+    },
+
+    // ─────────────────────────────────────────
+    // 5. CONTENT SUGGESTIONS
+    // ─────────────────────────────────────────
+    getRecommendedPosts(userInterests){
+        return POSTS.filter(p => {
+            const text = p.text.toLowerCase();
+            return userInterests.some(interest => text.includes(interest));
+        }).sort((a, b) => {
+            const scoreA = a.likes * 0.6 + a.comments * 0.4;
+            const scoreB = b.likes * 0.6 + b.comments * 0.4;
+            return scoreB - scoreA;
+        });
+    }
+};
+
+// ═══════════════════════════════════════════════════════════════
+// ██  SAMPLE DATA  ██
+// ═══════════════════════════════════════════════════════════════
+const USERS = [
+    {id:'u1',name:'د. نورة القحطاني',avatar:'https://i.pravatar.cc/60?img=5',verified:true},
+    {id:'u2',name:'أ. فهد العتيبي',avatar:'https://i.pravatar.cc/60?img=12',verified:true},
+    {id:'u3',name:'المكتبة القانونية',avatar:'https://i.pravatar.cc/60?img=22',verified:true},
+    {id:'u4',name:'أ. سارة المنصور',avatar:'https://i.pravatar.cc/60?img=9',verified:false},
+    {id:'u5',name:'د. خالد الشمري',avatar:'https://i.pravatar.cc/60?img=15',verified:true},
+    {id:'u6',name:'أحمد البقمي',avatar:'https://i.pravatar.cc/60?img=51',verified:false},
+    {id:'u7',name:'منى الحربي',avatar:'https://i.pravatar.cc/60?img=44',verified:false}
+];
+
+const POSTS = [
+    {id:'p1',author:USERS[0],text:'نصيحة قانونية مهمة: عند توقيع أي عقد تجاري، تأكد من وجود بند التحكيم لتسوية النزاعات بدلاً من اللجوء للمحاكم التقليدية. هذا يوفر عليك الكثير من الوقت والمال. كما تأكد من مراجعة شروط الإنهاء والغرامات التأخيرية قبل التوقيع. لا تتردد في استشارة محامٍ متخصص قبل подпис أي وثيقة قانونية ملزمة.',likes:2340,comments:189,time:'منذ ساعتين',lang:'ar'},
+    {id:'p2',author:USERS[1],text:'المحكمة العليا أصدرت قراراً مهماً رقم 456/2024 لصالح حقوق المستهلك في العقود الإلكترونية. القرار ينص على أن للمستهلك حق الإلغاء خلال 7 أيام من تاريخ الشراء دون أي غرامة. كما ألزم المواقع التجارية بتوضيح سياسة الاستبدال والإرجاع بشكل واضح. هذا القرار يُعد مرجعاً أساسياً في قضايا التجارة الإلكترونية.',likes:5670,comments:432,time:'منذ 5 ساعات',lang:'ar'},
+    {id:'p3',author:USERS[2],text:'📚 أفضل 5 كتب للمبتدئين في القانون التجاري:\n\n1. مبادئ القانون التجاري للدكتور سامي حداد\n2. العقود التجارية — د. أحمد حمود\n3. الشركات التجارية — د. حسين⋎униس\n4. الأوراق التجارية — د. عبدالعزيز♔الخياط\n5. الإفلاس — د. محمد فريد العتال\n\nهذه المراجع أساسية لكل طالب قانون. #كتب #قانون_تجاري #تعليم',likes:8920,comments:567,time:'أمس',lang:'ar'},
+    {id:'p4',author:USERS[4],text:'The new International Arbitration Law amendments bring significant changes to dispute resolution in the GCC region. Key highlights include: faster proceedings, digital evidence acceptance, and reduced costs for small claims. This is a game-changer for cross-border commercial disputes. #InternationalLaw #Arbitration #GCC',likes:4210,comments:198,time:'منذ 7 ساعات',lang:'en'},
+    {id:'p5',author:USERS[3],text:'كيف تحمي نفسك قانونياً عند تأسيس شركتك؟\n\nأولاً: اختر الشكل القانوني المناسب (ذات مسؤولية محدودة، مساهمة، تضامن)\n\nثانياً: وضّع عقد تأسيس محكم يحدد حقوق والتزامات كل شريك\n\nثالثاً: سجّل العلامة التجارية فوراً لحمايتها من السرقة\n\nرابعاً: احصل على تأمين شامل يغطي المسؤولية المهنية\n\nخامساً: عيّن محامياً متخصصاً من البداية\n\n#شركات #تأسيس #قانون',likes:3450,comments:234,time:'منذ 3 ساعات',lang:'ar'},
+    {id:'p6',author:USERS[5],text:'هل تعلم أنك يمكنك تقديم شكوى إلكترونية ضد أي مخالف قانوني عبر منصة وزارة العدل (نافذة) مباشرة من هاتفك؟ الخطوات بسيطة: 1) سجّل الدخول 2) اختر نوع القضية 3) أرفق الأدلة 4) ادفع الرسم 5) انتظر الرد. الخدمة متاحة 24/7. #وزارة_العدل #شكوى #إلكتروني',likes:15600,comments:890,time:'منذ ساعة',lang:'ar'}
+];
+
+// ═══════════════════════════════════════════════════════════════
+// ██  STATE  ██
+// ═══════════════════════════════════════════════════════════════
+let currentAiTab = 'chat';
+let chatHistory = JSON.parse(localStorage.getItem('lb_ai_chat') || '[]');
+let summarizedPosts = {};
+let translatedPosts = {};
+
+function esc(t){const d=document.createElement('div');d.appendChild(document.createTextNode(t));return d.innerHTML}
+function saveChat(){localStorage.setItem('lb_ai_chat', JSON.stringify(chatHistory.slice(-50)))}
+
+// ═══════════════════════════════════════════════════════════════
+// ██  TAB SWITCHING  ██
+// ═══════════════════════════════════════════════════════════════
+function switchAiTab(tab, btn){
+    currentAiTab = tab;
+    document.querySelectorAll('.ai-tab').forEach(t=>t.classList.remove('active'));
+    if(btn) btn.classList.add('active');
+    renderAiTab();
+}
+
+function renderAiTab(){
+    const area = document.getElementById('aiContent');
+    switch(currentAiTab){
+        case 'chat': renderChat(area); break;
+        case 'feed': renderFeed(area); break;
+        case 'tools': renderTools(area); break;
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ██  AI CHAT TAB  ██
+// ═══════════════════════════════════════════════════════════════
+function renderChat(area){
+    const suggestions = AI.getSuggestions();
+
+    area.innerHTML = `
+    <div class="chat-container">
+        <!-- Chat History Sidebar (collapsible) -->
+        <div class="flex items-center justify-between px-4 py-2 border-b border-[#594138]/10">
+            <button onclick="toggleChatHistory()" class="flex items-center gap-2 text-xs text-[#7a7570] hover:text-[#c084fc] transition-colors">
+                <span class="material-symbols-outlined text-[16px]">history</span>
+                سجل المحادثات
+            </button>
+            <button onclick="clearChat()" class="flex items-center gap-1 text-xs text-[#7a7570] hover:text-red-400 transition-colors">
+                <span class="material-symbols-outlined text-[14px]">delete</span>
+                مسح
+            </button>
+        </div>
+
+        <div id="chatHistoryPanel" class="hidden border-b border-[#594138]/10 max-h-40 overflow-y-auto px-2 py-2">
+            ${chatHistory.length === 0 ? '<p class="text-xs text-[#7a7570] text-center py-3">لا محادثات سابقة</p>' :
+            chatHistory.filter(m=>m.role==='user').slice(-10).reverse().map(m=>`
+                <div class="chat-history-item" onclick="document.getElementById('chatInput').value='${esc(m.text)}'">
+                    <span class="material-symbols-outlined text-[14px] text-[#7a7570]">chat</span>
+                    <span class="text-xs truncate flex-1">${esc(m.text)}</span>
+                </div>
+            `).join('')}
+        </div>
+
+        <!-- Messages -->
+        <div class="chat-messages" id="chatMessages">
+            ${chatHistory.length === 0 ? `
+            <!-- Welcome -->
+            <div class="msg-ai" style="align-self:center;max-width:90%">
+                <div class="text-center py-8">
+                    <div class="w-20 h-20 rounded-full bg-purple-500/10 flex items-center justify-center mx-auto mb-4" style="animation:orbFloat 4s ease infinite">
+                        <span class="material-symbols-outlined text-[40px] text-purple-400" style="font-variation-settings:'FILL' 1">smart_toy</span>
+                    </div>
+                    <h2 class="text-xl font-extrabold text-purple-300 mb-2">المساعد القانوني الذكي</h2>
+                    <p class="text-sm text-[#7a7570] mb-6">اسألني عن أي موضوع قانوني وسأساعدك</p>
+
+                    <div class="grid grid-cols-1 gap-2 text-right max-w-md mx-auto">
+                        ${suggestions.map(q=>`
+                            <button onclick="sendAiMessage('${esc(q)}')" class="suggested-chip block w-full text-right" style="border-radius:12px;padding:12px 16px">
+                                <span class="material-symbols-outlined text-[14px] inline-block ml-1" style="vertical-align:middle">help</span>
+                                ${esc(q)}
+                            </button>
+                        `).join('')}
+                    </div>
+                </div>
+            </div>
+            ` : chatHistory.map(m => renderChatMessage(m)).join('')}
+        </div>
+
+        <!-- Suggestions -->
+        ${chatHistory.length > 0 ? `
+        <div class="suggested-chips" id="suggestionChips">
+            ${suggestions.map(q=>`<button class="suggested-chip" onclick="sendAiMessage('${esc(q)}')">${esc(q.substring(0,30))}...</button>`).join('')}
+        </div>` : ''}
+
+        <!-- Input -->
+        <div class="chat-input-bar">
+            <input type="text" class="chat-input" id="chatInput" placeholder="اسأل المساعد القانوني..." onkeydown="if(event.key==='Enter')sendAiFromInput()"/>
+            <button onclick="sendAiFromInput()" class="w-10 h-10 rounded-full flex items-center justify-center shrink-0" style="background:linear-gradient(135deg,#a855f7,#7c3aed)">
+                <span class="material-symbols-outlined text-white text-[20px]">send</span>
+            </button>
+        </div>
+    </div>`;
+
+    scrollToBottom();
+}
+
+function renderChatMessage(m){
+    if(m.role === 'user'){
+        return `
+        <div class="msg-user">
+            <div class="user-bubble">${formatMsgText(m.text)}</div>
+        </div>`;
+    } else {
+        return `
+        <div class="msg-ai">
+            <div class="ai-avatar" style="background:rgba(168,85,247,.15)">
+                <span class="material-symbols-outlined text-purple-400 text-[18px]" style="font-variation-settings:'FILL' 1">smart_toy</span>
+            </div>
+            <div class="ai-bubble">${formatMsgText(m.text)}</div>
+        </div>`;
+    }
+}
+
+function formatMsgText(text){
+    let s = esc(text);
+    s = s.replace(/\n/g, '<br>');
+    s = s.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+    s = s.replace(/#[\u0600-\u06FFa-zA-Z0-9_]+/g, match => `<span style="color:#c084fc;font-weight:600">${match}</span>`);
+    return s;
+}
+
+function sendAiFromInput(){
+    const input = document.getElementById('chatInput');
+    const text = input.value.trim();
+    if(!text) return;
+    input.value = '';
+    sendAiMessage(text);
+}
+
+function sendAiMessage(text){
+    // Add user message
+    chatHistory.push({role:'user', text, time:Date.now()});
+    saveChat();
+
+    // Re-render
+    const container = document.getElementById('chatMessages');
+    if(container){
+        container.insertAdjacentHTML('beforeend', renderChatMessage({role:'user', text}));
+        scrollToBottom();
+
+        // Show typing indicator
+        const typingHtml = `
+        <div class="msg-ai" id="typingMsg">
+            <div class="ai-avatar" style="background:rgba(168,85,247,.15)">
+                <span class="material-symbols-outlined text-purple-400 text-[18px]" style="font-variation-settings:'FILL' 1">smart_toy</span>
+            </div>
+            <div class="ai-bubble">
+                <div class="typing-indicator"><span></span><span></span><span></span></div>
+            </div>
+        </div>`;
+        container.insertAdjacentHTML('beforeend', typingHtml);
+        scrollToBottom();
+
+        // Generate response with delay
+        setTimeout(() => {
+            const response = AI.getResponse(text);
+            chatHistory.push({role:'ai', text:response, time:Date.now()});
+            saveChat();
+
+            const typingEl = document.getElementById('typingMsg');
+            if(typingEl) typingEl.remove();
+
+            container.insertAdjacentHTML('beforeend', renderChatMessage({role:'ai', text:response}));
+            scrollToBottom();
+
+            // Update suggestion chips
+            updateSuggestions();
+        }, 1200 + Math.random() * 800);
+    }
+}
+
+function updateSuggestions(){
+    const chips = document.getElementById('suggestionChips');
+    if(!chips) return;
+    const suggestions = AI.getSuggestions();
+    chips.innerHTML = suggestions.map(q=>`<button class="suggested-chip" onclick="sendAiMessage('${esc(q)}')">${esc(q.substring(0,30))}...</button>`).join('');
+}
+
+function scrollToBottom(){
+    const el = document.getElementById('chatMessages');
+    if(el) setTimeout(()=>el.scrollTop = el.scrollHeight, 50);
+}
+
+function toggleChatHistory(){
+    const panel = document.getElementById('chatHistoryPanel');
+    panel.classList.toggle('hidden');
+}
+
+function clearChat(){
+    chatHistory = [];
+    saveChat();
+    renderChat(document.getElementById('aiContent'));
+    showToast('تم مسح المحادثة','info');
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ██  CONTENT SUGGESTIONS TAB  ██
+// ═══════════════════════════════════════════════════════════════
+function renderFeed(area){
+    const interests = ['قانون','عقد','محكمة','شركة','تجاري','عمل','نصيحة'];
+    const suggested = AI.getRecommendedPosts(interests);
+
+    const reasons = [
+        'بناءً على اهتماماتك في القانون التجاري',
+        'متعلق بمجال عملك القانوني',
+        'رائج في مجتمعك القانوني',
+        'مشابه لمنشورات تفاعلت معها سابقاً',
+        'مُوصى لك بناءً على متابعيك'
+    ];
+
+    area.innerHTML = `
+    <div class="mb-4 anim-fade">
+        <div class="flex items-center gap-2 mb-1">
+            <span class="material-symbols-outlined text-purple-400 text-[22px]" style="font-variation-settings:'FILL' 1;animation:orbFloat 3s ease infinite">auto_awesome</span>
+            <h2 class="font-extrabold text-lg">محتوى مقترح لك</h2>
+        </div>
+        <p class="text-xs text-[#7a7570]">بناءً على اهتماماتك وتفاعلاتك السابقة</p>
+    </div>
+
+    <div class="space-y-4">
+        ${suggested.map((post, idx) => {
+            const delay = Math.min(idx * 0.08, 0.5);
+            const reason = reasons[idx % reasons.length];
+            const spam = AI.scanForSpam(post.text);
+
+            return `
+            <div class="suggest-card anim-fadeUp" style="animation-delay:${delay}s;opacity:0">
+                <div class="suggest-reason mb-3">
+                    <span class="material-symbols-outlined text-[12px]" style="font-variation-settings:'FILL' 1">auto_awesome</span>
+                    ${esc(reason)}
+                </div>
+
+                <div class="flex items-center gap-3 mb-3">
+                    <img src="${post.author.avatar}" class="w-9 h-9 rounded-full object-cover"/>
+                    <div class="flex-1">
+                        <span class="font-bold text-sm flex items-center gap-1">${esc(post.author.name)}${post.author.verified?'<span class="material-symbols-outlined text-[12px] text-blue-400" style="font-variation-settings:FILL 1">verified</span>':''}</span>
+                        <span class="text-[10px] text-[#7a7570]">${post.time}</span>
+                    </div>
+                </div>
+
+                <p class="text-sm text-[#e1bfb3] leading-relaxed mb-3" id="post-text-${post.id}">${esc(post.text).substring(0, 200)}${post.text.length > 200 ? '...' : ''}</p>
+
+                <!-- Spam Warning -->
+                ${spam.level === 'warning' ? `
+                    <div class="spam-warning mb-3">
+                        <span class="material-symbols-outlined text-[16px]">warning</span>
+                        تنبيه: ${spam.warnings.map(w=>esc(w.message)).join(' • ')}
+                    </div>
+                ` : ''}
+
+                <!-- AI Actions -->
+                <div class="post-actions">
+                    ${post.text.length > 150 ? `
+                    <button class="ai-feature-btn btn-summarize" onclick="summarizePost('${post.id}', this)" title="تلخيص ذكي">
+                        <span class="material-symbols-outlined text-[14px]">auto_awesome</span>
+                        تلخيص
+                    </button>` : ''}
+
+                    <button class="ai-feature-btn btn-translate" onclick="translatePost('${post.id}', '${post.lang||'ar'}', this)" title="ترجمة فورية">
+                        <span class="material-symbols-outlined text-[14px]">translate</span>
+                        ترجم
+                    </button>
+
+                    <button class="ai-feature-btn btn-summarize" onclick="scanPostSpam('${post.id}', this)" title="فحص المحتوى">
+                        <span class="material-symbols-outlined text-[14px]">security</span>
+                        فحص
+                    </button>
+
+                    <span class="flex items-center gap-1 text-[10px] text-[#7a7570] mr-auto">
+                        <span class="material-symbols-outlined text-[12px]" style="font-variation-settings:FILL 1;color:#ef4444">favorite</span>
+                        ${post.likes}
+                    </span>
+                </div>
+
+                <!-- AI Result Area -->
+                <div id="ai-result-${post.id}"></div>
+            </div>`;
+        }).join('')}
+    </div>`;
+}
+
+function summarizePost(postId, btn){
+    const post = POSTS.find(p=>p.id===postId);
+    if(!post) return;
+
+    btn.innerHTML = '<span class="material-symbols-outlined text-[14px] anim-spin" style="animation:spin 1s linear infinite">progress_activity</span> جاري التلخيص...';
+    btn.disabled = true;
+
+    setTimeout(() => {
+        const summary = AI.summarize(post.text);
+        const resultArea = document.getElementById('ai-result-'+postId);
+
+        if(summary){
+            resultArea.innerHTML = `
+            <div class="ai-result-box summary">
+                <div class="ai-label summary-label">
+                    <span class="material-symbols-outlined text-[12px]" style="font-variation-settings:'FILL' 1">auto_awesome</span>
+                    ملخص ذكي
+                </div>
+                <p>${esc(summary)}</p>
+            </div>`;
+        } else {
+            resultArea.innerHTML = `
+            <div class="ai-result-box summary">
+                <div class="ai-label summary-label">
+                    <span class="material-symbols-outlined text-[12px]">info</span>
+                    المنشور قصص بالفعل
+                </div>
+                <p>هذا المنشور مختصر ولا يحتاج تلخيصاً.</p>
+            </div>`;
+        }
+
+        btn.innerHTML = '<span class="material-symbols-outlined text-[14px]" style="font-variation-settings:FILL 1;color:#a855f7">check</span> تم التلخيص';
+        setTimeout(()=>{btn.disabled=false;btn.innerHTML='<span class="material-symbols-outlined text-[14px]">auto_awesome</span> تلخيص'}, 3000);
+    }, 1000 + Math.random() * 500);
+}
+
+function translatePost(postId, fromLang, btn){
+    const post = POSTS.find(p=>p.id===postId);
+    if(!post) return;
+
+    const toLang = fromLang === 'ar' ? 'en' : 'ar';
+    const toLabel = toLang === 'en' ? 'English' : 'العربية';
+
+    btn.innerHTML = '<span class="material-symbols-outlined text-[14px]" style="animation:spin 1s linear infinite">progress_activity</span> جاري الترجمة...';
+    btn.disabled = true;
+
+    setTimeout(() => {
+        const translated = AI.translate(post.text, fromLang, toLang);
+        const resultArea = document.getElementById('ai-result-'+postId);
+
+        resultArea.innerHTML = `
+        <div class="ai-result-box translation">
+            <div class="ai-label translate-label">
+                <span class="material-symbols-outlined text-[12px]" style="font-variation-settings:'FILL' 1">translate</span>
+                ترجمة إلى ${toLabel}
+            </div>
+            <p dir="${toLang==='en'?'ltr':'rtl'}">${esc(translated)}</p>
+        </div>`;
+
+        btn.innerHTML = '<span class="material-symbols-outlined text-[14px]" style="font-variation-settings:FILL 1;color:#3b82f6">check</span> تُرجم';
+        setTimeout(()=>{btn.disabled=false;btn.innerHTML='<span class="material-symbols-outlined text-[14px]">translate</span> ترجم'}, 3000);
+    }, 800 + Math.random() * 400);
+}
+
+function scanPostSpam(postId, btn){
+    const post = POSTS.find(p=>p.id===postId);
+    if(!post) return;
+
+    btn.innerHTML = '<span class="material-symbols-outlined text-[14px]" style="animation:spin 1s linear infinite">progress_activity</span> فحص...';
+    btn.disabled = true;
+
+    setTimeout(() => {
+        const result = AI.scanForSpam(post.text);
+        const resultArea = document.getElementById('ai-result-'+postId);
+
+        if(result.level === 'safe'){
+            resultArea.innerHTML = `
+            <div class="ai-result-box" style="background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.15)">
+                <div class="ai-label" style="color:#22c55e">
+                    <span class="material-symbols-outlined text-[12px]" style="font-variation-settings:'FILL' 1">verified</span>
+                    آمن — لا توجد مشاكل
+                </div>
+                <p class="text-green-300">المنشور نظيف وآمن. درجة الأمان: ${result.score}/100</p>
+            </div>`;
+        } else {
+            resultArea.innerHTML = `
+            <div class="ai-result-box" style="background:rgba(${result.level==='blocked'?'239,68,68':'234,179,8'},.08);border:1px solid rgba(${result.level==='blocked'?'239,68,68':'234,179,8'},.15)">
+                <div class="ai-label" style="color:${result.level==='blocked'?'#ef4444':'#facc15'}">
+                    <span class="material-symbols-outlined text-[12px]">warning</span>
+                    ${result.level==='blocked'?'محظور':'تحذير'} — درجة: ${result.score}/100
+                </div>
+                ${result.warnings.map(w=>`<p class="text-xs mb-1">• ${esc(w.message)}: ${esc(w.word||w.matches?.join(', ')||'')}</p>`).join('')}
+            </div>`;
+        }
+
+        btn.innerHTML = '<span class="material-symbols-outlined text-[14px]" style="font-variation-settings:FILL 1;color:#22c55e">check</span> تم الفحص';
+        setTimeout(()=>{btn.disabled=false;btn.innerHTML='<span class="material-symbols-outlined text-[14px]">security</span> فحص'}, 3000);
+    }, 600 + Math.random() * 400);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ██  AI TOOLS TAB  ██
+// ═══════════════════════════════════════════════════════════════
+function renderTools(area){
+    area.innerHTML = `
+    <div class="space-y-4">
+        <!-- Spam Scanner Tool -->
+        <div class="post-card anim-fadeUp">
+            <div class="flex items-center gap-3 mb-4">
+                <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background:rgba(239,68,68,.12)">
+                    <span class="material-symbols-outlined text-red-400 text-[22px]" style="font-variation-settings:'FILL' 1">security</span>
+                </div>
+                <div>
+                    <h3 class="font-bold text-sm">كاشف المحتوى المزعج</h3>
+                    <p class="text-[10px] text-[#7a7570]">فحص أي نص للكلمات المسيئة والأنماط المشبوهة</p>
+                </div>
+            </div>
+            <textarea id="spamScanInput" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-[#e5e2e1] outline-none focus:border-red-400/40 transition-colors font-['Tajawal'] resize-none" rows="3" placeholder="الصق أي نص هنا لفحصه..." oninput="liveSpamCheck(this.value)"></textarea>
+            <div id="spamLiveResult" class="mt-3"></div>
+        </div>
+
+        <!-- Summarizer Tool -->
+        <div class="post-card anim-fadeUp" style="animation-delay:.1s;opacity:0">
+            <div class="flex items-center gap-3 mb-4">
+                <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background:rgba(168,85,247,.12)">
+                    <span class="material-symbols-outlined text-purple-400 text-[22px]" style="font-variation-settings:'FILL' 1">auto_awesome</span>
+                </div>
+                <div>
+                    <h3 class="font-bold text-sm">تلخيص النصوص</h3>
+                    <p class="text-[10px] text-[#7a7570]">تلخيص أي نص طويل في فقرتين</p>
+                </div>
+            </div>
+            <textarea id="summarizeInput" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-[#e5e2e1] outline-none focus:border-purple-400/40 transition-colors font-['Tajawal'] resize-none" rows="4" placeholder="الصق نصاً طويلاً هنا..."></textarea>
+            <button onclick="doSummarize()" class="btn-ghost w-full justify-center mt-3 text-purple-300" style="border-color:rgba(168,85,247,.3)">
+                <span class="material-symbols-outlined text-[16px]">auto_awesome</span>
+                تلخيص
+            </button>
+            <div id="summarizeResult" class="mt-3"></div>
+        </div>
+
+        <!-- Translator Tool -->
+        <div class="post-card anim-fadeUp" style="animation-delay:.2s;opacity:0">
+            <div class="flex items-center gap-3 mb-4">
+                <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background:rgba(59,130,246,.12)">
+                    <span class="material-symbols-outlined text-blue-400 text-[22px]" style="font-variation-settings:'FILL' 1">translate</span>
+                </div>
+                <div>
+                    <h3 class="font-bold text-sm">الترجمة الفورية</h3>
+                    <p class="text-[10px] text-[#7a7570]">ترجمة النصوص بين العربية والإنجليزية</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-2 mb-3">
+                <select id="translateFrom" class="flex-1 bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-[#e5e2e1] outline-none font-['Tajawal']">
+                    <option value="ar">العربية</option>
+                    <option value="en">English</option>
+                </select>
+                <button onclick="swapLangs()" class="p-2 rounded-full hover:bg-white/5 text-[#7a7570]">
+                    <span class="material-symbols-outlined text-[20px]">swap_horiz</span>
+                </button>
+                <select id="translateTo" class="flex-1 bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-[#e5e2e1] outline-none font-['Tajawal']">
+                    <option value="en">English</option>
+                    <option value="ar">العربية</option>
+                </select>
+            </div>
+            <textarea id="translateInput" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-[#e5e2e1] outline-none focus:border-blue-400/40 transition-colors font-['Tajawal'] resize-none" rows="3" placeholder="اكتب النص هنا..."></textarea>
+            <button onclick="doTranslate()" class="btn-ghost w-full justify-center mt-3 text-blue-300" style="border-color:rgba(59,130,246,.3)">
+                <span class="material-symbols-outlined text-[16px]">translate</span>
+                ترجم
+            </button>
+            <div id="translateResult" class="mt-3"></div>
+        </div>
+
+        <!-- AI Features Summary -->
+        <div class="post-card anim-fadeUp" style="animation-delay:.3s;opacity:0">
+            <h3 class="font-bold text-sm mb-4 flex items-center gap-2">
+                <span class="material-symbols-outlined text-[#f26522] text-[18px]" style="font-variation-settings:'FILL' 1">psychology</span>
+                ميزات الذكاء الاصطناعي
+            </h3>
+            <div class="grid grid-cols-2 gap-3">
+                <div class="bg-white/3 rounded-xl p-3 text-center">
+                    <span class="material-symbols-outlined text-purple-400 text-[24px] block mx-auto mb-1" style="font-variation-settings:'FILL' 1">smart_toy</span>
+                    <p class="text-xs font-bold">مساعد قانوني</p>
+                    <p class="text-[9px] text-[#7a7570]">دردشة ذكية</p>
+                </div>
+                <div class="bg-white/3 rounded-xl p-3 text-center">
+                    <span class="material-symbols-outlined text-blue-400 text-[24px] block mx-auto mb-1" style="font-variation-settings:'FILL' 1">auto_awesome</span>
+                    <p class="text-xs font-bold">اقتراح محتوى</p>
+                    <p class="text-[9px] text-[#7a7570]">بناءً على اهتماماتك</p>
+                </div>
+                <div class="bg-white/3 rounded-xl p-3 text-center">
+                    <span class="material-symbols-outlined text-red-400 text-[24px] block mx-auto mb-1" style="font-variation-settings:'FILL' 1">security</span>
+                    <p class="text-xs font-bold">كشف السبام</p>
+                    <p class="text-[9px] text-[#7a7570]">فلترة ذكية</p>
+                </div>
+                <div class="bg-white/3 rounded-xl p-3 text-center">
+                    <span class="material-symbols-outlined text-green-400 text-[24px] block mx-auto mb-1" style="font-variation-settings:'FILL' 1">translate</span>
+                    <p class="text-xs font-bold">ترجمة فورية</p>
+                    <p class="text-[9px] text-[#7a7570]">عربي ↔ إنجليزي</p>
+                </div>
+            </div>
+        </div>
+    </div>`;
+}
+
+function liveSpamCheck(text){
+    const container = document.getElementById('spamLiveResult');
+    if(!text.trim()){container.innerHTML='';return}
+
+    const result = AI.scanForSpam(text);
+
+    if(result.level === 'safe'){
+        container.innerHTML = `
+        <div class="spam-warning" style="background:rgba(34,197,94,.08);border-color:rgba(34,197,94,.2);color:#4ade80">
+            <span class="material-symbols-outlined text-[16px]" style="font-variation-settings:'FILL' 1">verified</span>
+            آمن — لا توجد مشاكل (${result.score}/100)
+        </div>`;
+    } else if(result.level === 'warning'){
+        container.innerHTML = `
+        <div class="spam-warning">
+            <span class="material-symbols-outlined text-[16px]">warning</span>
+            <div>
+                <p class="font-bold">تحذير (${result.score}/100)</p>
+                ${result.warnings.map(w=>`<p class="text-[11px] mt-0.5">• ${esc(w.message)}${w.word?': '+esc(w.word):''}</p>`).join('')}
+            </div>
+        </div>`;
+    } else {
+        container.innerHTML = `
+        <div class="spam-blocked">
+            <span class="material-symbols-outlined text-red-400 text-[36px] block mx-auto mb-2">block</span>
+            <p class="text-red-400 font-bold text-sm">محتوى محظور (${result.score}/100)</p>
+            <p class="text-red-400/60 text-xs mt-1">يحتوي على ${result.warnings.length} مخالفة</p>
+            <div class="text-xs text-red-400/50 mt-2">
+                ${result.warnings.map(w=>`<p>• ${esc(w.message)}</p>`).join('')}
+            </div>
+        </div>`;
+    }
+}
+
+function doSummarize(){
+    const text = document.getElementById('summarizeInput').value.trim();
+    const container = document.getElementById('summarizeResult');
+    if(!text){showToast('أدخل نصاً للتلخيص','error');return}
+
+    container.innerHTML = '<div class="flex items-center gap-2 text-purple-300 text-sm"><span class="material-symbols-outlined text-[16px]" style="animation:spin 1s linear infinite">progress_activity</span>جاري التلخيص...</div>';
+
+    setTimeout(()=>{
+        const summary = AI.summarize(text);
+        if(summary){
+            container.innerHTML = `
+            <div class="ai-result-box summary">
+                <div class="ai-label summary-label"><span class="material-symbols-outlined text-[12px]" style="font-variation-settings:'FILL' 1">auto_awesome</span>الملخص</div>
+                <p>${esc(summary)}</p>
+            </div>`;
+        } else {
+            container.innerHTML = '<p class="text-xs text-[#7a7570]">النص مختصر بالفعل ولا يحتاج تلخيصاً.</p>';
+        }
+    }, 1000);
+}
+
+function doTranslate(){
+    const text = document.getElementById('translateInput').value.trim();
+    const from = document.getElementById('translateFrom').value;
+    const to = document.getElementById('translateTo').value;
+    const container = document.getElementById('translateResult');
+    if(!text){showToast('أدخل نصاً للترجمة','error');return}
+    if(from===to){showToast('اختر لغتين مختلفتين','error');return}
+
+    container.innerHTML = `<div class="flex items-center gap-2 text-blue-300 text-sm"><span class="material-symbols-outlined text-[16px]" style="animation:spin 1s linear infinite">progress_activity</span>جاري الترجمة...</div>`;
+
+    setTimeout(()=>{
+        const translated = AI.translate(text, from, to);
+        container.innerHTML = `
+        <div class="ai-result-box translation">
+            <div class="ai-label translate-label"><span class="material-symbols-outlined text-[12px]" style="font-variation-settings:'FILL' 1">translate</span>الترجمة</div>
+            <p dir="${to==='en'?'ltr':'rtl'}">${esc(translated)}</p>
+        </div>`;
+    }, 800);
+}
+
+function swapLangs(){
+    const from = document.getElementById('translateFrom');
+    const to = document.getElementById('translateTo');
+    const tmp = from.value;
+    from.value = to.value;
+    to.value = tmp;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ██  TOAST  ██
+// ═══════════════════════════════════════════════════════════════
+function showToast(msg,type='info'){
+    const t=document.getElementById('toastEl');
+    const icons={success:'check_circle',error:'error',info:'info',warning:'warning'};
+    t.className='toast '+type;
+    t.innerHTML=`<span class="material-symbols-outlined text-[20px]">${icons[type]||'info'}</span> ${msg}`;
+    setTimeout(()=>t.classList.add('show'),10);
+    setTimeout(()=>t.classList.remove('show'),3500);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ██  INIT  ██
+// ═══════════════════════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', function(){
+    renderAiTab();
+    console.log('%c لو بوك | الذكاء الاصطناعي ','background:#a855f7;color:white;font-size:14px;font-weight:bold;border-radius:8px;padding:6px 14px');
+});
+</script>
+</body>
+</html>

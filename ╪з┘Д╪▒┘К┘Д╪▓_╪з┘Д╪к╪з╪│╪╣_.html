@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html class="dark" lang="ar" dir="rtl">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
+    <title>لو بوك | الريلز</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <style>
+        *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+        body{font-family:'Tajawal',sans-serif;overflow:hidden;background:#000;color:#fff;position:fixed;inset:0}
+        .material-symbols-outlined{font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24;transition:all .2s ease}
+        .filled{font-variation-settings:'FILL' 1}
+
+        /* ═══════ Reels Container ═══════ */
+        .reels-viewport{position:fixed;inset:0;overflow:hidden}
+        .reels-track{position:absolute;inset:0;transition:transform .45s cubic-bezier(.25,.46,.45,.94);will-change:transform}
+        .reel-slide{position:absolute;left:0;right:0;height:100dvh;overflow:hidden}
+
+        /* ═══════ Video Background ═══════ */
+        .reel-video-wrap{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:#000}
+        .reel-video-wrap video{width:100%;height:100%;object-fit:cover}
+        .reel-video-wrap .video-poster{position:absolute;inset:0;object-fit:cover;transition:opacity .5s}
+        .reel-video-wrap .video-poster.hidden-poster{opacity:0;pointer-events:none}
+
+        /* Gradients */
+        .reel-gradient-top{position:absolute;top:0;left:0;right:0;height:140px;background:linear-gradient(to bottom,rgba(0,0,0,.6),transparent);z-index:5;pointer-events:none}
+        .reel-gradient-bottom{position:absolute;bottom:0;left:0;right:0;height:220px;background:linear-gradient(to top,rgba(0,0,0,.8),transparent);z-index:5;pointer-events:none}
+
+        /* ═══════ Top Bar ═══════ */
+        .reel-topbar{position:absolute;top:0;left:0;right:0;z-index:10;padding:12px 16px;display:flex;align-items:center;justify-content:space-between}
+        .reel-topbar h2{font-size:18px;font-weight:800}
+
+        /* ═══════ Side Actions ═══════ */
+        .reel-actions{position:absolute;left:12px;bottom:120px;z-index:10;display:flex;flex-direction:column;gap:20px;align-items:center}
+
+        .action-btn{display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;transition:all .2s}
+        .action-btn:hover{transform:scale(1.1)}
+        .action-btn:active{transform:scale(.9)}
+        .action-btn .icon-circle{width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.1);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;transition:all .3s}
+        .action-btn.liked .icon-circle{background:rgba(239,68,68,.2)}
+        .action-btn.saved .icon-circle{background:rgba(242,101,34,.2)}
+        .action-btn .count{font-size:11px;font-weight:700;color:white;text-shadow:0 1px 4px rgba(0,0,0,.5)}
+
+        /* ═══════ Reel Info (Bottom) ═══════ */
+        .reel-info{position:absolute;bottom:0;right:70px;left:16px;z-index:10;padding-bottom:20px}
+        .reel-author{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+        .reel-author img{width:38px;height:38px;border-radius:50%;object-fit:cover;border:2px solid rgba(255,255,255,.4)}
+        .reel-author .follow-btn-mini{background:#f26522;color:white;font-weight:700;font-size:11px;padding:4px 12px;border-radius:8px;border:none;cursor:pointer;font-family:'Tajawal',sans-serif;transition:all .3s}
+        .reel-author .follow-btn-mini:hover{background:#e85d1c}
+        .reel-author .follow-btn-mini.following{background:rgba(255,255,255,.15);color:white}
+
+        .reel-desc{font-size:13px;line-height:1.6;margin-bottom:8px;max-height:60px;overflow:hidden;transition:max-height .3s;cursor:pointer}
+        .reel-desc.expanded{max-height:200px}
+        .reel-desc .hashtag{color:#f26522;font-weight:700}
+        .reel-desc .mention{color:#60a5fa;font-weight:600}
+
+        .reel-music{display:flex;align-items:center;gap:8px;font-size:12px;color:rgba(255,255,255,.7)}
+        .reel-music .disc{animation:spin 3s linear infinite}
+        @keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+
+        /* ═══════ Comments Panel ═══════ */
+        .comments-panel{position:absolute;bottom:0;left:0;right:0;z-index:20;background:rgba(20,20,20,.97);backdrop-filter:blur(20px);border-radius:20px 20px 0 0;max-height:60dvh;display:none;animation:slideUp .4s cubic-bezier(.4,0,.2,1)}
+        .comments-panel.active{display:block}
+        @keyframes slideUp{from{opacity:0;transform:translateY(100%)}to{opacity:1;transform:translateY(0)}}
+
+        .comment-item{display:flex;gap:10px;padding:12px 16px}
+        .comment-item img{width:34px;height:34px;border-radius:50%;object-fit:cover;flex-shrink:0}
+        .comment-bubble{background:rgba(42,42,42,.5);border-radius:14px;padding:10px 14px;flex:1}
+        .comment-bubble .comment-name{font-size:12px;font-weight:700;color:#f26522}
+        .comment-bubble .comment-text{font-size:13px;margin-top:4px;line-height:1.5}
+        .comment-bubble .comment-meta{font-size:10px;color:#7a7570;margin-top:6px;display:flex;gap:12px}
+        .comment-like-btn{cursor:pointer;transition:all .2s;display:flex;flex-direction:column;align-items:center;gap:2px}
+        .comment-like-btn:hover{transform:scale(1.15)}
+
+        /* ═══════ Share Sheet ═══════ */
+        .share-sheet{position:absolute;bottom:0;left:0;right:0;z-index:20;background:rgba(20,20,20,.97);backdrop-filter:blur(20px);border-radius:20px 20px 0 0;padding:20px;display:none;animation:slideUp .4s cubic-bezier(.4,0,.2,1)}
+        .share-sheet.active{display:block}
+        .share-option{display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;padding:8px;border-radius:12px;transition:background .2s}
+        .share-option:hover{background:rgba(255,255,255,.05)}
+        .share-option .share-icon{width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center}
+
+        /* ═══════ Upload Section ═══════ */
+        .upload-overlay{position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.95);display:none;flex-direction:column;overflow-y:auto}
+        .upload-overlay.active{display:flex;animation:fadeIn .3s ease}
+        @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+
+        .upload-zone{border:2px dashed rgba(89,65,56,.4);border-radius:20px;padding:50px 20px;text-align:center;cursor:pointer;transition:all .3s;position:relative}
+        .upload-zone:hover{border-color:#f26522;background:rgba(242,101,34,.04)}
+        .upload-zone.dragover{border-color:#f26522;background:rgba(242,101,34,.08)}
+
+        /* ═══════ Buttons ═══════ */
+        .btn-orange{background:linear-gradient(135deg,#f26522,#e85d1c);color:white;font-weight:700;font-size:14px;padding:12px 24px;border-radius:12px;border:none;cursor:pointer;transition:all .3s;font-family:'Tajawal',sans-serif;display:flex;align-items:center;gap:6px}
+        .btn-orange:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(242,101,34,.3)}
+        .btn-ghost{background:transparent;border:1px solid rgba(89,65,56,.3);color:#e5e2e1;font-weight:600;font-size:13px;padding:10px 20px;border-radius:12px;cursor:pointer;transition:all .3s;font-family:'Tajawal',sans-serif;display:flex;align-items:center;gap:4px}
+
+        /* ═══════ Toast ═══════ */
+        .toast{position:fixed;top:24px;left:50%;transform:translateX(-50%) translateY(-100px);z-index:9999;padding:14px 28px;border-radius:14px;font-weight:700;font-size:14px;opacity:0;transition:all .5s cubic-bezier(.68,-.55,.265,1.55);display:flex;align-items:center;gap:10px;backdrop-filter:blur(12px);max-width:90vw;color:white}
+        .toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+        .toast.success{background:rgba(34,197,94,.2);border:1px solid rgba(34,197,94,.4)}
+        .toast.error{background:rgba(239,68,68,.2);border:1px solid rgba(239,68,68,.4)}
+        .toast.info{background:rgba(59,130,246,.2);border:1px solid rgba(59,130,246,.4)}
+
+        /* ═══════ Scrollbar ═══════ */
+        ::-webkit-scrollbar{width:4px;height:4px}
+        ::-webkit-scrollbar-track{background:transparent}
+        ::-webkit-scrollbar-thumb{background:#474746;border-radius:4px}
+
+        /* ═══════ Responsive ═══════ */
+        @media(min-width:769px){
+            .reels-viewport{max-width:420px;max-height:100dvh;margin:0 auto;border-radius:16px;overflow:hidden}
+            .reel-slide{border-radius:16px}
+        }
+    </style>
+</head>
+<body>
+<div id="toastEl" class="toast"></div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- REELS VIEWPORT -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="reels-viewport" id="reelsViewport">
+    <div class="reels-track" id="reelsTrack">
+        <!-- Rendered dynamically -->
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- COMMENTS PANEL -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="comments-panel" id="commentsPanel">
+    <div class="flex items-center justify-between px-5 py-4 border-b border-white/10">
+        <h4 class="font-bold text-sm flex items-center gap-2">
+            <span class="material-symbols-outlined text-[#f26522] text-[20px]">chat_bubble</span>
+            التعليقات
+            <span id="commentsCountHeader" class="text-xs text-[#7a7570]"></span>
+        </h4>
+        <button onclick="closeComments()" class="p-2 rounded-full hover:bg-white/10">
+            <span class="material-symbols-outlined text-white text-[20px]">close</span>
+        </button>
+    </div>
+    <div id="commentsList" class="overflow-y-auto" style="max-height:40dvh;padding:8px 0">
+        <!-- Rendered dynamically -->
+    </div>
+    <div class="px-4 py-3 border-t border-white/10 flex gap-3">
+        <input type="text" id="commentInput" class="flex-1 bg-white/10 border border-white/10 rounded-full px-4 py-2.5 text-sm text-white outline-none focus:border-[#f26522]/40 transition-colors font-['Tajawal']" placeholder="أضف تعليقاً..." onkeydown="if(event.key==='Enter')sendComment()"/>
+        <button onclick="sendComment()" class="w-10 h-10 rounded-full bg-[#f26522] flex items-center justify-center shrink-0 hover:scale-105 active:scale-95 transition-transform">
+            <span class="material-symbols-outlined text-white text-[18px]">send</span>
+        </button>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- SHARE SHEET -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="share-sheet" id="shareSheet">
+    <div class="flex items-center justify-between mb-4">
+        <h4 class="font-bold">مشاركة</h4>
+        <button onclick="closeShare()" class="p-2 rounded-full hover:bg-white/10">
+            <span class="material-symbols-outlined text-white text-[20px]">close</span>
+        </button>
+    </div>
+    <div class="grid grid-cols-4 gap-4 mb-4">
+        <div class="share-option" onclick="shareVia('copy')"><div class="share-icon bg-[#7a7570]/20"><span class="material-symbols-outlined text-white text-[22px]">content_copy</span></div><span class="text-[10px]">نسخ الرابط</span></div>
+        <div class="share-option" onclick="shareVia('message')"><div class="share-icon bg-purple-500/20"><span class="material-symbols-outlined text-purple-400 text-[22px]">chat</span></div><span class="text-[10px]">رسالة</span></div>
+        <div class="share-option" onclick="shareVia('story')"><div class="share-icon bg-[#f26522]/20"><span class="material-symbols-outlined text-[#f26522] text-[22px]">auto_stories</span></div><span class="text-[10px]">قصة</span></div>
+        <div class="share-option" onclick="shareVia('download')"><div class="share-icon bg-green-500/20"><span class="material-symbols-outlined text-green-400 text-[22px]">download</span></div><span class="text-[10px]">تنزيل</span></div>
+    </div>
+    <div class="grid grid-cols-4 gap-4">
+        <div class="share-option" onclick="shareVia('whatsapp')"><div class="share-icon bg-green-600/20"><span class="material-symbols-outlined text-green-500 text-[22px]">call</span></div><span class="text-[10px]">واتساب</span></div>
+        <div class="share-option" onclick="shareVia('twitter')"><div class="share-icon bg-blue-500/20"><span class="material-symbols-outlined text-blue-400 text-[22px]">tag</span></div><span class="text-[10px]">تويتر</span></div>
+        <div class="share-option" onclick="shareVia('report')"><div class="share-icon bg-red-500/20"><span class="material-symbols-outlined text-red-400 text-[22px]">flag</span></div><span class="text-[10px]">إبلاغ</span></div>
+        <div class="share-option" onclick="shareVia('notinterested')"><div class="share-icon bg-[#7a7570]/20"><span class="material-symbols-outlined text-[#7a7570] text-[22px]">not_interested</span></div><span class="text-[10px]">لا يهمني</span></div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- UPLOAD OVERLAY -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="upload-overlay" id="uploadOverlay">
+    <div class="max-w-lg mx-auto w-full p-4 flex flex-col min-h-full">
+        <!-- Header -->
+        <div class="flex items-center justify-between py-2 mb-4">
+            <button onclick="closeUpload()" class="p-2 rounded-full hover:bg-white/10">
+                <span class="material-symbols-outlined text-white text-[24px]">close</span>
+            </button>
+            <h2 class="text-lg font-extrabold text-[#f26522]">ريلز جديد</h2>
+            <div style="width:40px"></div>
+        </div>
+
+        <div class="flex-1 flex flex-col justify-center">
+            <!-- Upload Zone -->
+            <div id="reelUploadZone" class="upload-zone mb-6" onclick="document.getElementById('reelFileInput').click()" ondragover="event.preventDefault();this.classList.add('dragover')" ondragleave="this.classList.remove('dragover')" ondrop="handleReelDrop(event)">
+                <span class="material-symbols-outlined text-5xl text-[#7a7570] mb-4 block">movie</span>
+                <p class="text-base font-bold text-[#e1bfb3] mb-2">ارفع فيديو ريلز</p>
+                <p class="text-sm text-[#7a7570] mb-1">MP4 — مدة أقصاها 90 ثانية</p>
+                <p class="text-xs text-[#7a7570]">حد أقصى 200MB — نسبة 9:16 مُفضّلة</p>
+                <input type="file" id="reelFileInput" accept="video/*" class="hidden" onchange="handleReelUpload(this)"/>
+            </div>
+
+            <!-- Preview -->
+            <div id="reelPreview" class="hidden mb-6">
+                <div class="relative rounded-2xl overflow-hidden border border-[#594138]/20" style="aspect-ratio:9/16;max-height:350px;margin:0 auto;max-width:200px">
+                    <video id="reelPreviewVid" class="w-full h-full object-cover" controls></video>
+                    <button onclick="removeReelUpload()" class="absolute top-2 left-2 w-8 h-8 bg-black/60 rounded-full flex items-center justify-center hover:bg-red-500 transition-colors">
+                        <span class="material-symbols-outlined text-white text-[18px]">close</span>
+                    </button>
+                    <div id="reelPreviewInfo" class="absolute bottom-2 left-2 right-2 bg-black/70 text-white text-xs px-3 py-1.5 rounded-lg text-center"></div>
+                </div>
+            </div>
+
+            <!-- Reel Details -->
+            <div id="reelDetails" class="hidden space-y-4">
+                <div>
+                    <label class="text-sm font-semibold text-[#e1bfb3] mb-2 block">وصف الريلز</label>
+                    <textarea id="reelCaption" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-[#f26522]/40 transition-colors font-['Tajawal'] resize-none" placeholder="اكتب وصفاً... أضف #هاشتاقات" rows="3" maxlength="500"></textarea>
+                    <p class="text-[10px] text-[#7a7570] mt-1 text-left" id="captionCounter">0/500</p>
+                </div>
+                <div>
+                    <label class="text-sm font-semibold text-[#e1bfb3] mb-2 block">الهاشتاقات</label>
+                    <input type="text" id="reelHashtags" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-[#f26522]/40 transition-colors font-['Tajawal']" placeholder="#قانون #محاماة #نصائح_قانونية"/>
+                </div>
+                <div>
+                    <label class="text-sm font-semibold text-[#e1bfb3] mb-2 block">المحتوى المقترح</label>
+                    <select id="reelCategory" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-[#f26522]/40 transition-colors font-['Tajawal']">
+                        <option value="law">قانون وقضاء</option>
+                        <option value="advice">نصائح قانونية</option>
+                        <option value="news">أخبار قانونية</option>
+                        <option value="education">تعليم قانوني</option>
+                        <option value="general">عام</option>
+                    </select>
+                </div>
+                <div class="flex items-center gap-3">
+                    <label class="toggle-track" id="allowCommentsToggle" onclick="this.classList.toggle('on')">
+                        <div class="toggle-dot" style="position:absolute;top:2px;width:20px;height:20px;border-radius:50%;background:white;transition:all .3s;box-shadow:0 2px 4px rgba(0,0,0,.3);right:2px"></div>
+                    </label>
+                    <span class="text-sm">السماح بالتعليقات</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action -->
+        <div id="reelPublishWrap" class="hidden flex gap-3 pb-6">
+            <button onclick="closeUpload()" class="btn-ghost flex-1 justify-center">إلغاء</button>
+            <button onclick="publishReel()" class="btn-orange flex-1 justify-center">
+                <span class="material-symbols-outlined text-[18px]">rocket_launch</span>
+                نشر الريلز
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- JAVASCRIPT -->
+<!-- ═══════════════════════════════════════════ -->
+<script>
+const DB={get(k){try{return JSON.parse(localStorage.getItem('lb_'+k))}catch{return null}},set(k,v){localStorage.setItem('lb_'+k,JSON.stringify(v))},rm(k){localStorage.removeItem('lb_'+k)}};
+
+const ME={id:'usr_001',name:'عبدالملك بن محمد',username:'abdulmalik_m',avatar:'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop&crop=face'};
+
+const USERS=[
+    {id:'u1',name:'د. نورة القحطاني',username:'nora_q',avatar:'https://i.pravatar.cc/80?img=5',verified:true,following:true},
+    {id:'u2',name:'أ. فهد العتيبي',username:'fahad_o',avatar:'https://i.pravatar.cc/80?img=12',verified:true,following:true},
+    {id:'u3',name:'المكتبة القانونية',username:'law_library',avatar:'https://i.pravatar.cc/80?img=22',verified:true,following:false},
+    {id:'u4',name:'أ. سارة المنصور',username:'sarah_m',avatar:'https://i.pravatar.cc/80?img=9',verified:false,following:true},
+    {id:'u5',name:'د. خالد الشمري',username:'khalid_s',avatar:'https://i.pravatar.cc/80?img=15',verified:true,following:false},
+    {id:'u6',name:'أحمد البقمي',username:'ahmed_b',avatar:'https://i.pravatar.cc/80?img=51',verified:false,following:false},
+    {id:'u7',name:'منى الحربي',username:'mona_h',avatar:'https://i.pravatar.cc/80?img=44',verified:false,following:true}
+];
+
+let reels = DB.get('reels_v2') || [];
+let currentReelIdx = 0;
+let uploadedReelData = null;
+let reelDataTransfer = null;
+
+function genId(){return 'r_'+Date.now()+'_'+Math.random().toString(36).substr(2,6)}
+function esc(t){const d=document.createElement('div');d.appendChild(document.createTextNode(t));return d.innerHTML}
+function formatNum(n){if(n>=1000000)return(n/1000000).toFixed(1)+'M';if(n>=1000)return(n/1000).toFixed(1)+'K';return n.toString()}
+function formatTimeAgo(iso){const d=Math.floor((Date.now()-new Date(iso).getTime())/1000);if(d<60)return'الآن';if(d<3600)return'منذ '+Math.floor(d/60)+' د';if(d<86400)return'منذ '+Math.floor(d/3600)+' س';return new Date(iso).toLocaleDateString('ar-SA')}
+function ago(m){return new Date(Date.now()-m*60000).toISOString()}
+function save(){DB.set('reels_v2',reels)}
+
+// ═══════════════════════════════════════════
+// VIDEO URLS (free samples)
+// ═══════════════════════════════════════════
+const VID_BACKGROUNDS = [
+    'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?w=500&h=900&fit=crop',
+    'https://images.unsplash.com/photo-1505664194779-8beaceb93744?w=500&h=900&fit=crop',
+    'https://images.unsplash.com/photo-1479142506502-19b3a3b7ff33?w=500&h=900&fit=crop',
+    'https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=500&h=900&fit=crop',
+    'https://images.unsplash.com/photo-1497366216548-37526070297c?w=500&h=900&fit=crop',
+    'https://images.unsplash.com/photo-1589994965851-a8f479c573a9?w=500&h=900&fit=crop',
+    'https://images.unsplash.com/photo-1436491865332-7a61a109db05?w=500&h=900&fit=crop',
+    'https://images.unsplash.com/photo-1521791136064-7986c2920216?w=500&h=900&fit=crop'
+];
+
+// ═══════════════════════════════════════════
+// GENERATE SAMPLES
+// ═══════════════════════════════════════════
+function generateSamples(){
+    if(reels.length>0) return;
+
+    const sampleReels = [
+        {user:USERS[0],caption:'نصيحة قانونية مهمة عند توقيع أي عقد تجاري! لا ت signing قبل ما تقرأ كل البنود','#قانون #عقود #نصائح_قانونية #تجارة',category:'advice',duration:45,likes:2340,comments:generateComments(12),saves:189,shares:67,music:'صوت أصلي - د. نورة'},
+        {user:USERS[1],caption:'المحكمة العليا أصدرت قراراً جديداً لصالح حقوق المستهلك!','#قضاء #حقوق_المستهلك #محكمة_عليا',category:'news',duration:32,likes:5670,comments:generateComments(34),saves:432,shares:210,music:'صوت أصلي - أ. فهد'},
+        {user:USERS[2],caption:'📚 أفضل 5 كتب للمبتدئين في القانون التجاري','#كتب #قانون_تجاري #تعليم #مبتدئين',category:'education',duration:60,likes:8920,comments:generateComments(56),saves:1200,shares:450,music:'صوت أصلي - المكتبة القانونية'},
+        {user:USERS[3],caption:'كيف تحمي نفسك قانونياً عند تأسيس شركتك؟','#قانون #شركات #تأسيس #حماية_قانونية',category:'advice',duration:28,likes:3450,comments:generateComments(23),saves:567,shares:123,music:'صوت أصلي - أ. سارة'},
+        {user:USERS[4],caption:'التحكيم الدولي ليس معقداً كما تتصور! شرح مبسط','#تحكيم #دولي #قانون_دولي #مبسط',category:'education',duration:55,likes:4210,comments:generateComments(19),saves:789,shares:156,music:'صوت أصلي - د. خالد'},
+        {user:USERS[5],caption:'هل تعلم؟ يمكنك استشارة قانونية مجانية عبر المنصة!','#استشارة #مجانية #قانون #هل_تعلم',category:'general',duration:20,likes:15600,comments:generateComments(89),saves:2100,shares:890,music:'أغنية رائجة'},
+        {user:USERS[6],caption:'案例: كيف ربحت قضية تجارية بقيمة مليون ريال!','#قضية #تجارية #نجاح #محاماة',category:'law',duration:42,likes:9800,comments:generateComments(45),saves:1560,shares:345,music:'صوت أصلي - منى'},
+        {user:USERS[0],caption:'التعديلات الجديدة على نظام العمل - ما يجب أن يعرفه كل موظف!','#قانون_العمل #تعديلات #موظف #حقوق',category:'news',duration:38,likes:7650,comments:generateComments(38),saves:890,shares:234,music:'صوت أصلي - د. نورة'}
+    ];
+
+    sampleReels.forEach((r,i)=>{
+        reels.push({
+            id:genId(),
+            user:r.user,
+            videoUrl:null,
+            posterUrl:VID_BACKGROUNDS[i%VID_BACKGROUNDS.length],
+            caption:r.caption,
+            category:r.category,
+            duration:r.duration,
+            createdAt:ago(Math.floor(Math.random()*1440)+10),
+            likes:r.likes,
+            liked: false,
+            saved: false,
+            comments:r.comments,
+            saves:r.saves,
+            shares:r.shares,
+            music:r.music,
+            views: Math.floor(r.likes * (2.5 + Math.random()*3))
+        });
+    });
+
+    save();
+}
+
+function generateComments(count){
+    const texts=[
+        'معلومة ممتازة! شكراً لك 🙏','محتوى رائع جداً','هل ممكن تفاصيل أكثر؟','أنا شخصياً واجهت هذا الموقف','رهيب! استمر',
+        'محتوى مفيد جداً','ممتاز وواضح','هل هذا ينطبق على جميع الحالات؟','شكراً للمعلومة','أفضل محتوى قانوني على الإطلاق',
+        'محتاج أسمع رأي محامي','هل فيه تطبيق عملي؟','محتوى يحتاج انتشار أوسع','أحب هالمحتوى','شاركت المنشور مع أصحابي',
+        'هل فيه جزء ثاني؟','شرح مبسط وممتاز','أنت أفضل محتوى قانوني','معلومة جديدة علي','كنت أحتاج هالمعلومة',
+        'عايز أعرف أكتر عن الموضوع ده','محتوى عالي الجودة','شكرًا على المجهود','ممتاز جداً والله','استفدت كثير من هذا الفيديو'
+    ];
+    const comms = [];
+    for(let i=0;i<count;i++){
+        const u = USERS[Math.floor(Math.random()*USERS.length)];
+        comms.push({
+            id:genId(),
+            user:u,
+            text:texts[Math.floor(Math.random()*texts.length)],
+            time:ago(Math.floor(Math.random()*1000)+5),
+            likes:Math.floor(Math.random()*50)
+        });
+    }
+    return comms;
+}
+
+// ═══════════════════════════════════════════
+// RENDER REELS
+// ═══════════════════════════════════════════
+function renderReels(){
+    const track = document.getElementById('reelsTrack');
+
+    track.innerHTML = reels.map((reel,idx)=>{
+        const isActive = idx === currentReelIdx;
+        const user = reel.user;
+        const isMe = user.id === ME.id;
+        const isFollowing = user.following;
+
+        // Format caption with hashtags and mentions
+        let descHtml = esc(reel.caption);
+        descHtml = descHtml.replace(/#([\u0600-\u06FFa-zA-Z0-9_]+)/g,'<span class="hashtag">#$1</span>');
+        descHtml = descHtml.replace(/@([a-zA-Z0-9_]+)/g,'<span class="mention">@$1</span>');
+
+        return `
+        <div class="reel-slide" style="top:${idx*100}dvh" data-idx="${idx}">
+            <!-- Video / Poster -->
+            <div class="reel-video-wrap">
+                ${reel.videoUrl?`<video src="${reel.videoUrl}" loop playsinline ${isActive?'autoplay muted':''}></video>`:`<img src="${reel.posterUrl}" class="video-poster w-full h-full object-cover"/>`}
+                ${!reel.videoUrl?`<div class="absolute inset-0 flex items-center justify-center z-1 pointer-events-none"><div class="w-16 h-16 rounded-full bg-black/40 backdrop-blur flex items-center justify-center"><span class="material-symbols-outlined text-white text-[32px]" style="font-variation-settings:'FILL' 1">play_arrow</span></div></div>`:''}
+            </div>
+
+            <!-- Gradients -->
+            <div class="reel-gradient-top"></div>
+            <div class="reel-gradient-bottom"></div>
+
+            <!-- Top Bar -->
+            <div class="reel-topbar">
+                <h2>ريلز</h2>
+                <div class="flex gap-2">
+                    <button onclick="openUpload()" class="p-2 rounded-full hover:bg-white/10" title="ريلز جديد">
+                        <span class="material-symbols-outlined text-white text-[22px]">add_box</span>
+                    </button>
+                    <button onclick="showToast('الكاميرا','info')" class="p-2 rounded-full hover:bg-white/10">
+                        <span class="material-symbols-outlined text-white text-[22px]">photo_camera</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Side Actions -->
+            <div class="reel-actions">
+                <!-- Like -->
+                <div class="action-btn ${reel.liked?'liked':''}" onclick="toggleLike('${reel.id}',this)">
+                    <div class="icon-circle">
+                        <span class="material-symbols-outlined text-[${reel.liked?'#ef4444':'white'}] text-[26px]" style="font-variation-settings:'${reel.liked?"'FILL' 1":"'FILL' 0"}'">favorite</span>
+                    </div>
+                    <span class="count">${formatNum(reel.likes)}</span>
+                </div>
+                <!-- Comments -->
+                <div class="action-btn" onclick="openComments('${reel.id}')">
+                    <div class="icon-circle">
+                        <span class="material-symbols-outlined text-white text-[26px]">chat_bubble</span>
+                    </div>
+                    <span class="count">${formatNum(reel.comments.length)}</span>
+                </div>
+                <!-- Share -->
+                <div class="action-btn" onclick="openShare('${reel.id}')">
+                    <div class="icon-circle">
+                        <span class="material-symbols-outlined text-white text-[26px]">share</span>
+                    </div>
+                    <span class="count">${formatNum(reel.shares)}</span>
+                </div>
+                <!-- Save -->
+                <div class="action-btn ${reel.saved?'saved':''}" onclick="toggleSave('${reel.id}',this)">
+                    <div class="icon-circle">
+                        <span class="material-symbols-outlined text-[${reel.saved?'#f26522':'white'}] text-[26px]" style="font-variation-settings:'${reel.saved?"'FILL' 1":"'FILL' 0"}'">bookmark</span>
+                    </div>
+                    <span class="count">${formatNum(reel.saves)}</span>
+                </div>
+                <!-- Download -->
+                <div class="action-btn" onclick="downloadReel('${reel.id}')">
+                    <div class="icon-circle">
+                        <span class="material-symbols-outlined text-white text-[26px]">download</span>
+                    </div>
+                </div>
+                <!-- Disc -->
+                <div class="reel-music" style="margin-top:4px">
+                    <div class="disc w-8 h-8 rounded-full border-2 border-white/30 overflow-hidden">
+                        <img src="${user.avatar}" class="w-full h-full object-cover"/>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bottom Info -->
+            <div class="reel-info">
+                <div class="reel-author">
+                    <img src="${user.avatar}"/>
+                    <div>
+                        <span class="font-bold text-sm flex items-center gap-1">
+                            ${esc(user.name)}
+                            ${user.verified?'<span class="material-symbols-outlined text-[14px] text-blue-400" style="font-variation-settings:FILL 1">verified</span>':''}
+                        </span>
+                        <span class="text-[10px] text-white/50">@${esc(user.username)}</span>
+                    </div>
+                    ${!isMe?`<button class="follow-btn-mini ${isFollowing?'following':''}" onclick="event.stopPropagation();toggleFollowReel('${user.id}',this)">${isFollowing?'متابَع':'متابعة'}</button>`:''}
+                </div>
+                <div class="reel-desc" onclick="this.classList.toggle('expanded')">${descHtml}</div>
+                <div class="reel-music">
+                    <span class="material-symbols-outlined text-[16px]">music_note</span>
+                    <span class="truncate">${esc(reel.music)}</span>
+                </div>
+                <div class="flex items-center gap-3 mt-2 text-[10px] text-white/40">
+                    <span>${formatNum(reel.views)} مشاهدة</span>
+                    <span>•</span>
+                    <span>${formatTimeAgo(reel.createdAt)}</span>
+                </div>
+            </div>
+        </div>`;
+    }).join('');
+
+    updateTrackPosition(false);
+}
+
+function updateTrackPosition(animate=true){
+    const track = document.getElementById('reelsTrack');
+    track.style.transition = animate ? 'transform .45s cubic-bezier(.25,.46,.45,.94)' : 'none';
+    track.style.transform = `translateY(-${currentReelIdx * window.innerHeight}px)`;
+}
+
+// ═══════════════════════════════════════════
+// SWIPE NAVIGATION
+// ═══════════════════════════════════════════
+let touchStartY = 0;
+let touchStartX = 0;
+let isDragging = false;
+
+const viewport = document.getElementById('reelsViewport');
+
+viewport.addEventListener('touchstart', e=>{
+    touchStartY = e.touches[0].clientY;
+    touchStartX = e.touches[0].clientX;
+    isDragging = true;
+    document.getElementById('reelsTrack').style.transition = 'none';
+},{passive:true});
+
+viewport.addEventListener('touchmove', e=>{
+    if(!isDragging) return;
+    const diffY = touchStartY - e.touches[0].clientY;
+    const track = document.getElementById('reelsTrack');
+    const offset = -currentReelIdx * window.innerHeight - diffY;
+    track.style.transform = `translateY(${offset}px)`;
+},{passive:true});
+
+viewport.addEventListener('touchend', e=>{
+    if(!isDragging) return;
+    isDragging = false;
+    const diffY = touchStartY - e.changedTouches[0].clientY;
+    const diffX = Math.abs(touchStartX - e.changedTouches[0].clientX);
+
+    if(diffX > Math.abs(diffY)) return; // Horizontal swipe, ignore
+
+    if(Math.abs(diffY) > 60){
+        if(diffY > 0 && currentReelIdx < reels.length - 1){
+            currentReelIdx++;
+        } else if(diffY < 0 && currentReelIdx > 0){
+            currentReelIdx--;
+        }
+    }
+    updateTrackPosition(true);
+    onReelChanged();
+},{passive:true});
+
+// Mouse wheel (desktop)
+viewport.addEventListener('wheel', e=>{
+    e.preventDefault();
+    if(e.deltaY > 30 && currentReelIdx < reels.length - 1){
+        currentReelIdx++;
+        updateTrackPosition(true);
+        onReelChanged();
+    } else if(e.deltaY < -30 && currentReelIdx > 0){
+        currentReelIdx--;
+        updateTrackPosition(true);
+        onReelChanged();
+    }
+},{passive:false});
+
+// Keyboard
+document.addEventListener('keydown', e=>{
+    if(document.getElementById('commentsPanel').classList.contains('active')) return;
+    if(document.getElementById('uploadOverlay').classList.contains('active')) return;
+
+    if((e.key==='ArrowDown'||e.key==='j') && currentReelIdx < reels.length-1){
+        currentReelIdx++;
+        updateTrackPosition(true);
+        onReelChanged();
+    }
+    if((e.key==='ArrowUp'||e.key==='k') && currentReelIdx > 0){
+        currentReelIdx--;
+        updateTrackPosition(true);
+        onReelChanged();
+    }
+    if(e.key==='l') toggleLikeCurrent();
+    if(e.key===' ') {e.preventDefault();togglePlayPause()}
+});
+
+function onReelChanged(){
+    // Auto-play video, pause others
+    document.querySelectorAll('.reel-slide video').forEach(v=>v.pause());
+    const active = document.querySelector(`.reel-slide[data-idx="${currentReelIdx}"] video`);
+    if(active) active.play().catch(()=>{});
+}
+
+function togglePlayPause(){
+    const active = document.querySelector(`.reel-slide[data-idx="${currentReelIdx}"] video`);
+    if(!active) return;
+    if(active.paused) active.play();
+    else active.pause();
+}
+
+// ═══════════════════════════════════════════
+// LIKE / SAVE / FOLLOW
+// ═══════════════════════════════════════════
+function toggleLike(reelId, btn){
+    const reel = reels.find(r=>r.id===reelId);
+    if(!reel) return;
+
+    reel.liked = !reel.liked;
+    reel.likes += reel.liked ? 1 : -1;
+
+    const icon = btn.querySelector('.material-symbols-outlined');
+    const count = btn.querySelector('.count');
+    icon.style.fontVariationSettings = reel.liked ? "'FILL' 1" : "'FILL' 0";
+    icon.style.color = reel.liked ? '#ef4444' : 'white';
+    count.textContent = formatNum(reel.likes);
+
+    if(reel.liked){
+        btn.classList.add('liked');
+        btn.querySelector('.icon-circle').style.transform = 'scale(1.2)';
+        setTimeout(()=>btn.querySelector('.icon-circle').style.transform='',200);
+    } else {
+        btn.classList.remove('liked');
+    }
+
+    save();
+}
+
+function toggleLikeCurrent(){
+    const reel = reels[currentReelIdx];
+    if(!reel) return;
+    const btn = document.querySelector(`.reel-slide[data-idx="${currentReelIdx}"] .action-btn`);
+    if(btn) toggleLike(reel.id, btn);
+}
+
+function toggleSave(reelId, btn){
+    const reel = reels.find(r=>r.id===reelId);
+    if(!reel) return;
+
+    reel.saved = !reel.saved;
+    reel.saves += reel.saved ? 1 : -1;
+
+    const icon = btn.querySelector('.material-symbols-outlined');
+    const count = btn.querySelector('.count');
+    icon.style.fontVariationSettings = reel.saved ? "'FILL' 1" : "'FILL' 0";
+    icon.style.color = reel.saved ? '#f26522' : 'white';
+    count.textContent = formatNum(reel.saves);
+
+    if(reel.saved) btn.classList.add('saved');
+    else btn.classList.remove('saved');
+
+    save();
+    showToast(reel.saved?'تم الحفظ':'تم الإزالة من الحفظ',reel.saved?'success':'info');
+}
+
+function toggleFollowReel(userId, btn){
+    const user = USERS.find(u=>u.id===userId);
+    if(!user) return;
+
+    user.following = !user.following;
+    btn.textContent = user.following ? 'متابَع' : 'متابعة';
+    btn.classList.toggle('following', user.following);
+
+    showToast(user.following?'تمت متابعة '+user.name:'تم إلغاء المتابعة',user.following?'success':'info');
+}
+
+function downloadReel(reelId){
+    const reel = reels.find(r=>r.id===reelId);
+    if(!reel) return;
+    if(reel.videoUrl){
+        const a = document.createElement('a');
+        a.href = reel.videoUrl;
+        a.download = 'reel_'+reel.id+'.mp4';
+        a.click();
+    }
+    showToast('جاري تنزيل الريلز...','info');
+}
+
+// ═══════════════════════════════════════════
+// COMMENTS
+// ═══════════════════════════════════════════
+function openComments(reelId){
+    const reel = reels.find(r=>r.id===reelId);
+    if(!reel) return;
+
+    document.getElementById('commentsPanel').classList.add('active');
+    document.getElementById('commentsCountHeader').textContent = '('+reel.comments.length+')';
+
+    const list = document.getElementById('commentsList');
+    list.innerHTML = reel.comments.map(c=>{
+        return `
+        <div class="comment-item">
+            <img src="${c.user.avatar}"/>
+            <div class="comment-bubble">
+                <span class="comment-name">${esc(c.user.name)}</span>
+                <p class="comment-text">${esc(c.text)}</p>
+                <div class="comment-meta">
+                    <span>${formatTimeAgo(c.time)}</span>
+                    <span>${c.likes} إعجاب</span>
+                    <span class="cursor-pointer hover:text-[#f26522]">رد</span>
+                </div>
+            </div>
+            <div class="comment-like-btn" onclick="this.classList.toggle('liked');this.querySelector('.material-symbols-outlined').style.color=this.classList.contains('liked')?'#ef4444':'#7a7570'">
+                <span class="material-symbols-outlined text-[#7a7570] text-[18px]">favorite</span>
+                <span class="text-[10px] text-[#7a7570]">${c.likes}</span>
+            </div>
+        </div>`;
+    }).join('');
+
+    // Store current reel for commenting
+    document.getElementById('commentsPanel').dataset.reelId = reelId;
+    document.getElementById('commentInput').focus();
+}
+
+function closeComments(){
+    document.getElementById('commentsPanel').classList.remove('active');
+}
+
+function sendComment(){
+    const input = document.getElementById('commentInput');
+    const text = input.value.trim();
+    if(!text) return;
+
+    const reelId = document.getElementById('commentsPanel').dataset.reelId;
+    const reel = reels.find(r=>r.id===reelId);
+    if(!reel) return;
+
+    const newComment = {
+        id:genId(),
+        user:{...ME},
+        text:text,
+        time:new Date().toISOString(),
+        likes:0
+    };
+
+    reel.comments.push(newComment);
+    save();
+    input.value = '';
+    openComments(reelId);
+    showToast('تم إضافة التعليق','success');
+
+    // Update comment count on reel card
+    renderReels();
+}
+
+// ═══════════════════════════════════════════
+// SHARE
+// ═══════════════════════════════════════════
+function openShare(reelId){
+    document.getElementById('shareSheet').classList.add('active');
+    document.getElementById('shareSheet').dataset.reelId = reelId;
+}
+
+function closeShare(){
+    document.getElementById('shareSheet').classList.remove('active');
+}
+
+function shareVia(method){
+    const reelId = document.getElementById('shareSheet').dataset.reelId;
+    const reel = reels.find(r=>r.id===reelId);
+    if(reel) reel.shares++;
+
+    switch(method){
+        case 'copy': showToast('تم نسخ الرابط','success'); break;
+        case 'message': showToast('تمت المشاركة عبر الرسائل','success'); break;
+        case 'story': showToast('تمت المشاركة في القصة','success'); break;
+        case 'download': downloadReel(reelId); break;
+        case 'whatsapp': showToast('تمت المشاركة عبر واتساب','success'); break;
+        case 'twitter': showToast('تمت المشاركة عبر تويتر','success'); break;
+        case 'report': showToast('تم الإبلاغ','info'); break;
+        case 'notinterested': showToast('سنحسّن اقتراحاتك','info'); break;
+    }
+    save();
+    closeShare();
+}
+
+// ═══════════════════════════════════════════
+// UPLOAD
+// ═══════════════════════════════════════════
+function openUpload(){
+    document.getElementById('uploadOverlay').classList.add('active');
+    document.body.style.overflow = 'auto';
+}
+
+function closeUpload(){
+    document.getElementById('uploadOverlay').classList.remove('active');
+    document.body.style.overflow = 'hidden';
+    removeReelUpload();
+}
+
+function handleReelUpload(input){
+    const file = input.files[0];
+    if(!file) return;
+    if(file.size > 200*1024*1024){showToast('حجم الملف يتجاوز 200MB','error');return}
+    if(!file.type.startsWith('video/')){showToast('يرجى اختيار ملف فيديو','error');return}
+
+    const reader = new FileReader();
+    reader.onload = function(e){
+        uploadedReelData = e.target.result;
+        document.getElementById('reelUploadZone').style.display = 'none';
+        document.getElementById('reelPreview').classList.remove('hidden');
+        document.getElementById('reelDetails').classList.remove('hidden');
+        document.getElementById('reelPublishWrap').classList.remove('hidden');
+
+        const vid = document.getElementById('reelPreviewVid');
+        vid.src = uploadedReelData;
+        vid.onloadedmetadata = ()=>{
+            const dur = Math.floor(vid.duration);
+            document.getElementById('reelPreviewInfo').textContent = dur + ' ثانية • '+(file.size/(1024*1024)).toFixed(1)+' MB';
+            if(vid.duration > 90) showToast('المدة أقصاها 90 ثانية','error');
+        };
+    };
+    reader.readAsDataURL(file);
+    input.value = '';
+
+    // Counter
+    document.getElementById('reelCaption').addEventListener('input', function(){
+        document.getElementById('captionCounter').textContent = this.value.length+'/500';
+    });
+}
+
+function handleReelDrop(e){
+    e.preventDefault();
+    e.currentTarget.classList.remove('dragover');
+    const file = e.dataTransfer.files[0];
+    if(file){
+        const input = document.getElementById('reelFileInput');
+        const dt = new DataTransfer();
+        dt.items.add(file);
+        input.files = dt.files;
+        handleReelUpload(input);
+    }
+}
+
+function removeReelUpload(){
+    uploadedReelData = null;
+    document.getElementById('reelUploadZone').style.display = '';
+    document.getElementById('reelPreview').classList.add('hidden');
+    document.getElementById('reelDetails').classList.add('hidden');
+    document.getElementById('reelPublishWrap').classList.add('hidden');
+    document.getElementById('reelPreviewVid').src = '';
+    document.getElementById('reelCaption').value = '';
+    document.getElementById('reelHashtags').value = '';
+    document.getElementById('captionCounter').textContent = '0/500';
+}
+
+function publishReel(){
+    if(!uploadedReelData){showToast('يرجى رفع فيديو','error');return}
+
+    const caption = document.getElementById('reelCaption').value.trim();
+    const hashtags = document.getElementById('reelHashtags').value.trim();
+    const category = document.getElementById('reelCategory').value;
+
+    const fullCaption = caption + (hashtags ? '\n' + hashtags : '');
+    const vid = document.getElementById('reelPreviewVid');
+
+    const newReel = {
+        id:genId(),
+        user:{...ME},
+        videoUrl:uploadedReelData,
+        posterUrl:null,
+        caption:fullCaption||'ريلز جديد',
+        category:category,
+        duration:Math.floor(vid.duration||0),
+        createdAt:new Date().toISOString(),
+        likes:0,
+        liked:false,
+        saved:false,
+        comments:[],
+        saves:0,
+        shares:0,
+        music:'صوت أصلي',
+        views:0
+    };
+
+    reels.unshift(newReel);
+    save();
+    closeUpload();
+    currentReelIdx = 0;
+    renderReels();
+    showToast('تم نشر الريلز بنجاح!','success');
+}
+
+// ═══════════════════════════════════════════
+// TOAST
+// ═══════════════════════════════════════════
+function showToast(msg,type='info'){
+    const t=document.getElementById('toastEl');
+    const icons={success:'check_circle',error:'error',info:'info'};
+    t.className='toast '+type;
+    t.innerHTML=`<span class="material-symbols-outlined text-[20px]">${icons[type]}</span> ${msg}`;
+    setTimeout(()=>t.classList.add('show'),10);
+    setTimeout(()=>t.classList.remove('show'),3500);
+}
+
+// ═══════════════════════════════════════════
+// RESIZE HANDLER
+// ═══════════════════════════════════════════
+window.addEventListener('resize', ()=>updateTrackPosition(false));
+
+// ═══════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════
+document.addEventListener('DOMContentLoaded',function(){
+    generateSamples();
+    renderReels();
+
+    console.log('%c لو بوك | الريلز ','background:#f26522;color:white;font-size:14px;font-weight:bold;border-radius:8px;padding:6px 14px');
+});
+</script>
+</body>
+</html>

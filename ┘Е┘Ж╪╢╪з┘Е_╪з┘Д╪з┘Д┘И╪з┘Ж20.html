@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html class="dark" lang="ar" dir="rtl">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>لو بوك | النظام البصري</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <style>
+        *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+        :root{
+            --bg:#0a0a0a;--surface:#141414;--surface-2:#1a1a1a;--surface-3:#222222;
+            --accent:#f26522;--accent-light:#ff7a3d;--accent-dark:#d4561a;
+            --text:#e5e2e1;--text-secondary:#a3a3a3;--text-muted:#7a7570;
+            --border:#594138;--border-light:rgba(89,65,56,.12);
+            --green:#22c55e;--red:#ef4444;--blue:#3b82f6;--yellow:#eab308;--purple:#a855f7;
+            --radius:14px;--radius-lg:20px;--radius-xl:24px;
+        }
+        body{font-family:'Tajawal',sans-serif;min-height:100dvh;overflow-x:hidden;background:var(--bg);color:var(--text)}
+        code,pre,.mono{font-family:'DM Mono',monospace}
+        .material-symbols-outlined{font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24;transition:font-variation-settings .2s}
+
+        .bg-main{position:fixed;inset:0;z-index:0;background:radial-gradient(ellipse at 15% 0%,rgba(242,101,34,.07) 0%,transparent 55%),radial-gradient(ellipse at 85% 100%,rgba(242,101,34,.04) 0%,transparent 50%),var(--bg)}
+        .bg-main::after{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");opacity:.3;pointer-events:none}
+
+        @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+        @keyframes fadeInUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+        @keyframes fadeInDown{from{opacity:0;transform:translateY(-20px)}to{opacity:1;transform:translateY(0)}}
+        @keyframes fadeInRight{from{opacity:0;transform:translateX(30px)}to{opacity:1;transform:translateX(0)}}
+        @keyframes fadeInLeft{from{opacity:0;transform:translateX(-30px)}to{opacity:1;transform:translateX(0)}}
+        @keyframes scaleIn{from{opacity:0;transform:scale(.9)}to{opacity:1;transform:scale(1)}}
+        @keyframes slideUp{from{opacity:0;transform:translateY(100%)}to{opacity:1;transform:translateY(0)}}
+        @keyframes slideDown{from{opacity:0;transform:translateY(-30px)}to{opacity:1;transform:translateY(0)}}
+        @keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
+        @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+        @keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+        @keyframes orbFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+        @keyframes breathe{0%,100%{box-shadow:0 0 0 0 rgba(242,101,34,.25)}70%{box-shadow:0 0 0 14px rgba(242,101,34,0)}}
+        @keyframes gradientFlow{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+        @keyframes ripple{to{transform:scale(2.5);opacity:0}}
+        @keyframes wipeIn{0%{clip-path:inset(0 100% 0 0)}100%{clip-path:inset(0 0 0 0)}}
+        @keyframes zoomBounce{0%{transform:scale(0)}60%{transform:scale(1.1)}100%{transform:scale(1)}}
+        @keyframes slideRotate{0%{opacity:0;transform:translateX(40px) rotate(3deg)}100%{opacity:1;transform:translateX(0) rotate(0)}}
+        @keyframes flipIn{0%{opacity:0;transform:perspective(600px) rotateX(-40deg)}100%{opacity:1;transform:perspective(600px) rotateX(0)}}
+
+        .a-fade{animation:fadeIn .4s ease both}
+        .a-fadeUp{animation:fadeInUp .5s cubic-bezier(.4,0,.2,1) both}
+        .a-fadeDown{animation:slideDown .5s cubic-bezier(.4,0,.2,1) both}
+        .a-fadeRight{animation:fadeInRight .5s cubic-bezier(.4,0,.2,1) both}
+        .a-scaleIn{animation:scaleIn .4s cubic-bezier(.4,0,.2,1) both}
+        .a-slideUp{animation:slideUp .5s cubic-bezier(.4,0,.2,1) both}
+        .a-zoomBounce{animation:zoomBounce .5s cubic-bezier(.4,0,.2,1) both}
+        .a-slideRotate{animation:slideRotate .5s cubic-bezier(.4,0,.2,1) both}
+        .a-flipIn{animation:flipIn .5s cubic-bezier(.4,0,.2,1) both}
+        .a-wipeIn{animation:wipeIn .5s cubic-bezier(.4,0,.2,1) both}
+
+        .glass{background:rgba(32,31,31,.75);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(89,65,56,.12)}
+        .glass-light{background:rgba(255,255,255,.04);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.06)}
+        .glass-accent{background:rgba(242,101,34,.06);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid rgba(242,101,34,.12)}
+        .glass-card{background:rgba(42,42,42,.25);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid rgba(89,65,56,.1);border-radius:var(--radius-lg)}
+
+        .h-lift{transition:transform .3s cubic-bezier(.4,0,.2,1),box-shadow .3s ease,border-color .3s ease}
+        .h-lift:hover{transform:translateY(-3px);box-shadow:0 12px 32px rgba(0,0,0,.25)}
+        .h-lift:active{transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,0,0,.15)}
+        .h-glow{transition:all .3s ease}
+        .h-glow:hover{box-shadow:0 0 20px rgba(242,101,34,.15);border-color:rgba(242,101,34,.25)}
+        .h-scale{transition:transform .3s cubic-bezier(.4,0,.2,1)}
+        .h-scale:hover{transform:scale(1.03)}
+        .h-scale:active{transform:scale(.97)}
+        .h-morph{transition:all .4s cubic-bezier(.4,0,.2,1)}
+        .h-morph:hover{border-radius:30px;letter-spacing:.5px}
+        .h-underline{position:relative;transition:color .3s}
+        .h-underline::after{content:'';position:absolute;bottom:-2px;right:0;width:0;height:2px;background:var(--accent);transition:width .3s cubic-bezier(.4,0,.2,1)}
+        .h-underline:hover::after{width:100%}
+        .h-underline:hover{color:var(--accent)}
+        .h-icon-pop{transition:all .25s cubic-bezier(.4,0,.2,1)}
+        .h-icon-pop:hover{transform:scale(1.15);color:var(--accent)}
+        .h-icon-pop:active{transform:scale(.9)}
+        .h-border-flow{position:relative;overflow:hidden;transition:all .3s}
+        .h-border-flow::before{content:'';position:absolute;inset:-2px;background:linear-gradient(135deg,var(--accent),var(--blue),var(--purple),var(--accent));background-size:300% 300%;border-radius:inherit;z-index:-1;opacity:0;transition:opacity .4s;animation:gradientFlow 3s ease infinite}
+        .h-border-flow:hover::before{opacity:1}
+        .h-border-flow:hover{transform:translateY(-2px)}
+        .h-ripple{position:relative;overflow:hidden}
+        .h-ripple::after{content:'';position:absolute;width:100%;padding-top:100%;border-radius:50%;background:rgba(242,101,34,.15);top:50%;left:50%;transform:translate(-50%,-50%) scale(0);opacity:0;pointer-events:none}
+        .h-ripple:active::after{animation:ripple .5s ease-out}
+
+        .skeleton{background:linear-gradient(90deg,rgba(42,42,42,.3) 25%,rgba(60,60,60,.4) 50%,rgba(42,42,42,.3) 75%);background-size:200% 100%;animation:shimmer 1.5s ease-in-out infinite;border-radius:8px}
+        .skeleton-text{height:14px;margin-bottom:8px;border-radius:6px}
+        .skeleton-text.w-60{width:60%}.skeleton-text.w-80{width:80%}.skeleton-text.w-40{width:40%}.skeleton-text.w-full{width:100%}
+        .skeleton-circle{border-radius:50%}
+
+        .page-transition-overlay{position:fixed;inset:0;z-index:90;pointer-events:none}
+        .page-transition-overlay .wipe{position:absolute;inset:0;background:var(--accent);transform:scaleX(0);transform-origin:right;transition:transform .35s cubic-bezier(.7,0,.3,1)}
+        .page-transition-overlay.active .wipe{transform:scaleX(1);transform-origin:left;transition:transform .35s cubic-bezier(.7,0,.3,1) .15s}
+
+        .ds-tabs{display:flex;overflow-x:auto;scrollbar-width:none;gap:4px;padding:4px;background:rgba(26,26,26,.5);border-radius:14px;border:1px solid var(--border-light)}
+        .ds-tabs::-webkit-scrollbar{display:none}
+        .ds-tab{padding:10px 16px;border-radius:10px;font-weight:600;font-size:12px;cursor:pointer;transition:all .3s;border:none;background:transparent;color:var(--text-muted);font-family:'Tajawal',sans-serif;white-space:nowrap;display:flex;align-items:center;gap:6px}
+        .ds-tab:hover{color:var(--text);background:rgba(255,255,255,.04)}
+        .ds-tab.active{background:rgba(242,101,34,.15);color:var(--accent)}
+
+        .ds-section{margin-bottom:32px}
+        .ds-section-title{font-size:13px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+        .ds-section-title::after{content:'';flex:1;height:1px;background:var(--border-light)}
+
+        .color-swatch{border-radius:var(--radius-lg);overflow:hidden;transition:all .3s;cursor:pointer}
+        .color-swatch:hover{transform:translateY(-4px);box-shadow:0 12px 40px rgba(0,0,0,.3)}
+        .color-swatch .swatch-preview{height:90px;transition:transform .3s}
+        .color-swatch:hover .swatch-preview{transform:scale(1.05)}
+        .color-swatch .swatch-info{padding:12px;background:var(--surface-2)}
+
+        .btn{font-family:'Tajawal',sans-serif;font-weight:700;font-size:14px;padding:12px 24px;border-radius:var(--radius);border:none;cursor:pointer;transition:all .3s cubic-bezier(.4,0,.2,1);display:inline-flex;align-items:center;gap:8px;position:relative;overflow:hidden}
+        .btn::after{content:'';position:absolute;inset;background:rgba(255,255,255,0);transition:background .3s}
+        .btn:hover::after{background:rgba(255,255,255,.06)}
+        .btn:active{transform:scale(.96)}
+        .btn-primary{background:linear-gradient(135deg,var(--accent),var(--accent-dark));color:white}
+        .btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(242,101,34,.3)}
+        .btn-secondary{background:var(--surface-3);color:var(--text);border:1px solid var(--border-light)}
+        .btn-secondary:hover{border-color:var(--accent);color:var(--accent)}
+        .btn-ghost{background:transparent;color:var(--text);border:1px solid var(--border-light)}
+        .btn-ghost:hover{border-color:var(--accent);color:var(--accent);background:rgba(242,101,34,.06)}
+        .btn-danger{background:rgba(239,68,68,.12);color:var(--red);border:1px solid rgba(239,68,68,.2)}
+        .btn-danger:hover{background:rgba(239,68,68,.2)}
+        .btn-icon{width:44px;height:44px;padding:0;justify-content:center;border-radius:12px}
+
+        .ds-input{background:rgba(42,42,42,.5);border:1px solid rgba(89,65,56,.2);border-radius:var(--radius);padding:12px 16px;color:var(--text);font-size:14px;width:100%;outline:none;transition:all .3s;font-family:'Tajawal',sans-serif}
+        .ds-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(242,101,34,.12)}
+        .ds-input::placeholder{color:var(--text-muted)}
+
+        .ds-toggle{position:relative;width:48px;height:28px;cursor:pointer;flex-shrink:0}
+        .ds-toggle input{display:none}
+        .ds-toggle .slider{position:absolute;inset:0;background:rgba(89,65,56,.3);border-radius:14px;transition:all .35s cubic-bezier(.4,0,.2,1)}
+        .ds-toggle .slider::before{content:'';position:absolute;width:22px;height:22px;background:white;border-radius:50%;top:3px;right:3px;transition:all .35s cubic-bezier(.4,0,.2,1);box-shadow:0 2px 6px rgba(0,0,0,.2)}
+        .ds-toggle input:checked + .slider{background:var(--accent)}
+        .ds-toggle input:checked + .slider::before{transform:translateX(-20px)}
+
+        .badge{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;padding:4px 10px;border-radius:8px;white-space:nowrap}
+        .badge-accent{background:rgba(242,101,34,.12);color:var(--accent)}
+        .badge-green{background:rgba(34,197,94,.12);color:var(--green)}
+        .badge-blue{background:rgba(59,130,246,.12);color:var(--blue)}
+        .badge-red{background:rgba(239,68,68,.12);color:var(--red)}
+        .badge-purple{background:rgba(168,85,247,.12);color:var(--purple)}
+
+        .toast{position:fixed;top:24px;left:50%;transform:translateX(-50%) translateY(-100px);z-index:9999;padding:14px 28px;border-radius:var(--radius);font-weight:700;font-size:14px;opacity:0;transition:all .5s cubic-bezier(.68,-.55,.265,1.55);display:flex;align-items:center;gap:10px;backdrop-filter:blur(12px);max-width:90vw;color:white}
+        .toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+        .toast.success{background:rgba(34,197,94,.2);border:1px solid rgba(34,197,94,.4)}
+        .toast.error{background:rgba(239,68,68,.2);border:1px solid rgba(239,68,68,.4)}
+        .toast.info{background:rgba(59,130,246,.2);border:1px solid rgba(59,130,246,.4)}
+
+        ::-webkit-scrollbar{width:4px;height:4px}
+        ::-webkit-scrollbar-track{background:transparent}
+        ::-webkit-scrollbar-thumb{background:#474746;border-radius:4px}
+
+        @media(max-width:640px){
+            .ds-section-title{font-size:11px}
+            .color-swatch .swatch-preview{height:70px}
+        }
+    </style>
+</head>
+<body>
+<div class="bg-main"></div>
+<div id="toastEl" class="toast"></div>
+<div class="page-transition-overlay" id="pageOverlay"><div class="wipe"></div></div>
+
+<header class="fixed top-0 w-full z-50 glass h-14 flex items-center px-4" style="border-bottom:1px solid var(--border-light)">
+    <button class="p-2 rounded-full hover:bg-white/5"><span class="material-symbols-outlined" style="color:var(--text-muted)">arrow_forward</span></button>
+    <h1 class="text-lg font-extrabold mr-2" style="color:var(--accent)">النظام البصري</h1>
+    <span class="badge badge-accent mr-auto">Design System</span>
+</header>
+
+<main class="relative z-10 pt-16 pb-8 max-w-3xl mx-auto px-4">
+    <div class="ds-tabs mb-6 a-fade">
+        <button class="ds-tab active" onclick="switchDs('colors',this)"><span class="material-symbols-outlined text-[15px]">palette</span>الألوان</button>
+        <button class="ds-tab" onclick="switchDs('typography',this)"><span class="material-symbols-outlined text-[15px]">text_fields</span>الطباعة</button>
+        <button class="ds-tab" onclick="switchDs('components',this)"><span class="material-symbols-outlined text-[15px]">widgets</span>المكوّنات</button>
+        <button class="ds-tab" onclick="switchDs('hover',this)"><span class="material-symbols-outlined text-[15px]">touch_app</span>تأثيرات</button>
+        <button class="ds-tab" onclick="switchDs('skeleton',this)"><span class="material-symbols-outlined text-[15px]">hourglass_empty</span>Skeleton</button>
+        <button class="ds-tab" onclick="switchDs('transitions',this)"><span class="material-symbols-outlined text-[15px]">animation</span>الانتقالات</button>
+    </div>
+    <div id="dsContent"></div>
+</main>
+
+<script>
+function esc(t){if(typeof t!=='string')return'';return t.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#x27;'}[c]))}
+
+let currentDs='colors';
+function switchDs(tab,btn){
+    currentDs=tab;
+    document.querySelectorAll('.ds-tab').forEach(t=>t.classList.remove('active'));
+    if(btn)btn.classList.add('active');
+    const ov=document.getElementById('pageOverlay');
+    ov.classList.add('active');
+    setTimeout(()=>{renderDs();ov.classList.remove('active')},300);
+}
+
+function renderDs(){
+    const a=document.getElementById('dsContent');
+    switch(currentDs){
+        case 'colors':renderColors(a);break;
+        case 'typography':renderTypography(a);break;
+        case 'components':renderComponents(a);break;
+        case 'hover':renderHover(a);break;
+        case 'skeleton':renderSkeleton(a);break;
+        case 'transitions':renderTransitions(a);break;
+    }
+}
+
+// ═══════ COLORS ═══════
+function renderColors(area){
+    const bgColors=[
+        {name:'الخلفية الأساسية',var:'--bg',hex:'#0a0a0a',text:'white'},
+        {name:'السطح 1',var:'--surface',hex:'#141414',text:'white'},
+        {name:'السطح 2',var:'--surface-2',hex:'#1a1a1a',text:'white'},
+        {name:'السطح 3',var:'--surface-3',hex:'#222222',text:'white'}
+    ];
+    const accents=[
+        {name:'البرتقالي الأساسي',var:'--accent',hex:'#f26522'},
+        {name:'البرتقالي الفاتح',var:'--accent-light',hex:'#ff7a3d'},
+        {name:'البرتقالي الغامق',var:'--accent-dark',hex:'#d4561a'}
+    ];
+    const sem=[
+        {name:'النجاح',hex:'#22c55e',icon:'check_circle'},
+        {name:'الخطأ',hex:'#ef4444',icon:'error'},
+        {name:'المعلومات',hex:'#3b82f6',icon:'info'},
+        {name:'التحذير',hex:'#eab308',icon:'warning'},
+        {name:'البنفسجي',hex:'#a855f7',icon:'auto_awesome'}
+    ];
+    area.innerHTML=`
+    <div class="ds-section a-fadeUp">
+        <div class="ds-section-title"><span class="material-symbols-outlined text-[16px]" style="color:var(--accent)">dark_mode</span>ألوان الخلفية</div>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            ${bgColors.map((c,i)=>`<div class="color-swatch a-fadeUp" style="animation-delay:${i*.08}s;opacity:0" onclick="copyColor('${c.hex}')"><div class="swatch-preview" style="background:${c.hex};display:flex;align-items:center;justify-content:center"><span class="text-xs font-mono font-bold" style="color:${c.text};opacity:.5">${c.hex}</span></div><div class="swatch-info"><span class="text-xs font-bold block">${c.name}</span><span class="text-[10px] mono" style="color:var(--text-muted)">${c.var}</span></div></div>`).join('')}
+        </div>
+    </div>
+    <div class="ds-section a-fadeUp" style="animation-delay:.2s;opacity:0">
+        <div class="ds-section-title"><span class="material-symbols-outlined text-[16px]" style="color:var(--accent)">colorize</span>اللون الرئيسي</div>
+        <div class="grid grid-cols-3 gap-3 mb-4">
+            ${accents.map((c,i)=>`<div class="color-swatch a-fadeUp" style="animation-delay:${(i+4)*.08}s;opacity:0" onclick="copyColor('${c.hex}')"><div class="swatch-preview" style="background:${c.hex};display:flex;align-items:center;justify-content:center;animation:breathe 3s infinite ${i*.5}s"><span class="text-xs font-mono font-bold text-white/70">${c.hex}</span></div><div class="swatch-info"><span class="text-xs font-bold block">${c.name}</span><span class="text-[10px] mono" style="color:var(--text-muted)">${c.var}</span></div></div>`).join('')}
+        </div>
+        <div class="rounded-2xl p-6 text-center a-fadeUp" style="background:linear-gradient(135deg,var(--accent),var(--accent-dark));animation-delay:.4s;opacity:0"><p class="text-white font-extrabold text-lg">تدرج لو بوك</p><p class="text-white/60 text-xs font-mono mt-1">linear-gradient(135deg, #f26522, #d4561a)</p></div>
+    </div>
+    <div class="ds-section a-fadeUp" style="animation-delay:.4s;opacity:0">
+        <div class="ds-section-title"><span class="material-symbols-outlined text-[16px]" style="color:var(--green)">category</span>ألوان الدلالات</div>
+        <div class="grid grid-cols-3 sm:grid-cols-5 gap-3">
+            ${sem.map((c,i)=>`<div class="text-center p-4 rounded-2xl cursor-pointer transition-all hover:scale-105 a-fadeUp" style="background:rgba(42,42,42,.25);border:1px solid rgba(89,65,56,.1);animation-delay:${(i+7)*.08}s;opacity:0" onclick="copyColor('${c.hex}')"><div class="w-12 h-12 rounded-full mx-auto mb-2 flex items-center justify-center" style="background:${c.hex}20"><span class="material-symbols-outlined text-[24px]" style="color:${c.hex};font-variation-settings:'FILL' 1">${c.icon}</span></div><p class="text-xs font-bold">${c.name}</p><p class="text-[10px] font-mono" style="color:var(--text-muted)">${c.hex}</p></div>`).join('')}
+        </div>
+    </div>
+    <div class="ds-section a-fadeUp" style="animation-delay:.6s;opacity:0">
+        <div class="ds-section-title"><span class="material-symbols-outlined text-[16px]" style="color:var(--text-muted)">text_format</span>ألوان النص</div>
+        <div class="glass-card p-4 space-y-3">
+            <div class="flex items-center justify-between"><span class="text-base font-bold" style="color:var(--text)">النص الرئيسي — e5e2e1</span><span class="text-[10px] mono" style="color:var(--text-muted)">--text</span></div>
+            <div class="flex items-center justify-between"><span class="text-base" style="color:var(--text-secondary)">النص الثانوي — a3a3a3</span><span class="text-[10px] mono" style="color:var(--text-muted)">--text-secondary</span></div>
+            <div class="flex items-center justify-between"><span class="text-base" style="color:var(--text-muted)">النص الخافت — 7a7570</span><span class="text-[10px] mono" style="color:var(--text-muted)">--text-muted</span></div>
+            <div class="flex items-center justify-between"><span class="text-base font-bold" style="color:var(--accent)">النص البرتقالي — f26522</span><span class="text-[10px] mono" style="color:var(--text-muted)">--accent</span></div>
+        </div>
+    </div>`;
+}
+function copyColor(hex){navigator.clipboard?.writeText(hex);showToast('تم نسخ '+hex,'success')}
+
+// ═══════ TYPOGRAPHY ═══════
+function renderTypography(area){
+    area.innerHTML=`
+    <div class="ds-section a-fadeUp">
+        <div class="ds-section-title"><span class="material-symbols-outlined text-[16px]" style="color:var(--accent)">text_fields</span>عائلة الخط — Tajawal</div>
+        <div class="glass-card p-5 space-y-4">
+            ${[{w:900,l:'Black — 900',s:'28px',t:'مرحباً بك في لو بوك'},{w:800,l:'ExtraBold — 800',s:'24px',t:'المنصة القانونية الأولى'},{w:700,l:'Bold — 700',s:'20px',t:'نصائح قانونية مهمة'},{w:500,l:'Medium — 500',s:'16px',t:'تحديثات القانون والأنظمة'},{w:400,l:'Regular — 400',s:'14px',t:'هذا نص عادي للقراءة اليومية والمنشورات'},{w:300,l:'Light — 300',s:'13px',t:'نص خفيف للعناوين الفرعية والوصف'}].map((t,i)=>`<div class="a-fadeUp" style="animation-delay:${i*.08}s;opacity:0"><div class="flex items-center justify-between mb-1"><span class="text-[10px] font-bold badge badge-accent">${t.l}</span><span class="text-[10px] mono" style="color:var(--text-muted)">font-weight: ${t.w} | ${t.s}</span></div><p style="font-weight:${t.w};font-size:${t.s};color:var(--text)">${t.t}</p></div>`).join('')}
+        </div>
+    </div>
+    <div class="ds-section a-fadeUp" style="animation-delay:.3s;opacity:0">
+        <div class="ds-section-title"><span class="material-symbols-outlined text-[16px]" style="color:var(--blue)">format_size</span>هرمية العناوين</div>
+        <div class="glass-card p-5 space-y-4">
+            <div><span class="text-[10px] badge badge-blue mb-2 inline-block">H1 — 32px / Black</span><h1 class="font-black text-[32px] leading-tight" style="color:var(--text)">عنوان رئيسي</h1></div>
+            <div><span class="text-[10px] badge badge-blue mb-2 inline-block">H2 — 24px / ExtraBold</span><h2 class="font-extrabold text-[24px] leading-tight" style="color:var(--text)">عنوان فرعي</h2></div>
+            <div><span class="text-[10px] badge badge-blue mb-2 inline-block">H3 — 18px / Bold</span><h3 class="font-bold text-[18px]" style="color:var(--text)">عنوان قسم</h3></div>
+            <div><span class="text-[10px] badge badge-blue mb-2 inline-block">Body — 14px / Regular</span><p class="text-[14px] leading-relaxed" style="color:var(--text)">نص أساسي للقراءة. هذا هو الحجم الافتراضي للمنشورات والتعليقات والمحتوى العام على المنصة.</p></div>
+            <div><span class="text-[10px] badge badge-blue mb-2 inline-block">Small — 12px / Medium</span><p class="text-[12px]" style="color:var(--text-secondary)">نص صغير للوصف والملاحظات التوضيحية.</p></div>
+            <div><span class="text-[10px] badge badge-blue mb-2 inline-block">Caption — 10px / Bold</span><p class="text-[10px] font-bold" style="color:var(--text-muted)">تسمية توضيحية — الوقت، العدادات</p></div>
+        </div>
+    </div>
+    <div class="ds-section a-fadeUp" style="animation-delay:.5s;opacity:0">
+        <div class="ds-section-title"><span class="material-symbols-outlined text-[16px]" style="color:var(--purple)">code</span>Monospace — DM Mono</div>
+        <div class="glass-card p-5"><p class="font-mono text-sm" style="color:var(--accent)">const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9";</p><p class="font-mono text-[12px] mt-2" style="color:var(--text-muted)">localStorage.getItem('lobuk_access_token');</p></div>
+    </div>`;
+}
+
+// ═══════ COMPONENTS ═══════
+function renderComponents(area){
+    area.innerHTML=`
+    <div class="ds-section a-fadeUp">
+        <div class="ds-section-title"><span class="material-symbols-outlined text-[16px]" style="color:var(--accent)">smart_button</span>الأزرار</div>
+        <div class="glass-card p-5 space-y-4">
+            <div class="flex flex-wrap gap-3">
+                <button class="btn btn-primary"><span class="material-symbols-outlined text-[16px]">add</span>إنشاء منشور</button>
+                <button class="btn btn-secondary"><span class="material-symbols-outlined text-[16px]">edit</span>تعديل</button>
+                <button class="btn btn-ghost"><span class="material-symbols-outlined text-[16px]">share</span>مشاركة</button>
+                <button class="btn btn-danger"><span class="material-symbols-outlined text-[16px]">delete</span>حذف</button>
+            </div>
+            <div class="flex flex-wrap gap-3">
+                <button class="btn btn-primary btn-icon"><span class="material-symbols-outlined text-[20px]">add</span></button>
+                <button class="btn btn-secondary btn-icon"><span class="material-symbols-outlined text-[20px]">favorite</span></button>
+                <button class="btn btn-ghost btn-icon"><span class="material-symbols-outlined text-[20px]">bookmark</span></button>
+                <button class="btn btn-icon" style="background:rgba(34,197,94,.12);color:var(--green);border:1px solid rgba(34,197,94,.2)"><span class="material-symbols-outlined text-[20px]">check</span></button>
+            </div>
+            <div class="flex flex-wrap gap-3">
+                <button class="btn btn-primary" disabled style="opacity:.5"><span class="material-symbols-outlined text-[16px]" style="animation:spin 1s linear infinite">progress_activity</span>جاري التحميل...</button>
+            </div>
+        </div>
+    </div>
+    <div class="ds-section a-fadeUp" style="animation-delay:.1s;opacity:0">
+        <div class="ds-section-title"><span class="material-symbols-outlined text-[16px]" style="color:var(--blue)">text_fields</span>حقول الإدخال</div>
+        <div class="glass-card p-5 space-y-3">
+            <input type="text" class="ds-input" placeholder="حقل نصي عادي..."/>
+            <input type="email" class="ds-input" placeholder="البريد الإلكتروني..." style="border-color:rgba(59,130,246,.3)"/>
+            <input type="text" class="ds-input" placeholder="حقل مع خطأ!" style="border-color:rgba(239,68,68,.5);box-shadow:0 0 0 3px rgba(239,68,68,.1)"/>
+            <input type="text" class="ds-input" value="قيمة صحيحة" style="border-color:rgba(34,197,94,.5);box-shadow:0 0 0 3px rgba(34,197,94,.1)"/>
+            <textarea class="ds-input resize-none" rows="3" placeholder="نص متعدد الأسطر..."></textarea>
+        </div>
+    </div>
+    <div class="ds-section a-fadeUp" style="animation-delay:.2s;opacity:0">
+        <div class="ds-section-title"><span class="material-symbols-outlined text-[16px]" style="color:var(--green)">tune</span>مفاتيح التبديل والشارات</div>
+        <div class="glass-card p-5">
+            <div class="space-y-3 mb-5">
+                ${['الإشعارات','الوضع الداكن','المصادقة الثنائية'].map((l,i)=>`<div class="flex items-center justify-between"><span class="text-sm font-bold">${l}</span><label class="ds-toggle"><input type="checkbox" ${i<2?'checked':''}/><div class="slider"></div></label></div>`).join('')}
+            </div>
+            <div class="flex flex-wrap gap-2">
+                <span class="badge badge-accent"><span class="material-symbols-outlined text-[12px]" style="font-variation-settings:FILL 1">verified</span>موثق</span>
+                <span class="badge badge-green">نشط</span>
+                <span class="badge badge-blue">جديد</span>
+                <span class="badge badge-red">محظور</span>
+                <span class="badge badge-purple">مميز</span>
+            </div>
+        </div>
+    </div>
+    <div class="ds-section a-fadeUp" style="animation-delay:.3s;opacity:0">
+        <div class="ds-section-title"><span class="material-symbols-outlined text-[16px]" style="color:var(--purple)">blur_on</span>Glassmorphism</div>
+        <div class="relative rounded-2xl overflow-hidden" style="height:200px;background:linear-gradient(135deg,rgba(242,101,34,.15),rgba(59,130,246,.15))">
+            <div class="absolute top-4 right-4 w-40 h-24 glass rounded-2xl flex items-center justify-center"><div class="text-center"><span class="text-xs font-bold block">glass</span><span class="text-[9px]" style="color:var(--text-muted)">blur(20px)</span></div></div>
+            <div class="absolute bottom-4 left-4 w-40 h-24 glass-light rounded-2xl flex items-center justify-center"><div class="text-center"><span class="text-xs font-bold block">glass-light</span><span class="text-[9px]" style="color:var(--text-muted)">blur(12px)</span></div></div>
+            <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-40 h-24 glass-accent rounded-2xl flex items-center justify-center"><div class="text-center"><span class="text-xs font-bold block">glass-accent</span><span class="text-[9px]" style="color:var(--text-muted)">accent tint</span></div></div>
+        </div>
+    </div>`;
+}
+
+// ═══════ HOVER EFFECTS ═══════
+function renderHover(area){
+    area.innerHTML=`
+    <div class="ds-section a-fadeUp">
+        <div class="ds-section-title"><span class="material-symbols-outlined text-[16px]" style="color:var(--accent)">touch_app</span>تأثيرات Hover المحسّنة</div>
+        <p class="text-xs mb-4" style="color:var(--text-muted)">مرّر على كل عنصر لتجربة التأثير. انقر لاختبار تأثير الضغط.</p>
+    </div>
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+        ${[
+            {cls:'h-lift',icon:'arrow_upward',name:'h-lift',desc:'رفع + ظل',code:'translateY(-3px)\nbox-shadow: 0 12px 32px'},
+            {cls:'h-glow',icon:'flare',name:'h-glow',desc:'توهج برتقالي',code:'box-shadow: 0 0 20px accent\nborder-color: accent'},
+            {cls:'h-scale',icon:'zoom_in',name:'h-scale',desc:'تكبير سلس',code:'transform: scale(1.03)\nactive: scale(.97)'},
+            {cls:'h-morph',icon:'auto_fix_high',name:'h-morph',desc:'تحول الشكل',code:'border-radius: 30px\nletter-spacing: .5px'},
+            {cls:'h-border-flow',icon:'gradient',name:'h-border-flow',desc:'حدود متحركة',code:'gradient border animation\n300% background-size'},
+            {cls:'',icon:'format_underlined',name:'h-underline',desc:'خط سفلي متحرك',code:'::after width 0→100%\naccent colored underline'}
+        ].map((h,i)=>`<div class="glass-card p-5 ${h.cls} cursor-pointer a-fadeUp" style="animation-delay:${i*.06}s;opacity:0;${h.name==='h-underline'?'':''}"><div class="flex items-center gap-3 mb-3"><div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background:rgba(242,101,34,.12)"><span class="material-symbols-outlined text-[var(--accent)] text-[20px]" style="font-variation-settings:'FILL' 1">${h.icon}</span></div><div><span class="font-bold text-sm block ${h.name==='h-underline'?'h-underline':''}" style="${h.name==='h-underline'?'cursor:pointer;display:inline':''}">${h.name}</span><span class="text-[10px]" style="color:var(--text-muted)">${h.desc}</span></div></div><p class="text-[11px] mono" style="color:var(--text-muted)">${h.code.replace(/\n/g,'<br>')}</p></div>`).join('')}
+    </div>
+    <div class="ds-section a-fadeUp" style="animation-delay:.35s;opacity:0">
+        <div class="ds-section-title"><span class="material-symbols-outlined text-[16px]" style="color:var(--yellow)">touch_app</span>تأثيرات الأيقونات</div>
+        <div class="glass-card p-5">
+            <div class="flex gap-6 items-center justify-center flex-wrap">
+                ${['favorite','chat_bubble','share','bookmark','notifications','search','home','person'].map(icon=>`<div class="h-icon-pop cursor-pointer text-center"><span class="material-symbols-outlined text-[28px]" style="color:var(--text-muted)">${icon}</span><p class="text-[8px] mt-1" style="color:var(--text-muted)">${icon}</p></div>`).join('')}
+            </div>
+        </div>
+    </div>
+    <div class="ds-section a-fadeUp" style="animation-delay:.4s;opacity:0">
+        <div class="ds-section-title"><span class="material-symbols-outlined text-[16px]" style="color:var(--green)">style</span>بطاقات تفاعلية</div>
+        <div class="grid grid-cols-2 gap-3">
+            <div class="glass-card p-4 h-lift h-ripple cursor-pointer text-center"><span class="material-symbols-outlined text-[var(--accent)] text-[32px] block mx-auto mb-2" style="font-variation-settings:'FILL' 1">article</span><span class="text-sm font-bold">منشور جديد</span></div>
+            <div class="glass-card p-4 h-lift h-ripple cursor-pointer text-center"><span class="material-symbols-outlined text-blue-400 text-[32px] block mx-auto mb-2" style="font-variation-settings:'FILL' 1">photo_camera</span><span class="text-sm font-bold">صورة</span></div>
+        </div>
+    </div>`;
+}
+
+// ═══════ SKELETON ═══════
+function renderSkeleton(area){
+    area.innerHTML=`
+    <div class="ds-section a-fadeUp">
+        <div class="ds-section-title"><span class="material-symbols-outlined text-[16px]" style="color:var(--accent)">hourglass_empty</span>Skeleton Loading States</div>
+        <p class="text-xs mb-4" style="color:var(--text-muted)">يظهر أثناء تحميل المحتوى. يحاكي شكل العناصر الحقيقية.</p>
+    </div>
+    <div class="ds-section a-fadeUp" style="animation-delay:.1s;opacity:0">
+        <div class="ds-section-title">بطاقة مستخدم</div>
+        <div class="glass-card p-4"><div class="flex items-center gap-3"><div class="skeleton skeleton-circle" style="width:48px;height:48px"></div><div class="flex-1"><div class="skeleton skeleton-text w-60"></div><div class="skeleton skeleton-text w-40" style="height:10px"></div></div></div></div>
+    </div>
+    <div class="ds-section a-fadeUp" style="animation-delay:.15s;opacity:0">
+        <div class="ds-section-title">بطاقة منشور</div>
+        <div class="glass-card p-4 space-y-3">
+            <div class="flex items-center gap-3"><div class="skeleton skeleton-circle" style="width:38px;height:38px"></div><div class="flex-1"><div class="skeleton skeleton-text w-40"></div><div class="skeleton skeleton-text w-60" style="height:10px"></div></div></div>
+            <div class="skeleton skeleton-text w-full"></div><div class="skeleton skeleton-text w-80"></div><div class="skeleton skeleton-text w-60"></div>
+            <div class="skeleton" style="height:200px;border-radius:12px"></div>
+            <div class="flex gap-4 mt-2"><div class="skeleton" style="width:60px;height:24px;border-radius:6px"></div><div class="skeleton" style="width:60px;height:24px;border-radius:6px"></div><div class="skeleton" style="width:60px;height:24px;border-radius:6px"></div></div>
+        </div>
+    </div>
+    <div class="ds-section a-fadeUp" style="animation-delay:.2s;opacity:0">
+        <div class="ds-section-title">شريط القصص</div>
+        <div class="flex gap-3 p-4 glass-card overflow-hidden">${[1,2,3,4,5].map(()=>`<div class="text-center shrink-0"><div class="skeleton skeleton-circle" style="width:60px;height:60px;margin-bottom:6px"></div><div class="skeleton" style="width:40px;height:8px;border-radius:4px;margin:0 auto"></div></div>`).join('')}</div>
+    </div>
+    <div class="ds-section a-fadeUp" style="animation-delay:.25s;opacity:0">
+        <div class="ds-section-title">قائمة رسائل</div>
+        <div class="glass-card p-4 space-y-3">${[1,2,3].map(()=>`<div class="flex items-center gap-3"><div class="skeleton skeleton-circle" style="width:44px;height:44px"></div><div class="flex-1"><div class="skeleton skeleton-text w-60"></div><div class="skeleton skeleton-text w-80" style="height:10px"></div></div><div class="skeleton" style="width:30px;height:10px;border-radius:4px"></div></div>`).join('')}</div>
+    </div>
+    <div class="ds-section a-fadeUp" style="animation-delay:.3s;opacity:0">
+        <div class="ds-section-title"><span class="material-symbols-outlined text-[16px]" style="color:var(--green)">play_circle</span>تجربة حية</div>
+        <button class="btn btn-primary w-full justify-center" onclick="toggleSkeletonDemo()"><span class="material-symbols-outlined text-[16px]">play_arrow</span>اضغط لمحاكاة التحميل (2 ثانية)</button>
+        <div id="skeletonDemo" class="mt-4"></div>
+    </div>`;
+}
+
+function toggleSkeletonDemo(){
+    const el=document.getElementById('skeletonDemo');
+    el.innerHTML=`<div class="glass-card p-4 space-y-3"><div class="flex items-center gap-3"><div class="skeleton skeleton-circle" style="width:38px;height:38px"></div><div class="flex-1"><div class="skeleton skeleton-text w-40"></div><div class="skeleton skeleton-text w-60" style="height:10px"></div></div></div><div class="skeleton skeleton-text w-full"></div><div class="skeleton skeleton-text w-80"></div><div class="skeleton" style="height:160px;border-radius:12px"></div></div>`;
+    setTimeout(()=>{
+        el.innerHTML=`<div class="glass-card p-4" style="animation:fadeInUp .4s ease"><div class="flex items-center gap-3 mb-3"><img src="https://i.pravatar.cc/60?img=5" class="w-9 h-9 rounded-full object-cover"/><div class="flex-1"><span class="font-bold text-sm block">د. نورة القحطاني</span><span class="text-[10px]" style="color:var(--text-muted)">منذ دقيقتين</span></div></div><p class="text-sm leading-relaxed" style="color:var(--text-secondary)">نصيحة قانونية: عند توقيع أي عقد تجاري، تأكد من وجود بند التحكيم لتسوية النزاعات.</p><img src="https://images.unsplash.com/photo-1589829545856-d10d557cf95f?w=400&h=200&fit=crop" class="w-full h-40 object-cover rounded-xl mt-3"/></div>`;
+    },2000);
+}
+
+// ═══════════════════════════════════════════
+// ██  TRANSITIONS — THE COMPLETE SECTION  ██
+// ═══════════════════════════════════════════
+function renderTransitions(area){
+    area.innerHTML=`
+    <div class="ds-section a-fadeUp">
+        <div class="ds-section-title"><span class="material-symbols-outlined text-[16px]" style="color:var(--accent)">animation</span>الانتقالات السلسة</div>
+        <p class="text-xs mb-4" style="color:var(--text-muted)">كل تبويب يستخدم انتقال صفحة سلس. جرّب التبديل بين التبويبات في الأعلى.</p>
+    </div>
+
+    <!-- ═══ Page Transition Preview ═══ -->
+    <div class="ds-section a-fadeUp" style="animation-delay:.05s;opacity:0">
+        <div class="ds-section-title"><span class="material-symbols-outlined text-[16px]" style="color:var(--blue)">swap_horiz</span>انتقال الصفحة</div>
+        <div class="glass-card p-5">
+            <div class="flex items-center gap-4 mb-4">
+                <div class="flex-1 p-3 rounded-xl text-center text-xs font-bold" style="background:rgba(42,42,42,.4);border:1px solid var(--border-light)">التبويب الحالي</div>
+                <span class="material-symbols-outlined text-[var(--accent)]">arrow_back</span>
+                <div class="flex-1 p-3 rounded-xl text-center text-xs font-bold" style="background:rgba(242,101,34,.08);border:1px solid rgba(242,101,34,.15);color:var(--accent)">التبويب الجديد</div>
+            </div>
+            <div class="text-center">
+                <button class="btn btn-primary" onclick="demoPageTransition()">
+                    <span class="material-symbols-outlined text-[16px]">play_arrow</span>
+                    تشغيل الانتقال
+                </button>
+            </div>
+            <div id="pageTransDemo" class="mt-4 min-h-[60px]"></div>
+        </div>
+    </div>
+
+    <!-- ═══ Entry Animations ═══ -->
+    <div class="ds-section a-fadeUp" style="animation-delay:.1s;opacity:0">
+        <div class="ds-section-title"><span class="material-symbols-outlined text-[16px]" style="color:var(--green)">open_in_new</span>أنواع الدخول — 8 أنماط</div>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            ${[
+                {anim:'a-fadeUp',icon:'south',label:'fadeInUp',desc:'من الأسفل'},
+                {anim:'a-fadeDown',icon:'north',label:'fadeInDown',desc:'من الأعلى'},
+                {anim:'a-fadeRight',icon:'west',label:'fadeInRight',desc:'من اليمين'},
+                {anim:'a-scaleIn',icon:'zoom_in',label:'scaleIn',desc:'تكبير'},
+                {anim:'a-zoomBounce',icon:'adjust',label:'zoomBounce',desc:'bounce'},
+                {anim:'a-slideRotate',icon:'sync',label:'slideRotate',desc:'دوران'},
+                {anim:'a-flipIn',icon:'flip',label:'flipIn',desc:'قلب'},
+                {anim:'a-wipeIn',icon:'cleaning_services',label:'wipeIn',desc:'مسح'}
+            ].map((a,i)=>`
+            <button class="glass-card p-4 text-center cursor-pointer h-lift h-ripple a-fadeUp" style="animation-delay:${.15+i*.05}s;opacity:0" onclick="demoEntry('${a.anim}')">
+                <span class="material-symbols-outlined text-[var(--accent)] text-[24px] block mx-auto mb-1">${a.icon}</span>
+                <span class="text-[11px] font-bold block">${a.label}</span>
+                <span class="text-[9px]" style="color:var(--text-muted)">${a.desc}</span>
+            </button>`).join('')}
+        </div>
+        <div id="entryDemo" class="mt-4 min-h-[70px]"></div>
+    </div>
+
+    <!-- ═══ Staggered Entry ═══ -->
+    <div class="ds-section a-fadeUp" style="animation-delay:.3s;opacity:0">
+        <div class="ds-section-title"><span class="material-symbols-outlined text-[16px]" style="color:var(--purple)">view_timeline</span>Staggered Entry — دخول متتالي</div>
+        <p class="text-xs mb-3" style="color:var(--text-muted)">كل عنصر يظهر بتأخير متزايد (0.1s) عن سابقه.</p>
+        <button class="btn btn-ghost w-full justify-center mb-4" onclick="staggerDemo()">
+            <span class="material-symbols-outlined text-[16px]">replay</span>إعادة تشغيل
+        </button>
+        <div id="staggerDemo" class="grid grid-cols-3 gap-3">
+            ${[1,2,3,4,5,6].map((n,i)=>`<div class="glass-card p-4 text-center a-fadeUp" style="animation-delay:${i*.1}s"><span class="text-2xl font-extrabold block" style="color:var(--accent)">${n}</span><p class="text-[10px]" style="color:var(--text-muted)">${(i*.1).toFixed(1)}s</p></div>`).join('')}
+        </div>
+    </div>
+
+    <!-- ═══ Staggered List ═══ -->
+    <div class="ds-section a-fadeUp" style="animation-delay:.4s;opacity:0">
+        <div class="ds-section-title"><span class="material-symbols-outlined text-[16px]" style="color:var(--yellow)">format_list_numbered</span>قائمة متتالية — كمثال واقعي</div>
+        <button class="btn btn-ghost w-full justify-center mb-4" onclick="staggerListDemo()">
+            <span class="material-symbols-outlined text-[16px]">replay</span>إعادة تشغيل القائمة
+        </button>
+        <div id="staggerListDemo" class="space-y-2">
+            ${[
+                {name:'د. نورة القحطاني',desc:'أستاذة قانون تجاري',avatar:'https://i.pravatar.cc/40?img=5'},
+                {name:'أ. فهد العتيبي',desc:'محامي مرخص',avatar:'https://i.pravatar.cc/40?img=12'},
+                {name:'المكتبة القانونية',desc:'محتوى قانوني',avatar:'https://i.pravatar.cc/40?img=22'},
+                {name:'أ. سارة المنصور',desc:'محامية أسرة',avatar:'https://i.pravatar.cc/40?img=9'},
+                {name:'د. خالد الشمري',desc:'باحث دكتوراه',avatar:'https://i.pravatar.cc/40?img=15'}
+            ].map((u,i)=>`<div class="flex items-center gap-3 p-3 rounded-xl glass-card a-fadeRight" style="animation-delay:${i*.1}s"><img src="${u.avatar}" class="w-10 h-10 rounded-full object-cover"/><div class="flex-1"><span class="font-bold text-sm block">${u.name}</span><span class="text-[10px]" style="color:var(--text-muted)">${u.desc}</span></div><span class="material-symbols-outlined text-[var(--accent)]">chevron_left</span></div>`).join('')}
+        </div>
+    </div>
+
+    <!-- ═══ Easing Functions ═══ -->
+    <div class="ds-section a-fadeUp" style="animation-delay:.5s;opacity:0">
+        <div class="ds-section-title"><span class="material-symbols-outlined text-[16px]" style="color:var(--red)">speed</span>Easing Functions</div>
+        <div class="glass-card p-5 space-y-5">
+            ${[
+                {name:'linear',val:'linear',desc:'خطي — بدون تسارع'},
+                {name:'ease',val:'ease',desc:'الافتراضي'},
+                {name:'ease-out (Material)',val:'cubic-bezier(.4,0,.2,1)',desc:'الأنسب للعناصر الظاهرة'},
+                {name:'spring',val:'cubic-bezier(.68,-.55,.265,1.55)',desc:'زنبركي — يتجاوز الهدف'},
+                {name:'smooth',val:'cubic-bezier(.7,0,.3,1)',desc:'سلس جداً للصفحات'},
+                {name:'bounce',val:'cubic-bezier(.34,1.56,.64,1)',desc:'ارتداد عند النهاية'}
+            ].map((e,i)=>`<div class="a-fadeUp" style="animation-delay:${.55+i*.06}s;opacity:0">
+                <div class="flex items-center justify-between mb-2">
+                    <div><span class="text-xs font-bold">${e.name}</span><span class="text-[10px] mr-2" style="color:var(--text-muted)">— ${e.desc}</span></div>
+                    <span class="text-[10px] mono" style="color:var(--text-muted)">${e.val}</span>
+                </div>
+                <div class="flex items-center gap-3">
+                    <div class="flex-1 h-2 rounded-full overflow-hidden" style="background:rgba(89,65,56,.15)">
+                        <div class="h-full rounded-full" style="background:var(--accent);width:0;transition:width 1.2s ${e.val}" id="easing-bar-${i}"></div>
+                    </div>
+                    <button class="btn btn-ghost" style="padding:4px 10px;font-size:10px" onclick="animateEasing(${i})">
+                        <span class="material-symbols-outlined text-[14px]">play_arrow</span>
+                    </button>
+                </div>
+            </div>`).join('')}
+            <div class="text-center mt-3">
+                <button class="btn btn-primary" onclick="animateAllEasings()">
+                    <span class="material-symbols-outlined text-[16px]">play_arrow</span>
+                    تشغيل الكل
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══ Duration Comparison ═══ -->
+    <div class="ds-section a-fadeUp" style="animation-delay:.7s;opacity:0">
+        <div class="ds-section-title"><span class="material-symbols-outlined text-[16px]" style="color:var(--accent)">timer</span>مقارنة المدد الزمنية</div>
+        <div class="glass-card p-5 space-y-4">
+            ${[
+                {ms:150,label:'150ms',desc:'تفاعل فوري (زر، أيقونة)',color:'var(--green)'},
+                {ms:300,label:'300ms',desc:'معياري (معظم الانتقالات)',color:'var(--accent)'},
+                {ms:500,label:'500ms',desc:'بطيء (عناصر كبيرة)',color:'var(--yellow)'},
+                {ms:1000,label:'1000ms',desc:'بطيء جداً (讲故事)',color:'var(--red)'}
+            ].map((d,i)=>`<div class="a-fadeUp" style="animation-delay:${.75+i*.06}s;opacity:0">
+                <div class="flex items-center justify-between mb-1">
+                    <span class="text-xs font-bold" style="color:${d.color}">${d.label}</span>
+                    <span class="text-[10px]" style="color:var(--text-muted)">${d.desc}</span>
+                </div>
+                <div class="h-2 rounded-full overflow-hidden" style="background:rgba(89,65,56,.15)">
+                    <div class="h-full rounded-full" id="duration-bar-${i}" style="background:${d.color};width:0;transition:width ${d.ms}ms ease-out"></div>
+                </div>
+            </div>`).join('')}
+            <div class="text-center mt-2">
+                <button class="btn btn-primary" onclick="animateDurations()">
+                    <span class="material-symbols-outlined text-[16px]">timer</span>
+                    تشغيل مقارنة المدد
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══ Animation Specs Summary ═══ -->
+    <div class="ds-section a-fadeUp" style="animation-delay:.9s;opacity:0">
+        <div class="ds-section-title"><span class="material-symbols-outlined text-[16px]" style="color:var(--green)">checklist</span>ملخص مواصفات الحركة</div>
+        <div class="glass-card p-5 space-y-3">
+            ${[
+                {label:'الأزرار',spec:'150ms ease-out | translateY(-2px) + box-shadow',badge:'سريع'},
+                {label:'البطاقات',spec:'300ms cubic-bezier(.4,0,.2,1) | fadeInUp',badge:'معياري'},
+                {label:'الصفحات',spec:'450ms cubic-bezier(.4,0,.2,1) | wipe + fadeUp',badge:'سلس'},
+                {label:'القوائم المنسدلة',spec:'250ms cubic-bezier(.4,0,.2,1) | slideDown + scale',badge:'سريع'},
+                {label:'الإشعارات (Toast)',spec:'500ms spring | translateY + opacity',badge:'زنبركي'},
+                {label:'Skeleton',spec:'1500ms ease-in-out infinite | shimmer gradient',badge:'متكرر'},
+                {label:'الأيقونات',spec:'250ms ease-out | scale(1.15)',badge:'فوري'},
+                {label:'التنقل السفلي',spec:'300ms ease | ripple + scale(.88)',badge:'معياري'}
+            ].map((s,i)=>`<div class="flex items-center gap-3 a-fadeRight" style="animation-delay:${.95+i*.04}s;opacity:0">
+                <span class="badge badge-${s.badge==='سريع'?'green':s.badge==='معياري'||s.badge==='سلس'?'accent':s.badge==='زنبركي'?'purple':s.badge==='فوري'?'blue':'yellow'}" style="min-width:52px;justify-content:center">${s.badge}</span>
+                <div class="flex-1 min-w-0"><span class="text-xs font-bold block">${s.label}</span><span class="text-[10px] mono" style="color:var(--text-muted)">${s.spec}</span></div>
+            </div>`).join('')}
+        </div>
+    </div>`;
+}
+
+// ═══════════════════════════════════════════
+// ██  TRANSITION DEMO FUNCTIONS  ██
+// ═══════════════════════════════════════════
+
+/** تشغيل انتقال الصفحة (wipe) */
+function demoPageTransition(){
+    const ov=document.getElementById('pageOverlay');
+    const el=document.getElementById('pageTransDemo');
+    ov.classList.add('active');
+    el.innerHTML='';
+    setTimeout(()=>{
+        ov.classList.remove('active');
+        el.innerHTML=`<div class="glass-card p-4 a-fadeUp"><div class="flex items-center gap-3"><span class="material-symbols-outlined text-green-400 text-[24px]" style="font-variation-settings:'FILL' 1">check_circle</span><div><span class="font-bold text-sm block">انتقلت الصفحة!</span><span class="text-[10px]" style="color:var(--text-muted)">wipe: scaleX(0→1) + fadeInUp المحتوى</span></div></div></div>`;
+    },500);
+}
+
+/** تشغيل نمط دخول محدد */
+function demoEntry(animClass){
+    const el=document.getElementById('entryDemo');
+    el.innerHTML='';
+    requestAnimationFrame(()=>{
+        el.innerHTML=`<div class="glass-card p-4 ${animClass}"><div class="flex items-center gap-3"><span class="material-symbols-outlined text-[var(--accent)] text-[24px]" style="font-variation-settings:'FILL' 1">check_circle</span><div><span class="font-bold text-sm block">تأثير ${animClass}</span><span class="text-[10px]" style="color:var(--text-muted)">animation: ${animClass.replace('a-','')} .5s cubic-bezier(.4,0,.2,1)</span></div></div></div>`;
+    });
+}
+
+/** إعادة تشغيل الدخول المتتالي */
+function staggerDemo(){
+    const c=document.getElementById('staggerDemo');
+    c.innerHTML='';
+    requestAnimationFrame(()=>{
+        c.innerHTML=[1,2,3,4,5,6].map((n,i)=>`<div class="glass-card p-4 text-center a-fadeUp" style="animation-delay:${i*.1}s;opacity:0"><span class="text-2xl font-extrabold block" style="color:var(--accent)">${n}</span><p class="text-[10px]" style="color:var(--text-muted)">${(i*.1).toFixed(1)}s</p></div>`).join('');
+    });
+}
+
+/** إعادة تشغيل القائمة المتتالية */
+function staggerListDemo(){
+    const c=document.getElementById('staggerListDemo');
+    c.innerHTML='';
+    const users=[
+        {name:'د. نورة القحطاني',desc:'أستاذة قانون تجاري',avatar:'https://i.pravatar.cc/40?img=5'},
+        {name:'أ. فهد العتيبي',desc:'محامي مرخص',avatar:'https://i.pravatar.cc/40?img=12'},
+        {name:'المكتبة القانونية',desc:'محتوى قانوني',avatar:'https://i.pravatar.cc/40?img=22'},
+        {name:'أ. سارة المنصور',desc:'محامية أسرة',avatar:'https://i.pravatar.cc/40?img=9'},
+        {name:'د. خالد الشمري',desc:'باحث دكتوراه',avatar:'https://i.pravatar.cc/40?img=15'}
+    ];
+    requestAnimationFrame(()=>{
+        c.innerHTML=users.map((u,i)=>`<div class="flex items-center gap-3 p-3 rounded-xl glass-card a-fadeRight" style="animation-delay:${i*.1}s;opacity:0"><img src="${u.avatar}" class="w-10 h-10 rounded-full object-cover"/><div class="flex-1"><span class="font-bold text-sm block">${u.name}</span><span class="text-[10px]" style="color:var(--text-muted)">${u.desc}</span></div><span class="material-symbols-outlined text-[var(--accent)]">chevron_left</span></div>`).join('');
+    });
+}
+
+/** تشغيل شريط easing محدد */
+function animateEasing(i){
+    const bar=document.getElementById('easing-bar-'+i);
+    if(!bar)return;
+    bar.style.width='0';
+    requestAnimationFrame(()=>{bar.style.width='85%'});
+}
+
+/** تشغيل جميع أشرطة Easing */
+function animateAllEasings(){
+    for(let i=0;i<6;i++){
+        const bar=document.getElementById('easing-bar-'+i);
+        if(bar){bar.style.width='0';}
+    }
+    requestAnimationFrame(()=>{
+        for(let i=0;i<6;i++){
+            const bar=document.getElementById('easing-bar-'+i);
+            if(bar)bar.style.width='85%';
+        }
+    });
+}
+
+/** تشغيل مقارنة المدد الزمنية */
+function animateDurations(){
+    for(let i=0;i<4;i++){
+        const bar=document.getElementById('duration-bar-'+i);
+        if(bar)bar.style.width='0';
+    }
+    requestAnimationFrame(()=>{
+        for(let i=0;i<4;i++){
+            const bar=document.getElementById('duration-bar-'+i);
+            if(bar)bar.style.width=(85-i*8)+'%';
+        }
+    });
+}
+
+// ═══════════════════════════════════════════
+// ██  AUTO-ANIMATE EASINGS ON TAB ENTRY  ██
+// ═══════════════════════════════════════════
+const _origRenderDs=renderDs;
+renderDs=function(){
+    _origRenderDs();
+    if(currentDs==='transitions'){
+        setTimeout(()=>{
+            for(let i=0;i<6;i++){
+                const bar=document.getElementById('easing-bar-'+i);
+                if(bar)setTimeout(()=>bar.style.width='85%',400+i*150);
+            }
+            for(let i=0;i<4;i++){
+                const bar=document.getElementById('duration-bar-'+i);
+                if(bar)setTimeout(()=>bar.style.width=(85-i*8)+'%',1200+i*200);
+            }
+        },200);
+    }
+};
+
+// ═══════════════════════════════════════════
+// ██  TOAST  ██
+// ═══════════════════════════════════════════
+function showToast(msg,type='info'){
+    const t=document.getElementById('toastEl');
+    const icons={success:'check_circle',error:'error',info:'info'};
+    t.className='toast '+type;
+    t.innerHTML=`<span class="material-symbols-outlined text-[18px]">${icons[type]||'info'}</span> ${msg}`;
+    setTimeout(()=>t.classList.add('show'),10);
+    setTimeout(()=>t.classList.remove('show'),3000);
+}
+
+// ═══════════════════════════════════════════
+// ██  INIT  ██
+// ═══════════════════════════════════════════
+document.addEventListener('DOMContentLoaded',function(){
+    renderDs();
+    console.log('%c لو بوك | النظام البصري ','background:linear-gradient(135deg,#f26522,#d4561a);color:white;font-size:14px;font-weight:bold;border-radius:8px;padding:6px 14px');
+});
+</script>
+</body>
+</html>

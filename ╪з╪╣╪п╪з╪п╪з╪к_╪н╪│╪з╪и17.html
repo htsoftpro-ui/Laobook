@@ -1,0 +1,988 @@
+<!DOCTYPE html>
+<html class="dark" lang="ar" dir="rtl">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>لو بوك | الإعدادات</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <style>
+        *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;scroll-behavior:smooth}
+        :root{
+            --bg:#0a0a0a;--surface:#1a1a1a;--accent:#f26522;--accent-light:#ff7a3d;
+            --text:#e5e2e1;--text-muted:#7a7570;--border:#594138;
+            --green:#22c55e;--red:#ef4444;--blue:#3b82f6;--yellow:#eab308;--purple:#a855f7;
+        }
+        body{font-family:'Tajawal',sans-serif;min-height:100dvh;overflow-x:hidden;background:var(--bg);color:var(--text);transition:background .4s,color .4s}
+        body.light-mode{--bg:#f5f2ee;--surface:#ffffff;--text:#1a1a1a;--text-muted:#6b7280;--border:#d4c5b9}
+        .material-symbols-outlined{font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24;transition:all .2s ease}
+
+        .app-bg{position:fixed;inset:0;z-index:0;background:radial-gradient(ellipse at 20% 0%,rgba(242,101,34,.06) 0%,transparent 50%),radial-gradient(ellipse at 80% 100%,rgba(242,101,34,.04) 0%,transparent 50%),var(--bg);transition:background .4s}
+        .app-bg::after{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");opacity:.3;pointer-events:none}
+        body.light-mode .app-bg::after{opacity:.08}
+
+        @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+        @keyframes fadeInUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+        @keyframes slideRight{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
+        @keyframes slideLeft{from{transform:translateX(0);opacity:1}to{transform:translateX(100%);opacity:0}}
+        @keyframes scaleIn{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:scale(1)}}
+        @keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-4px)}40%{transform:translateX(4px)}60%{transform:translateX(-3px)}80%{transform:translateX(3px)}}
+        @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+        @keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+        @keyframes toggleOn{0%{transform:scale(1)}50%{transform:scale(1.15)}100%{transform:scale(1)}}
+        @keyframes progress{from{width:0}to{width:var(--pw)}}
+
+        .anim-fade{animation:fadeIn .3s ease}
+        .anim-fadeUp{animation:fadeInUp .35s ease}
+
+        /* ═══════ Settings List ═══════ */
+        .settings-group{margin-bottom:8px}
+        .settings-group-title{font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;padding:12px 20px 6px}
+        .settings-item{display:flex;align-items:center;gap:14px;padding:14px 20px;cursor:pointer;transition:all .2s;border-bottom:1px solid rgba(89,65,56,.06);position:relative}
+        .settings-item:hover{background:rgba(242,101,34,.03)}
+        .settings-item:last-child{border-bottom:none}
+        .settings-item .item-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+        .settings-item .item-content{flex:1;min-width:0}
+        .settings-item .item-title{font-size:14px;font-weight:600}
+        .settings-item .item-desc{font-size:11px;color:var(--text-muted);margin-top:1px}
+        .settings-item .item-arrow{color:var(--text-muted);font-size:20px;flex-shrink:0}
+        .settings-item .item-badge{font-size:10px;font-weight:700;padding:2px 8px;border-radius:6px;flex-shrink:0}
+
+        /* ═══════ Toggle Switch ═══════ */
+        .toggle{position:relative;width:48px;height:28px;cursor:pointer;flex-shrink:0}
+        .toggle input{display:none}
+        .toggle .slider{position:absolute;inset:0;background:rgba(89,65,56,.3);border-radius:14px;transition:all .35s cubic-bezier(.4,0,.2,1)}
+        .toggle .slider::before{content:'';position:absolute;width:22px;height:22px;background:white;border-radius:50%;top:3px;right:3px;transition:all .35s cubic-bezier(.4,0,.2,1);box-shadow:0 2px 4px rgba(0,0,0,.2)}
+        .toggle input:checked + .slider{background:var(--accent)}
+        .toggle input:checked + .slider::before{transform:translateX(-20px);animation:toggleOn .3s ease}
+
+        /* ═══════ Sub Page (Panel) ═══════ */
+        .sub-page{position:fixed;inset:0;z-index:60;background:var(--bg);transform:translateX(100%);transition:transform .35s cubic-bezier(.4,0,.2,1);overflow-y:auto}
+        .sub-page.open{transform:translateX(0)}
+        .sub-page-header{position:sticky;top:0;z-index:10;background:var(--bg);border-bottom:1px solid rgba(89,65,56,.12);padding:0 16px;height:56px;display:flex;align-items:center;gap:12px}
+
+        /* ═══════ Input ═══════ */
+        .input-field{background:rgba(42,42,42,.5);border:1px solid rgba(89,65,56,.2);border-radius:12px;padding:12px 16px;color:var(--text);font-size:14px;width:100%;outline:none;transition:all .3s;font-family:'Tajawal',sans-serif}
+        .input-field:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(242,101,34,.1)}
+        .input-field::placeholder{color:var(--text-muted)}
+        body.light-mode .input-field{background:rgba(255,255,255,.8);border-color:rgba(212,197,185,.5)}
+
+        /* ═══════ Buttons ═══════ */
+        .btn-orange{background:linear-gradient(135deg,var(--accent),#e85d1c);color:white;font-weight:700;font-size:14px;padding:12px 24px;border-radius:12px;border:none;cursor:pointer;transition:all .3s;font-family:'Tajawal',sans-serif;display:flex;align-items:center;justify-content:center;gap:6px;width:100%}
+        .btn-orange:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(242,101,34,.3)}
+        .btn-ghost{background:transparent;border:1px solid rgba(89,65,56,.3);color:var(--text);font-weight:600;font-size:13px;padding:10px 20px;border-radius:12px;cursor:pointer;transition:all .3s;font-family:'Tajawal',sans-serif;display:flex;align-items:center;justify-content:center;gap:4px;width:100%}
+        .btn-ghost:hover{border-color:var(--accent);color:var(--accent);background:rgba(242,101,34,.06)}
+        .btn-danger{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:#f87171;font-weight:600;font-size:13px;padding:12px 20px;border-radius:12px;cursor:pointer;transition:all .3s;font-family:'Tajawal',sans-serif;display:flex;align-items:center;justify-content:center;gap:4px;width:100%}
+        .btn-danger:hover{background:rgba(239,68,68,.2);border-color:#ef4444}
+
+        /* ═══════ Font Size Slider ═══════ */
+        .size-slider{width:100%;height:6px;border-radius:3px;background:rgba(89,65,56,.2);outline:none;-webkit-appearance:none;appearance:none}
+        .size-slider::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;border-radius:50%;background:var(--accent);cursor:pointer;box-shadow:0 2px 8px rgba(242,101,34,.3)}
+
+        /* ═══════ Theme Cards ═══════ */
+        .theme-card{border:2px solid rgba(89,65,56,.15);border-radius:14px;padding:16px;cursor:pointer;transition:all .3s;text-align:center}
+        .theme-card:hover{border-color:rgba(242,101,34,.3)}
+        .theme-card.active{border-color:var(--accent);background:rgba(242,101,34,.05)}
+
+        /* ═══════ Session Card ═══════ */
+        .session-card{display:flex;align-items:center;gap:12px;padding:14px;background:rgba(42,42,42,.3);border:1px solid rgba(89,65,56,.1);border-radius:14px;transition:all .3s}
+        body.light-mode .session-card{background:rgba(255,255,255,.6);border-color:rgba(212,197,185,.3)}
+        .session-card.current{border-color:rgba(34,197,94,.3);background:rgba(34,197,94,.03)}
+
+        /* ═══════ Toast ═══════ */
+        .toast{position:fixed;top:24px;left:50%;transform:translateX(-50%) translateY(-100px);z-index:9999;padding:14px 28px;border-radius:14px;font-weight:700;font-size:14px;opacity:0;transition:all .5s cubic-bezier(.68,-.55,.265,1.55);display:flex;align-items:center;gap:10px;backdrop-filter:blur(12px);max-width:90vw;color:white}
+        .toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+        .toast.success{background:rgba(34,197,94,.2);border:1px solid rgba(34,197,94,.4)}
+        .toast.error{background:rgba(239,68,68,.2);border:1px solid rgba(239,68,68,.4)}
+        .toast.info{background:rgba(59,130,246,.2);border:1px solid rgba(59,130,246,.4)}
+
+        /* ═══════ Modal ═══════ */
+        .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);z-index:100;display:none;align-items:center;justify-content:center;padding:16px}
+        .modal-bg.active{display:flex;animation:fadeIn .3s ease}
+        .modal-box{background:var(--surface);border:1px solid rgba(89,65,56,.3);border-radius:20px;width:100%;max-width:400px;animation:scaleIn .3s cubic-bezier(.4,0,.2,1);padding:28px;text-align:center}
+        body.light-mode .modal-box{box-shadow:0 20px 60px rgba(0,0,0,.1)}
+
+        /* ═══════ Blocked User ═══════ */
+        .blocked-user{display:flex;align-items:center;gap:10px;padding:12px;border:1px solid rgba(89,65,56,.1);border-radius:12px;transition:all .2s}
+        .blocked-user:hover{border-color:rgba(239,68,68,.2)}
+
+        ::-webkit-scrollbar{width:4px;height:4px}
+        ::-webkit-scrollbar-track{background:transparent}
+        ::-webkit-scrollbar-thumb{background:#474746;border-radius:4px}
+    </style>
+</head>
+<body>
+<div class="app-bg"></div>
+<div id="toastEl" class="toast"></div>
+
+<!-- ═══════ MAIN SETTINGS PAGE ═══════ -->
+<header class="fixed top-0 w-full z-50 border-b flex items-center px-4 h-14" style="background:var(--bg);border-color:rgba(89,65,56,.12)">
+    <button class="p-2 rounded-full hover:bg-white/5"><span class="material-symbols-outlined" style="color:var(--text-muted)">arrow_forward</span></button>
+    <h1 class="text-lg font-extrabold mr-2" style="color:var(--accent)">الإعدادات</h1>
+</header>
+
+<main class="relative z-10 pt-16 pb-8 max-w-lg mx-auto" id="settingsMain">
+
+    <!-- Profile Card -->
+    <div class="px-4 mb-4 anim-fadeUp" style="padding-top:8px">
+        <div class="rounded-2xl p-5 border" style="background:rgba(42,42,42,.25);border-color:rgba(89,65,56,.1);border:1px solid rgba(89,65,56,.1)">
+            <div class="flex items-center gap-4">
+                <div class="relative">
+                    <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop&crop=face" class="w-16 h-16 rounded-full object-cover border-2" style="border-color:var(--accent)"/>
+                    <button class="absolute -bottom-1 -left-1 w-7 h-7 rounded-full flex items-center justify-center" style="background:var(--accent)" onclick="showToast('تعديل الصورة','info')">
+                        <span class="material-symbols-outlined text-white text-[14px]">edit</span>
+                    </button>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <h2 class="font-extrabold text-base">عبدالملك بن محمد</h2>
+                    <p class="text-xs" style="color:var(--text-muted)">@abdulmalik_m</p>
+                    <p class="text-xs mt-1" style="color:var(--accent)">مدير عام • موثق</p>
+                </div>
+                <span class="material-symbols-outlined text-[20px]" style="color:var(--text-muted)">chevron_left</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Groups -->
+    <div id="settingsList" class="rounded-2xl mx-4 overflow-hidden border" style="background:var(--surface);border-color:rgba(89,65,56,.1);background:rgba(42,42,42,.25)">
+    </div>
+
+    <!-- Version -->
+    <div class="text-center mt-6 px-4 anim-fade">
+        <p class="text-xs" style="color:var(--text-muted)">لو بوك الإصدار 2.4.1</p>
+        <p class="text-[10px] mt-1" style="color:var(--text-muted);opacity:.5">صُنع بـ ❤️ في المملكة العربية السعودية</p>
+    </div>
+</main>
+
+<!-- ═══════ SUB PAGES (slide-in panels) ═══════ -->
+<div id="subPage_account" class="sub-page"></div>
+<div id="subPage_privacy" class="sub-page"></div>
+<div id="subPage_notifications" class="sub-page"></div>
+<div id="subPage_appearance" class="sub-page"></div>
+<div id="subPage_security" class="sub-page"></div>
+<div id="subPage_help" class="sub-page"></div>
+
+<!-- ═══════ MODAL ═══════ -->
+<div id="modal" class="modal-bg" onclick="if(event.target===this)closeModal()">
+    <div class="modal-box" id="modalContent"></div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════
+// STATE (persisted in localStorage)
+// ═══════════════════════════════════════════
+const STORAGE_KEY = 'lb_settings';
+
+const defaultSettings = {
+    // Account
+    displayName: 'عبدالملك بن محمد',
+    username: 'abdulmalik_m',
+    email: 'abdulmalik@email.com',
+    bio: 'محامي ومستشار قانوني | متخصص في القانون التجاري',
+
+    // Privacy
+    profileVisibility: 'public',   // public, followers, private
+    whoCanMessage: 'everyone',     // everyone, followers, nobody
+    whoCanTag: 'followers',        // everyone, followers, nobody
+    showOnline: true,
+    showActivity: true,
+    blockedUsers: ['bu1', 'bu2'],
+
+    // Notifications
+    notif_likes: true,
+    notif_comments: true,
+    notif_follows: true,
+    notif_mentions: true,
+    notif_messages: true,
+    notif_newsletter: true,
+    notif_security: true,
+    notif_marketing: false,
+
+    // Appearance
+    theme: 'dark',      // dark, light
+    fontSize: 14,        // 12-20
+    language: 'ar',      // ar, en
+
+    // Security
+    twoFactor: false,
+    sessions: [
+        {id:'s1', device:'iPhone 15 Pro', browser:'Safari', location:'الرياض، السعودية', ip:'192.168.1.1', lastActive:'منذ دقيقتين', current:true},
+        {id:'s2', device:'MacBook Pro', browser:'Chrome', location:'الرياض، السعودية', ip:'192.168.1.2', lastActive:'منذ ساعتين', current:false},
+        {id:'s3', device:'Samsung Galaxy S24', browser:'Chrome', location:'جدة، السعودية', ip:'10.0.0.5', lastActive:'أمس', current:false}
+    ]
+};
+
+let settings = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null') || {...defaultSettings};
+
+function saveSettings(){
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
+}
+
+function esc(t){const d=document.createElement('div');d.appendChild(document.createTextNode(t));return d.innerHTML}
+
+// ═══════════════════════════════════════════
+// RENDER MAIN LIST
+// ═══════════════════════════════════════════
+function renderSettingsList(){
+    const el = document.getElementById('settingsList');
+    const blockedCount = settings.blockedUsers.length;
+
+    el.innerHTML = `
+    <div class="settings-group">
+        <div class="settings-group-title">الحساب</div>
+        <div class="settings-item anim-fadeUp" onclick="openSubPage('account')" style="animation-delay:0s;opacity:0">
+            <div class="item-icon" style="background:rgba(242,101,34,.12)"><span class="material-symbols-outlined text-[18px]" style="color:var(--accent);font-variation-settings:'FILL' 1">person</span></div>
+            <div class="item-content"><div class="item-title">معلومات الحساب</div><div class="item-desc">الاسم، البريد، النبذة، كلمة المرور</div></div>
+            <span class="material-symbols-outlined item-arrow">chevron_left</span>
+        </div>
+    </div>
+
+    <div class="settings-group">
+        <div class="settings-group-title">الخصوصية</div>
+        <div class="settings-item anim-fadeUp" onclick="openSubPage('privacy')" style="animation-delay:.05s;opacity:0">
+            <div class="item-icon" style="background:rgba(168,85,247,.12)"><span class="material-symbols-outlined text-[18px]" style="color:#a855f7;font-variation-settings:'FILL' 1">lock</span></div>
+            <div class="item-content"><div class="item-title">الخصوصية والأمان</div><div class="item-desc">الرؤية، المراسلة، الحظر (${blockedCount})</div></div>
+            <span class="material-symbols-outlined item-arrow">chevron_left</span>
+        </div>
+    </div>
+
+    <div class="settings-group">
+        <div class="settings-group-title">الإشعارات</div>
+        <div class="settings-item anim-fadeUp" onclick="openSubPage('notifications')" style="animation-delay:.1s;opacity:0">
+            <div class="item-icon" style="background:rgba(59,130,246,.12)"><span class="material-symbols-outlined text-[18px]" style="color:#3b82f6;font-variation-settings:'FILL' 1">notifications</span></div>
+            <div class="item-content"><div class="item-title">إعدادات الإشعارات</div><div class="item-desc">تحكم في أنواع الإشعارات</div></div>
+            <span class="material-symbols-outlined item-arrow">chevron_left</span>
+        </div>
+    </div>
+
+    <div class="settings-group">
+        <div class="settings-group-title">المظهر</div>
+        <div class="settings-item anim-fadeUp" onclick="openSubPage('appearance')" style="animation-delay:.15s;opacity:0">
+            <div class="item-icon" style="background:rgba(234,179,8,.12)"><span class="material-symbols-outlined text-[18px]" style="color:#eab308;font-variation-settings:'FILL' 1">palette</span></div>
+            <div class="item-content"><div class="item-title">المظهر واللغة</div><div class="item-desc">${settings.theme==='dark'?'الوضع الداكن':'الوضع الفاتح'} • حجم ${settings.fontSize}px • ${settings.language==='ar'?'العربية':'English'}</div></div>
+            <span class="material-symbols-outlined item-arrow">chevron_left</span>
+        </div>
+    </div>
+
+    <div class="settings-group">
+        <div class="settings-group-title">الأمان</div>
+        <div class="settings-item anim-fadeUp" onclick="openSubPage('security')" style="animation-delay:.2s;opacity:0">
+            <div class="item-icon" style="background:rgba(34,197,94,.12)"><span class="material-symbols-outlined text-[18px]" style="color:#22c55e;font-variation-settings:'FILL' 1">shield</span></div>
+            <div class="item-content">
+                <div class="item-title">الأمان والجلسات</div>
+                <div class="item-desc">2FA: ${settings.twoFactor?'مفعّل':'معطّل'} • ${settings.sessions.length} جلسة نشطة</div>
+            </div>
+            ${settings.twoFactor?'<span class="item-badge" style="background:rgba(34,197,94,.12);color:#22c55e">محمي</span>':''}
+            <span class="material-symbols-outlined item-arrow">chevron_left</span>
+        </div>
+    </div>
+
+    <div class="settings-group">
+        <div class="settings-group-title">المساعدة</div>
+        <div class="settings-item anim-fadeUp" onclick="openSubPage('help')" style="animation-delay:.25s;opacity:0">
+            <div class="item-icon" style="background:rgba(59,130,246,.08)"><span class="material-symbols-outlined text-[18px]" style="color:var(--text-muted)">help</span></div>
+            <div class="item-content"><div class="item-title">المساعدة والدعم</div><div class="item-desc">مركز المساعدة، الشروط، سياسة الخصوصية</div></div>
+            <span class="material-symbols-outlined item-arrow">chevron_left</span>
+        </div>
+    </div>
+
+    <!-- Logout -->
+    <div class="px-5 py-3 anim-fadeUp" style="animation-delay:.3s;opacity:0">
+        <button class="btn-danger" onclick="confirmLogout()">
+            <span class="material-symbols-outlined text-[16px]">logout</span>
+            تسجيل الخروج
+        </button>
+    </div>`;
+}
+
+// ═══════════════════════════════════════════
+// SUB PAGE SYSTEM
+// ═══════════════════════════════════════════
+function openSubPage(name){
+    const page = document.getElementById('subPage_'+name);
+    renderSubPage(name, page);
+    requestAnimationFrame(()=> page.classList.add('open'));
+    document.body.style.overflow = 'hidden';
+}
+
+function closeSubPage(name){
+    const page = document.getElementById('subPage_'+name);
+    page.classList.remove('open');
+    document.body.style.overflow = '';
+}
+
+function subPageHeader(title, desc){
+    return `
+    <div class="sub-page-header">
+        <button onclick="closeSubPage(this.dataset.page)" data-page="${title}" class="p-2 rounded-full hover:bg-white/5">
+            <span class="material-symbols-outlined text-[22px]" style="color:var(--text-muted)">arrow_forward</span>
+        </button>
+        <div class="flex-1">
+            <h2 class="font-extrabold text-base">${title}</h2>
+            ${desc?`<p class="text-[10px]" style="color:var(--text-muted)">${desc}</p>`:''}
+        </div>
+    </div>`;
+}
+
+function renderSubPage(name, page){
+    switch(name){
+        case 'account': renderAccountPage(page); break;
+        case 'privacy': renderPrivacyPage(page); break;
+        case 'notifications': renderNotificationsPage(page); break;
+        case 'appearance': renderAppearancePage(page); break;
+        case 'security': renderSecurityPage(page); break;
+        case 'help': renderHelpPage(page); break;
+    }
+}
+
+// ═══════════════════════════════════════════
+// 1. ACCOUNT PAGE
+// ═══════════════════════════════════════════
+function renderAccountPage(page){
+    page.innerHTML = `
+    ${subPageHeader('معلومات الحساب','تعديل بياناتك الشخصية')}
+    <div class="p-4 space-y-4">
+        <div class="anim-fadeUp">
+            <label class="text-sm font-bold block mb-2">الاسم الكامل</label>
+            <input type="text" class="input-field" id="accName" value="${esc(settings.displayName)}"/>
+        </div>
+        <div class="anim-fadeUp" style="animation-delay:.05s;opacity:0">
+            <label class="text-sm font-bold block mb-2">اسم المستخدم</label>
+            <div class="relative">
+                <span class="absolute right-3 top-1/2 -translate-y-1/2 text-sm" style="color:var(--text-muted)">@</span>
+                <input type="text" class="input-field pr-8" id="accUsername" value="${esc(settings.username)}"/>
+            </div>
+        </div>
+        <div class="anim-fadeUp" style="animation-delay:.1s;opacity:0">
+            <label class="text-sm font-bold block mb-2">البريد الإلكتروني</label>
+            <input type="email" class="input-field" id="accEmail" value="${esc(settings.email)}"/>
+        </div>
+        <div class="anim-fadeUp" style="animation-delay:.15s;opacity:0">
+            <label class="text-sm font-bold block mb-2">النبذة التعريفية</label>
+            <textarea class="input-field resize-none" id="accBio" rows="3">${esc(settings.bio)}</textarea>
+            <p class="text-[10px] mt-1" style="color:var(--text-muted)">${settings.bio.length}/160 حرف</p>
+        </div>
+
+        <button onclick="saveAccount()" class="btn-orange anim-fadeUp" style="animation-delay:.2s;opacity:0">
+            <span class="material-symbols-outlined text-[16px]">save</span>حفظ التغييرات
+        </button>
+
+        <hr style="border-color:rgba(89,65,56,.1);margin:20px 0"/>
+
+        <!-- Change Password -->
+        <div class="anim-fadeUp" style="animation-delay:.25s;opacity:0">
+            <h3 class="font-bold text-sm mb-3 flex items-center gap-2">
+                <span class="material-symbols-outlined text-[16px]" style="color:var(--accent)">lock_reset</span>
+                تغيير كلمة المرور
+            </h3>
+            <div class="space-y-3">
+                <input type="password" class="input-field" id="accOldPw" placeholder="كلمة المرور الحالية"/>
+                <input type="password" class="input-field" id="accNewPw" placeholder="كلمة المرور الجديدة"/>
+                <input type="password" class="input-field" id="accConfirmPw" placeholder="تأكيد كلمة المرور الجديدة"/>
+            </div>
+            <button onclick="changePassword()" class="btn-ghost mt-3">
+                <span class="material-symbols-outlined text-[16px]">lock</span>تحديث كلمة المرور
+            </button>
+            <div class="mt-2 p-3 rounded-xl text-xs flex items-start gap-2" style="background:rgba(59,130,246,.05);border:1px solid rgba(59,130,246,.12);color:#60a5fa">
+                <span class="material-symbols-outlined text-[14px] shrink-0 mt-0.5">info</span>
+                كلمة المرور لا تُخزّن كنص صريحة. يتم تشفيرها بـ bcrypt (12 جولة) في الخادم.
+            </div>
+        </div>
+
+        <hr style="border-color:rgba(89,65,56,.1);margin:20px 0"/>
+
+        <!-- Delete Account -->
+        <div class="anim-fadeUp" style="animation-delay:.3s;opacity:0">
+            <h3 class="font-bold text-sm mb-2 flex items-center gap-2" style="color:#f87171">
+                <span class="material-symbols-outlined text-[16px]" style="color:#f87171;font-variation-settings:'FILL' 1">warning</span>
+                منطقة الخطر
+            </h3>
+            <p class="text-xs mb-3" style="color:var(--text-muted)">حذف الحساب إجراء نهائي لا يمكن التراجع عنه.</p>
+            <button class="btn-danger" onclick="confirmDeleteAccount()">
+                <span class="material-symbols-outlined text-[16px]">delete_forever</span>حذف الحساب نهائياً
+            </button>
+        </div>
+    </div>`;
+}
+
+function saveAccount(){
+    settings.displayName = document.getElementById('accName').value.trim();
+    settings.username = document.getElementById('accUsername').value.trim().replace('@','');
+    settings.email = document.getElementById('accEmail').value.trim();
+    settings.bio = document.getElementById('accBio').value.trim();
+    saveSettings();
+    renderSettingsList();
+    showToast('تم حفظ التغييرات','success');
+}
+
+function changePassword(){
+    const old = document.getElementById('accOldPw').value;
+    const newPw = document.getElementById('accNewPw').value;
+    const confirm = document.getElementById('accConfirmPw').value;
+
+    if(!old||!newPw||!confirm){showToast('أدخل جميع الحقول','error');return}
+    if(newPw.length < 8){showToast('كلمة المرور الجديدة يجب أن تكون 8 أحرف على الأقل','error');return}
+    if(newPw !== confirm){showToast('كلمتا المرور غير متطابقتين','error');return}
+    if(old === newPw){showToast('كلمة المرور الجديدة مختلفة عن الحالية','error');return}
+
+    showToast('تم تحديث كلمة المرور بنجاح','success');
+    document.getElementById('accOldPw').value='';
+    document.getElementById('accNewPw').value='';
+    document.getElementById('accConfirmPw').value='';
+}
+
+function confirmDeleteAccount(){
+    openModal(`
+        <div class="mb-5">
+            <span class="material-symbols-outlined text-[48px] block mx-auto mb-3" style="color:#ef4444;font-variation-settings:'FILL' 1">delete_forever</span>
+            <h3 class="font-extrabold text-lg" style="color:#f87171">حذف الحساب</h3>
+            <p class="text-sm mt-2" style="color:var(--text-muted)">هذا الإجراء نهائي ولا يمكن التراجع عنه. سيتم حذف جميع بياناتك ومنشوراتك.</p>
+        </div>
+        <div class="space-y-2">
+            <button onclick="closeModal();showToast('تم إلغاء العملية','info')" class="btn-ghost">إلغاء</button>
+            <button onclick="closeModal();showToast('تم إرسال طلب الحذف — سيتم المراجعة خلال 48 ساعة','warning')" class="btn-danger">نعم، احذف حسابي</button>
+        </div>
+    `);
+}
+
+// ═══════════════════════════════════════════
+// 2. PRIVACY PAGE
+// ═══════════════════════════════════════════
+function renderPrivacyPage(page){
+    const visLabels = {public:'للعامة',followers:'للمتابعين فقط',private:'خاص'};
+    const msgLabels = {everyone:'الجميع',followers:'المتابعين فقط',nobody:'لا أحد'};
+    const tagLabels = {everyone:'الجميع',followers:'المتابعين فقط',nobody:'لا أحد'};
+
+    page.innerHTML = `
+    ${subPageHeader('الخصوصية','تحكم في من يمكنه رؤية ملفك')}
+    <div class="p-4 space-y-4">
+        <!-- Profile Visibility -->
+        <div class="anim-fadeUp">
+            <h3 class="font-bold text-sm mb-3 flex items-center gap-2">
+                <span class="material-symbols-outlined text-[16px]" style="color:#a855f7">visibility</span>
+                من يمكنه رؤية ملفك الشخصي
+            </h3>
+            <div class="space-y-2">
+                ${['public','followers','private'].map(v=>`
+                <label class="flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all border" style="background:rgba(42,42,42,.3);border-color:${settings.profileVisibility===v?'rgba(168,85,247,.3)':'rgba(89,65,56,.1)'}">
+                    <input type="radio" name="visibility" value="${v}" ${settings.profileVisibility===v?'checked':''} onchange="settings.profileVisibility=this.value;saveSettings();renderPrivacyPage(document.getElementById('subPage_privacy'))" class="accent-purple-500"/>
+                    <div class="flex-1">
+                        <span class="text-sm font-bold">${visLabels[v]}</span>
+                        <p class="text-[10px]" style="color:var(--text-muted)">${v==='public'?'يمكن لأي شخص رؤية ملفك':v==='followers'?'المتابعون فقط يمكنهم رؤية ملفك':'ملفك مخفي عن الجميع'}</p>
+                    </div>
+                    ${settings.profileVisibility===v?'<span class="material-symbols-outlined text-purple-400 text-[18px]" style="font-variation-settings:FILL 1">check_circle</span>':''}
+                </label>`).join('')}
+            </div>
+        </div>
+
+        <!-- Who Can Message -->
+        <div class="anim-fadeUp" style="animation-delay:.1s;opacity:0">
+            <h3 class="font-bold text-sm mb-3 flex items-center gap-2">
+                <span class="material-symbols-outlined text-[16px]" style="color:#3b82f6">chat</span>
+                من يمكنه مراسلتك
+            </h3>
+            <div class="flex gap-2">
+                ${['everyone','followers','nobody'].map(v=>`
+                <button onclick="settings.whoCanMessage=this.dataset.v;saveSettings();renderPrivacyPage(document.getElementById('subPage_privacy'))" data-v="${v}" class="flex-1 p-3 rounded-xl text-center border text-xs font-bold transition-all" style="background:rgba(42,42,42,.3);border-color:${settings.whoCanMessage===v?'rgba(59,130,246,.3)':'rgba(89,65,56,.1)'};color:${settings.whoCanMessage===v?'#60a5fa':'var(--text-muted)'}">
+                    ${msgLabels[v]}
+                </button>`).join('')}
+            </div>
+        </div>
+
+        <!-- Who Can Tag -->
+        <div class="anim-fadeUp" style="animation-delay:.15s;opacity:0">
+            <h3 class="font-bold text-sm mb-3 flex items-center gap-2">
+                <span class="material-symbols-outlined text-[16px]" style="color:#22c55e">alternate_email</span>
+                من يمكنه الإشارة إليك
+            </h3>
+            <div class="flex gap-2">
+                ${['everyone','followers','nobody'].map(v=>`
+                <button onclick="settings.whoCanTag=this.dataset.v;saveSettings();renderPrivacyPage(document.getElementById('subPage_privacy'))" data-v="${v}" class="flex-1 p-3 rounded-xl text-center border text-xs font-bold transition-all" style="background:rgba(42,42,42,.3);border-color:${settings.whoCanTag===v?'rgba(34,197,94,.3)':'rgba(89,65,56,.1)'};color:${settings.whoCanTag===v?'#22c55e':'var(--text-muted)'}">
+                    ${tagLabels[v]}
+                </button>`).join('')}
+            </div>
+        </div>
+
+        <!-- Toggles -->
+        <div class="anim-fadeUp" style="animation-delay:.2s;opacity:0">
+            <div class="flex items-center justify-between p-3 rounded-xl border" style="background:rgba(42,42,42,.3);border-color:rgba(89,65,56,.1)">
+                <div><span class="text-sm font-bold block">إظهار حالة الاتصال</span><span class="text-[10px]" style="color:var(--text-muted)">هل أنت متصل الآن</span></div>
+                <label class="toggle"><input type="checkbox" ${settings.showOnline?'checked':''} onchange="settings.showOnline=this.checked;saveSettings()"/><div class="slider"></div></label>
+            </div>
+        </div>
+        <div class="anim-fadeUp" style="animation-delay:.25s;opacity:0">
+            <div class="flex items-center justify-between p-3 rounded-xl border" style="background:rgba(42,42,42,.3);border-color:rgba(89,65,56,.1)">
+                <div><span class="text-sm font-bold block">إظهار النشاط</span><span class="text-[10px]" style="color:var(--text-muted)">آخر نشاط على المنصة</span></div>
+                <label class="toggle"><input type="checkbox" ${settings.showActivity?'checked':''} onchange="settings.showActivity=this.checked;saveSettings()"/><div class="slider"></div></label>
+            </div>
+        </div>
+
+        <hr style="border-color:rgba(89,65,56,.1);margin:8px 0"/>
+
+        <!-- Blocked Users -->
+        <div class="anim-fadeUp" style="animation-delay:.3s;opacity:0">
+            <h3 class="font-bold text-sm mb-3 flex items-center gap-2">
+                <span class="material-symbols-outlined text-[16px]" style="color:#ef4444">block</span>
+                الحسابات المحظورة
+                <span class="text-[10px] font-bold px-2 py-0.5 rounded-full" style="background:rgba(239,68,68,.12);color:#f87171">${settings.blockedUsers.length}</span>
+            </h3>
+            ${settings.blockedUsers.length === 0 ? `
+                <div class="text-center py-6">
+                    <span class="material-symbols-outlined text-[32px] block mx-auto mb-2" style="color:var(--text-muted);opacity:.3">check_circle</span>
+                    <p class="text-xs" style="color:var(--text-muted)">لا يوجد حسابات محظورة</p>
+                </div>
+            ` : `
+                <div class="space-y-2">
+                    ${settings.blockedUsers.map((uid, idx) => {
+                        const names = {bu1:'أحمد البقمي',bu2:'حساب وهمي'};
+                        const avatars = {bu1:'https://i.pravatar.cc/60?img=51',bu2:'https://i.pravatar.cc/60?img=62'};
+                        return `
+                        <div class="blocked-user">
+                            <img src="${avatars[uid]||'https://i.pravatar.cc/60?img=30'}" class="w-10 h-10 rounded-full object-cover"/>
+                            <div class="flex-1 min-w-0"><span class="text-sm font-bold block truncate">${names[uid]||uid}</span><span class="text-[10px]" style="color:var(--text-muted)">@${uid}</span></div>
+                            <button onclick="unblockUser('${uid}')" class="text-xs font-bold px-3 py-1.5 rounded-lg transition-all" style="background:rgba(34,197,94,.1);color:#4ade80;border:1px solid rgba(34,197,94,.2)">إلغاء الحظر</button>
+                        </div>`;
+                    }).join('')}
+                </div>
+            `}
+        </div>
+    </div>`;
+}
+
+function unblockUser(uid){
+    settings.blockedUsers = settings.blockedUsers.filter(u=>u!==uid);
+    saveSettings();
+    renderPrivacyPage(document.getElementById('subPage_privacy'));
+    renderSettingsList();
+    showToast('تم إلغاء الحظر','success');
+}
+
+// ═══════════════════════════════════════════
+// 3. NOTIFICATIONS PAGE
+// ═══════════════════════════════════════════
+function renderNotificationsPage(page){
+    const notifItems = [
+        {key:'notif_likes',      icon:'favorite',     iconColor:'#ef4444', bg:'rgba(239,68,68,.1)', title:'الإعجابات', desc:'عند إعجاب أحدهم بمنشورك'},
+        {key:'notif_comments',   icon:'comment',      iconColor:'#3b82f6', bg:'rgba(59,130,246,.1)', title:'التعليقات', desc:'عند التعليق على منشورك'},
+        {key:'notif_follows',    icon:'person_add',   iconColor:'#22c55e', bg:'rgba(34,197,94,.1)', title:'المتابعون الجدد', desc:'عند متابعة شخص لك'},
+        {key:'notif_mentions',   icon:'alternate_email',iconColor:'#a855f7',bg:'rgba(168,85,247,.1)',title:'الإشارات', desc:'عند الإشارة إليك في منشور'},
+        {key:'notif_messages',   icon:'chat',         iconColor:'#f26522', bg:'rgba(242,101,34,.1)', title:'الرسائل', desc:'عند وصول رسالة جديدة'},
+        {key:'notif_newsletter', icon:'newspaper',    iconColor:'#eab308', bg:'rgba(234,179,8,.1)', title:'النشرة البريدية', desc:'ملخص أسبوعي للمنصة'},
+        {key:'notif_security',   icon:'shield',       iconColor:'#22c55e', bg:'rgba(34,197,94,.1)', title:'تنبيهات الأمان', desc:'تسجيل دخول جديد، تغيير كلمة مرور'},
+        {key:'notif_marketing',  icon:'campaign',     iconColor:'#7a7570', bg:'rgba(89,65,56,.1)', title:'العروض والتسويق', desc:'عروض وخصومات من الشركاء'},
+    ];
+
+    page.innerHTML = `
+    ${subPageHeader('الإشعارات','تحكم في ما يصل إليك')}
+    <div class="p-4 space-y-2">
+        <div class="mb-3 anim-fade">
+            <button onclick="toggleAllNotifs(true)" class="text-xs font-bold px-3 py-1.5 rounded-lg" style="background:rgba(34,197,94,.1);color:#4ade80;border:1px solid rgba(34,197,94,.2)">تفعيل الكل</button>
+            <button onclick="toggleAllNotifs(false)" class="text-xs font-bold px-3 py-1.5 rounded-lg mr-2" style="background:rgba(239,68,68,.1);color:#f87171;border:1px solid rgba(239,68,68,.2)">تعطيل الكل</button>
+        </div>
+
+        ${notifItems.map((item, idx) => {
+            const delay = Math.min(idx * 0.05, 0.3);
+            return `
+            <div class="flex items-center gap-3 p-3 rounded-xl border anim-fadeUp" style="animation-delay:${delay}s;opacity:0;background:rgba(42,42,42,.2);border-color:rgba(89,65,56,.08)">
+                <div class="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style="background:${item.bg}">
+                    <span class="material-symbols-outlined text-[18px]" style="color:${item.iconColor};font-variation-settings:'FILL' 1">${item.icon}</span>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <span class="text-sm font-bold block">${item.title}</span>
+                    <span class="text-[10px]" style="color:var(--text-muted)">${item.desc}</span>
+                </div>
+                <label class="toggle"><input type="checkbox" ${settings[item.key]?'checked':''} onchange="settings[this.dataset.key]=this.checked;saveSettings()" data-key="${item.key}"/><div class="slider"></div></label>
+            </div>`;
+        }).join('')}
+    </div>`;
+}
+
+function toggleAllNotifs(state){
+    ['notif_likes','notif_comments','notif_follows','notif_mentions','notif_messages','notif_newsletter','notif_security','notif_marketing'].forEach(k=>settings[k]=state);
+    saveSettings();
+    renderNotificationsPage(document.getElementById('subPage_notifications'));
+    showToast(state?'تم تفعيل جميع الإشعارات':'تم تعطيل جميع الإشعارات',state?'success':'info');
+}
+
+// ═══════════════════════════════════════════
+// 4. APPEARANCE PAGE
+// ═══════════════════════════════════════════
+function renderAppearancePage(page){
+    page.innerHTML = `
+    ${subPageHeader('المظهر واللغة','خصّص تجربتك')}
+    <div class="p-4 space-y-5">
+        <!-- Theme -->
+        <div class="anim-fadeUp">
+            <h3 class="font-bold text-sm mb-3 flex items-center gap-2">
+                <span class="material-symbols-outlined text-[16px]" style="color:#eab308">dark_mode</span>
+                المظهر
+            </h3>
+            <div class="grid grid-cols-2 gap-3">
+                <div class="theme-card ${settings.theme==='dark'?'active':''}" onclick="setTheme('dark')">
+                    <div class="w-full h-16 rounded-xl mb-3" style="background:linear-gradient(135deg,#0a0a0a,#1a1a1a)"></div>
+                    <span class="text-sm font-bold">الوضع الداكن</span>
+                </div>
+                <div class="theme-card ${settings.theme==='light'?'active':''}" onclick="setTheme('light')">
+                    <div class="w-full h-16 rounded-xl mb-3" style="background:linear-gradient(135deg,#f5f2ee,#ffffff)"></div>
+                    <span class="text-sm font-bold">الوضع الفاتح</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Font Size -->
+        <div class="anim-fadeUp" style="animation-delay:.1s;opacity:0">
+            <h3 class="font-bold text-sm mb-3 flex items-center gap-2">
+                <span class="material-symbols-outlined text-[16px]" style="color:#3b82f6">format_size</span>
+                حجم الخط
+            </h3>
+            <div class="flex items-center gap-4">
+                <span class="text-xs" style="color:var(--text-muted)">صغير</span>
+                <input type="range" min="12" max="20" value="${settings.fontSize}" class="size-slider flex-1" oninput="setFontSize(this.value)" id="fontSizeSlider"/>
+                <span class="text-xs" style="color:var(--text-muted)">كبير</span>
+            </div>
+            <div class="text-center mt-3">
+                <span class="text-sm font-bold" id="fontSizeLabel" style="font-size:${settings.fontSize}px">${settings.fontSize}px</span>
+            </div>
+            <div class="mt-3 p-4 rounded-xl text-center border" style="background:rgba(42,42,42,.2);border-color:rgba(89,65,56,.1)" id="fontPreview">
+                <p style="font-size:${settings.fontSize}px" class="font-bold">هذه معاينة لحجم الخط</p>
+                <p style="font-size:${Math.max(settings.fontSize-2,10)}px" style="color:var(--text-muted)">نص أصغر للقراءة</p>
+            </div>
+        </div>
+
+        <!-- Language -->
+        <div class="anim-fadeUp" style="animation-delay:.2s;opacity:0">
+            <h3 class="font-bold text-sm mb-3 flex items-center gap-2">
+                <span class="material-symbols-outlined text-[16px]" style="color:#a855f7">language</span>
+                اللغة
+            </h3>
+            <div class="grid grid-cols-2 gap-3">
+                <div class="theme-card ${settings.language==='ar'?'active':''}" onclick="setLang('ar')" dir="rtl">
+                    <span class="text-2xl block mb-1">🇸🇦</span>
+                    <span class="text-sm font-bold">العربية</span>
+                </div>
+                <div class="theme-card ${settings.language==='en'?'active':''}" onclick="setLang('en')" dir="ltr">
+                    <span class="text-2xl block mb-1">🇬🇧</span>
+                    <span class="text-sm font-bold">English</span>
+                </div>
+            </div>
+        </div>
+    </div>`;
+}
+
+function setTheme(theme){
+    settings.theme = theme;
+    saveSettings();
+    applyTheme();
+    renderAppearancePage(document.getElementById('subPage_appearance'));
+    renderSettingsList();
+    showToast(theme==='dark'?'تم تفعيل الوضع الداكن':'تم تفعيل الوضع الفاتح','success');
+}
+
+function setFontSize(size){
+    settings.fontSize = parseInt(size);
+    saveSettings();
+    applyFontSize();
+    document.getElementById('fontSizeLabel').textContent = size + 'px';
+    document.getElementById('fontSizeLabel').style.fontSize = size + 'px';
+}
+
+function setLang(lang){
+    settings.language = lang;
+    saveSettings();
+    document.documentElement.dir = lang==='ar'?'rtl':'ltr';
+    document.documentElement.lang = lang;
+    renderAppearancePage(document.getElementById('subPage_appearance'));
+    renderSettingsList();
+    showToast(lang==='ar'?'تم التغيير إلى العربية':'Switched to English','success');
+}
+
+function applyTheme(){
+    if(settings.theme === 'light'){
+        document.body.classList.add('light-mode');
+        document.documentElement.classList.remove('dark');
+    } else {
+        document.body.classList.remove('light-mode');
+        document.documentElement.classList.add('dark');
+    }
+}
+
+function applyFontSize(){
+    document.body.style.fontSize = settings.fontSize + 'px';
+}
+
+// ═══════════════════════════════════════════
+// 5. SECURITY PAGE
+// ═══════════════════════════════════════════
+function renderSecurityPage(page){
+    page.innerHTML = `
+    ${subPageHeader('الأمان والجلسات','حماية حسابك')}
+    <div class="p-4 space-y-4">
+        <!-- 2FA -->
+        <div class="anim-fadeUp">
+            <h3 class="font-bold text-sm mb-3 flex items-center gap-2">
+                <span class="material-symbols-outlined text-[16px]" style="color:#22c55e;font-variation-settings:'FILL' 1">verified_user</span>
+                المصادقة الثنائية (2FA)
+            </h3>
+            <div class="flex items-center justify-between p-4 rounded-xl border" style="background:rgba(42,42,42,.3);border-color:${settings.twoFactor?'rgba(34,197,94,.2)':'rgba(89,65,56,.1)'}">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background:${settings.twoFactor?'rgba(34,197,94,.12)':'rgba(89,65,56,.1)'}">
+                        <span class="material-symbols-outlined text-[20px]" style="color:${settings.twoFactor?'#22c55e':'var(--text-muted)'};font-variation-settings:'FILL ${settings.twoFactor?1:0}'">${settings.twoFactor?'shield':'shield_question'}</span>
+                    </div>
+                    <div>
+                        <span class="text-sm font-bold block">${settings.twoFactor?'المصادقة الثنائية مفعّلة':'المصادقة الثنائية معطّلة'}</span>
+                        <span class="text-[10px]" style="color:var(--text-muted)">${settings.twoFactor?'حسابك محمي بطبقة أمان إضافية':'فعّلها لحماية حسابك بشكل أفضل'}</span>
+                    </div>
+                </div>
+                <label class="toggle"><input type="checkbox" ${settings.twoFactor?'checked':''} onchange="toggle2FA(this.checked)"/><div class="slider"></div></label>
+            </div>
+            ${settings.twoFactor ? `
+            <div class="mt-3 p-3 rounded-xl text-xs space-y-2" style="background:rgba(34,197,94,.05);border:1px solid rgba(34,197,94,.12)">
+                <div class="flex items-center gap-2 text-green-300"><span class="material-symbols-outlined text-[14px]" style="font-variation-settings:FILL 1">check_circle</span>مفعّلة عبر تطبيق المصادقة</div>
+                <div class="flex items-center gap-2" style="color:var(--text-muted)"><span class="material-symbols-outlined text-[14px]">key</span>رموز احتياطية: <strong>8 متبقية</strong></div>
+            </div>` : ''}
+        </div>
+
+        <!-- Active Sessions -->
+        <div class="anim-fadeUp" style="animation-delay:.1s;opacity:0">
+            <h3 class="font-bold text-sm mb-3 flex items-center gap-2">
+                <span class="material-symbols-outlined text-[16px]" style="color:#3b82f6">devices</span>
+                الجلسات النشطة
+                <span class="text-[10px] font-bold px-2 py-0.5 rounded-full" style="background:rgba(59,130,246,.12);color:#60a5fa">${settings.sessions.length}</span>
+            </h3>
+            <div class="space-y-2">
+                ${settings.sessions.map(s => `
+                <div class="session-card ${s.current?'current':''}">
+                    <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style="background:${s.current?'rgba(34,197,94,.1)':'rgba(59,130,246,.1)'}">
+                        <span class="material-symbols-outlined text-[20px]" style="color:${s.current?'#22c55e':'#3b82f6'}">${s.device.includes('iPhone')?'phone_iphone':s.device.includes('Mac')?'laptop':'phone_android'}</span>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center gap-2">
+                            <span class="text-sm font-bold">${esc(s.device)}</span>
+                            ${s.current?'<span class="text-[9px] font-bold px-2 py-0.5 rounded-full" style="background:rgba(34,197,94,.12);color:#4ade80">الحالية</span>':''}
+                        </div>
+                        <span class="text-[10px] block" style="color:var(--text-muted)">${esc(s.browser)} • ${esc(s.location)}</span>
+                        <span class="text-[10px] block" style="color:var(--text-muted)">${esc(s.lastActive)} • IP: ${esc(s.ip)}</span>
+                    </div>
+                    ${!s.current?`<button onclick="terminateSession('${s.id}')" class="text-[10px] font-bold px-2 py-1 rounded-lg" style="background:rgba(239,68,68,.1);color:#f87171;border:1px solid rgba(239,68,68,.2)"> إنهاء </button>`:''}
+                </div>`).join('')}
+            </div>
+            <button onclick="terminateAllSessions()" class="btn-ghost mt-3 text-red-400" style="border-color:rgba(239,68,68,.2)">
+                <span class="material-symbols-outlined text-[16px]">logout</span>
+                إنهاء جميع الجلسات الأخرى
+            </button>
+        </div>
+
+        <!-- Activity Log -->
+        <div class="anim-fadeUp" style="animation-delay:.2s;opacity:0">
+            <h3 class="font-bold text-sm mb-3 flex items-center gap-2">
+                <span class="material-symbols-outlined text-[16px]" style="color:#f26522">history</span>
+                سجل النشاط الأخير
+            </h3>
+            <div class="space-y-2">
+                ${[
+                    {icon:'login', text:'تسجيل دخول من iPhone 15 Pro', time:'منذ دقيقتين', color:'#22c55e'},
+                    {icon:'edit_note', text:'تعديل الملف الشخصي', time:'منذ ساعة', color:'#3b82f6'},
+                    {icon:'lock', text:'تم تغيير كلمة المرور', time:'منذ 3 أيام', color:'#eab308'},
+                    {icon:'devices', text:'جهاز جديد: MacBook Pro', time:'منذ أسبوع', color:'#a855f7'},
+                    {icon:'shield', text:'المصادقة الثنائية مفعّلة', time:'منذ أسبوعين', color:'#22c55e'}
+                ].map(a => `
+                <div class="flex items-center gap-3 p-3 rounded-xl" style="background:rgba(42,42,42,.15)">
+                    <span class="material-symbols-outlined text-[18px] shrink-0" style="color:${a.color}">${a.icon}</span>
+                    <div class="flex-1"><span class="text-xs font-bold">${a.text}</span></div>
+                    <span class="text-[10px] shrink-0" style="color:var(--text-muted)">${a.time}</span>
+                </div>`).join('')}
+            </div>
+        </div>
+    </div>`;
+}
+
+function toggle2FA(state){
+    settings.twoFactor = state;
+    saveSettings();
+    renderSecurityPage(document.getElementById('subPage_security'));
+    renderSettingsList();
+    showToast(state?'تم تفعيل المصادقة الثنائية':'تم تعطيل المصادقة pornôية',state?'success':'info');
+}
+
+function terminateSession(sid){
+    settings.sessions = settings.sessions.filter(s=>s.id!==sid);
+    saveSettings();
+    renderSecurityPage(document.getElementById('subPage_security'));
+    renderSettingsList();
+    showToast('تم إنهاء الجلسة','success');
+}
+
+function terminateAllSessions(){
+    settings.sessions = settings.sessions.filter(s=>s.current);
+    saveSettings();
+    renderSecurityPage(document.getElementById('subPage_security'));
+    renderSettingsList();
+    showToast('تم إنهاء جميع الجلسات الأخرى','success');
+}
+
+// ═══════════════════════════════════════════
+// 6. HELP PAGE
+// ═══════════════════════════════════════════
+function renderHelpPage(page){
+    const helpItems = [
+        {icon:'help', iconColor:'#3b82f6', bg:'rgba(59,130,246,.1)', title:'مركز المساعدة', desc:'أسئلة شائعة ودليل الاستخدام', action:"showToast('سيتم فتح مركز المساعدة','info')"},
+        {icon:'bug_report', iconColor:'#ef4444', bg:'rgba(239,68,68,.1)', title:'الإبلاغ عن مشكلة', desc:'أرسل تقريراً عن أي خطأ أو مشكلة', action:"openReportModal()"},
+        {icon:'rate_review', iconColor:'#eab308', bg:'rgba(234,179,8,.1)', title:'تقييم التطبيق', desc:'ساعدنا بتقييمك على المتجر', action:"showToast('شكراً! سيتم فتح المتجر','info')"},
+        {icon:'description', iconColor:'#a855f7', bg:'rgba(168,85,247,.1)', title:'الشروط والأحكام', desc:'شروط الاستخدام والامتثال القانوني', action:"openTermsModal()"},
+        {icon:'privacy_tip', iconColor:'#22c55e', bg:'rgba(34,197,94,.1)', title:'سياسة الخصوصية', desc:'كيف نحمي بياناتك ونستخدمها', action:"openPrivacyModal()"},
+        {icon:'info', iconColor:'#7a7570', bg:'rgba(89,65,56,.1)', title:'عن لو بوك', desc:'الإصدار 2.4.1 • فريق التطوير', action:"openAboutModal()"},
+    ];
+
+    page.innerHTML = `
+    ${subPageHeader('المساعدة والدعم','كيف يمكننا مساعدتك؟')}
+    <div class="p-4 space-y-2">
+        ${helpItems.map((item, idx) => {
+            const delay = Math.min(idx * 0.05, 0.3);
+            return `
+            <div class="settings-item rounded-xl border anim-fadeUp" style="animation-delay:${delay}s;opacity:0;background:rgba(42,42,42,.2);border-color:rgba(89,65,56,.08);cursor:pointer" onclick="${item.action}">
+                <div class="item-icon" style="background:${item.bg}"><span class="material-symbols-outlined text-[18px]" style="color:${item.iconColor};font-variation-settings:'FILL' 1">${item.icon}</span></div>
+                <div class="item-content"><div class="item-title">${item.title}</div><div class="item-desc">${item.desc}</div></div>
+                <span class="material-symbols-outlined item-arrow">chevron_left</span>
+            </div>`;
+        }).join('')}
+
+        <div class="text-center pt-6 anim-fade">
+            <p class="text-xs" style="color:var(--text-muted)">هل تحتاج مساعدة فورية؟</p>
+            <a href="mailto:support@lobuk.sa" class="text-sm font-bold mt-1 inline-block" style="color:var(--accent)">support@lobuk.sa</a>
+        </div>
+    </div>`;
+}
+
+function openReportModal(){
+    openModal(`
+        <span class="material-symbols-outlined text-[48px] block mx-auto mb-3" style="color:#ef4444;font-variation-settings:'FILL' 1">bug_report</span>
+        <h3 class="font-extrabold text-lg mb-2">الإبلاغ عن مشكلة</h3>
+        <textarea class="input-field resize-none mt-3 text-sm" rows="4" placeholder="صِف المشكلة بالتفصيل..."></textarea>
+        <div class="mt-3 space-y-2">
+            <button class="btn-orange" onclick="closeModal();showToast('تم إرسال التقرير — شكراً لك!','success')">
+                <span class="material-symbols-outlined text-[16px]">send</span>إرسال التقرير
+            </button>
+            <button class="btn-ghost" onclick="closeModal()">إلغاء</button>
+        </div>
+    `);
+}
+
+function openTermsModal(){
+    openModal(`
+        <div class="text-right max-h-[60dvh] overflow-y-auto px-1">
+            <span class="material-symbols-outlined text-[40px] block mx-auto mb-3" style="color:#a855f7;font-variation-settings:'FILL' 1">description</span>
+            <h3 class="font-extrabold text-lg mb-4 text-center">الشروط والأحكام</h3>
+            <div class="space-y-4 text-xs leading-relaxed" style="color:var(--text-muted)">
+                <div><h4 class="font-bold text-sm mb-1" style="color:var(--text)">1. القبول بالشروط</h4><p>باستخدامك لمنصة "لو بوك" فإنك توافق على هذه الشروط والأحكام بالكامل. إذا لم توافق، يرجى عدم استخدام المنصة.</p></div>
+                <div><h4 class="font-bold text-sm mb-1" style="color:var(--text)">2. الحسابات</h4><p>يجب أن تكون 18 سنة أو أكثر لإنشاء حساب. أنت مسؤول عن سرية بيانات تسجيل الدخول.</p></div>
+                <div><h4 class="font-bold text-sm mb-1" style="color:var(--text)">3. المحتوى</h4><p>أنت تحتفظ بحقوق ملكية المحتوى الذي تنشره. تمنح لو بوك ترخيصاً لعرضه وتوزيعه على المنصة.</p></div>
+                <div><h4 class="font-bold text-sm mb-1" style="color:var(--text)">4. الاستخدام المقبول</h4><p>يُمنع نشر محتوى مخالف، مضايقة المستخدمين، أو انتهاك حقوق الملكية الفكرية.</p></div>
+                <div><h4 class="font-bold text-sm mb-1" style="color:var(--text)">5. الخصوصية</h4><p>نلتزم بحماية بياناتك وفقاً لسياسة الخصوصية المعتمدة ونظام حماية البيانات الشخصية السعودي.</p></div>
+                <div><h4 class="font-bold text-sm mb-1" style="color:var(--text)">6. القانون الحاكم</h4><p>تخضع هذه الشروط لأحكام الشريعة الإسلامية وأنظمة المملكة العربية السعودية.</p></div>
+            </div>
+        </div>
+        <button class="btn-orange mt-4" onclick="closeModal()">فهمت</button>
+    `);
+}
+
+function openPrivacyModal(){
+    openModal(`
+        <div class="text-right max-h-[60dvh] overflow-y-auto px-1">
+            <span class="material-symbols-outlined text-[40px] block mx-auto mb-3" style="color:#22c55e;font-variation-settings:'FILL' 1">privacy_tip</span>
+            <h3 class="font-extrabold text-lg mb-4 text-center">سياسة الخصوصية</h3>
+            <div class="space-y-4 text-xs leading-relaxed" style="color:var(--text-muted)">
+                <div><h4 class="font-bold text-sm mb-1" style="color:var(--text)">البيانات المجمعة</h4><p>نجمع الاسم، البريد، والنشاط على المنصة لتحسين تجربتك.</p></div>
+                <div><h4 class="font-bold text-sm mb-1" style="color:var(--text)">استخدام البيانات</h4><p>نستخدم بياناتك لتقديم الخدمات، تخصيص المحتوى، وإرسال الإشعارات.</p></div>
+                <div><h4 class="font-bold text-sm mb-1" style="color:var(--text)">حماية البيانات</h4><p>نستخدم تشفير TLS/SSL وbcrypt وكلمات المرور لا تُخزّن كنص صريحة.</p></div>
+                <div><h4 class="font-bold text-sm mb-1" style="color:var(--text)">مشاركة البيانات</h4><p>لا نبيع بياناتك لأي طرف ثالث. نشاركها فقط مع شركاء الخدمة الأساسيين.</p></div>
+                <div><h4 class="font-bold text-sm mb-1" style="color:var(--text)">حقوقك</h4><p>يمكنك طلب نسخة من بياناتك، تعديلها، أو حذفها في أي وقت.</p></div>
+            </div>
+        </div>
+        <button class="btn-orange mt-4" onclick="closeModal()">فهمت</button>
+    `);
+}
+
+function openAboutModal(){
+    openModal(`
+        <div class="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4" style="background:linear-gradient(135deg,var(--accent),#e85d1c)">
+            <span class="material-symbols-outlined text-white text-[32px]" style="font-variation-settings:'FILL' 1">balance</span>
+        </div>
+        <h3 class="font-extrabold text-xl mb-1 text-center" style="color:var(--accent)">لو بوك</h3>
+        <p class="text-xs text-center mb-4" style="color:var(--text-muted)">المنصة القانونية الأولى في المنطقة العربية</p>
+        <div class="space-y-2 text-xs" style="color:var(--text-muted)">
+            <div class="flex justify-between"><span>الإصدار</span><span class="font-bold" style="color:var(--text)">2.4.1</span></div>
+            <div class="flex justify-between"><span>تاريخ البناء</span><span class="font-bold" style="color:var(--text)">مايو 2025</span></div>
+            <div class="flex justify-between"><span>فريق التطوير</span><span class="font-bold" style="color:var(--text)">فريق لو بوك</span></div>
+        </div>
+        <button class="btn-orange mt-5" onclick="closeModal()">
+            <span class="material-symbols-outlined text-[16px]" style="font-variation-settings:'FILL' 1">favorite</span>
+            شكراً لاستخدامك لو بوك
+        </button>
+    `);
+}
+
+// ═══════════════════════════════════════════
+// LOGOUT
+// ═══════════════════════════════════════════
+function confirmLogout(){
+    openModal(`
+        <span class="material-symbols-outlined text-[48px] block mx-auto mb-3" style="color:var(--accent);font-variation-settings:'FILL' 1">logout</span>
+        <h3 class="font-extrabold text-lg mb-2">تسجيل الخروج</h3>
+        <p class="text-sm mb-5" style="color:var(--text-muted)">هل أنت متأكد من تسجيل الخروج من حسابك؟</p>
+        <div class="space-y-2">
+            <button class="btn-orange" onclick="closeModal();performLogout()">نعم، تسجيل خروج</button>
+            <button class="btn-ghost" onclick="closeModal()">إلغاء</button>
+        </div>
+    `);
+}
+
+function performLogout(){
+    localStorage.removeItem('lb_access_token');
+    localStorage.removeItem('lb_refresh_token');
+    showToast('تم تسجيل الخروج بنجاح','success');
+    setTimeout(()=>showToast('نراك قريباً! 👋','info'),1500);
+}
+
+// ═══════════════════════════════════════════
+// MODAL
+// ═══════════════════════════════════════════
+function openModal(content){
+    document.getElementById('modalContent').innerHTML = content;
+    document.getElementById('modal').classList.add('active');
+}
+function closeModal(){
+    document.getElementById('modal').classList.remove('active');
+}
+
+// ═══════════════════════════════════════════
+// TOAST
+// ═══════════════════════════════════════════
+function showToast(msg,type='info'){
+    const t=document.getElementById('toastEl');
+    const icons={success:'check_circle',error:'error',info:'info',warning:'warning'};
+    t.className='toast '+type;
+    t.innerHTML=`<span class="material-symbols-outlined text-[20px]">${icons[type]||'info'}</span> ${msg}`;
+    setTimeout(()=>t.classList.add('show'),10);
+    setTimeout(()=>t.classList.remove('show'),3500);
+}
+
+// ═══════════════════════════════════════════
+// KEYBOARD
+// ═══════════════════════════════════════════
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal()});
+
+// ═══════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', function(){
+    applyTheme();
+    applyFontSize();
+    document.documentElement.dir = settings.language==='ar'?'rtl':'ltr';
+    document.documentElement.lang = settings.language;
+    renderSettingsList();
+    console.log('%c لو بوك | الإعدادات ','background:#f26522;color:white;font-size:14px;font-weight:bold;border-radius:8px;padding:6px 14px');
+});
+</script>
+</body>
+</html>

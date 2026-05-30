@@ -1,0 +1,1033 @@
+<!DOCTYPE html>
+<html class="dark" lang="ar" dir="rtl">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>لو بوك | القصص</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <style>
+        *{box-sizing:border-box}
+        body{font-family:'Tajawal',sans-serif;min-height:100dvh;overflow-x:hidden;background:#0a0a0a;color:#e5e2e1}
+        .material-symbols-outlined{font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24;transition:all .2s ease}
+        .filled{font-variation-settings:'FILL' 1;color:#f26522!important}
+
+        .app-bg{position:fixed;inset:0;z-index:0;background:radial-gradient(ellipse at 20% 0%,rgba(242,101,34,.06) 0%,transparent 50%),radial-gradient(ellipse at 80% 100%,rgba(242,101,34,.04) 0%,transparent 50%),#0a0a0a}
+        .app-bg::after{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");opacity:.3;pointer-events:none}
+        .glass{background:rgba(32,31,31,.85);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
+
+        @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+        @keyframes fadeInUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+        @keyframes slideUp{from{opacity:0;transform:translateY(100%)}to{opacity:1;transform:translateY(0)}}
+        @keyframes slideDown{from{opacity:0;transform:translateY(-30px)}to{opacity:1;transform:translateY(0)}}
+        @keyframes scaleIn{from{opacity:0;transform:scale(.8)}to{opacity:1;transform:scale(1)}}
+        @keyframes pop{0%{transform:scale(1)}50%{transform:scale(1.3)}100%{transform:scale(1)}}
+        @keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
+        @keyframes ringRotate{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+        @keyframes progressFill{from{width:0}to{width:100%}}
+        @keyframes heartBurst{0%{transform:scale(1)}25%{transform:scale(1.5)}50%{transform:scale(.9)}75%{transform:scale(1.2)}100%{transform:scale(1)}}
+        @keyframes viewersSlide{from{opacity:0;transform:translateY(100%)}to{opacity:1;transform:translateY(0)}}
+        @keyframes dotPulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+        .anim-fade{animation:fadeIn .3s ease}
+        .anim-fadeUp{animation:fadeInUp .4s ease}
+        .anim-slideUp{animation:slideUp .4s cubic-bezier(.4,0,.2,1)}
+        .anim-slideDown{animation:slideDown .3s ease}
+        .anim-scaleIn{animation:scaleIn .3s cubic-bezier(.4,0,.2,1)}
+        .anim-pop{animation:pop .3s ease-in-out}
+        .anim-heart{animation:heartBurst .5s ease}
+
+        /* ═══════ Story Ring ═══════ */
+        .story-ring-wrap{display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;min-width:76px;transition:transform .2s}
+        .story-ring-wrap:hover{transform:translateY(-3px)}
+        .story-ring{width:70px;height:70px;border-radius:50%;padding:3px;position:relative}
+        .story-ring.unseen{background:conic-gradient(from 0deg,#f26522,#ffb599,#f26522,#ff8c5a,#f26522);animation:ringRotate 4s linear infinite}
+        .story-ring.seen{background:rgba(89,65,56,.4)}
+        .story-ring.add-story{background:rgba(89,65,56,.3);border:2px dashed rgba(89,65,56,.5)}
+        .story-ring-inner{width:100%;height:100%;border-radius:50%;overflow:hidden;border:3px solid #0a0a0a;background:#1a1a1a}
+        .story-ring-inner img{width:100%;height:100%;object-fit:cover}
+        .story-ring .story-badge{position:absolute;bottom:-2px;left:50%;transform:translateX(-50%);font-size:9px;font-weight:700;padding:1px 6px;border-radius:8px;white-space:nowrap}
+
+        /* ═══════ Stories Carousel ═══════ */
+        .stories-carousel{display:flex;gap:14px;overflow-x:auto;scrollbar-width:none;padding:8px 0;scroll-snap-type:x mandatory}
+        .stories-carousel::-webkit-scrollbar{display:none}
+        .stories-carousel .story-ring-wrap{scroll-snap-align:center}
+
+        /* ═══════ Story Viewer (Full Screen) ═══════ */
+        .story-viewer{position:fixed;inset:0;z-index:200;background:#000;display:none;flex-direction:column}
+        .story-viewer.active{display:flex;animation:fadeIn .3s ease}
+
+        .story-content{flex:1;position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden}
+        .story-content img,.story-content video{max-width:100%;max-height:100%;object-fit:contain;width:100%;height:100%}
+        .story-content .story-gradient-top{position:absolute;top:0;left:0;right:0;height:120px;background:linear-gradient(to bottom,rgba(0,0,0,.7),transparent);z-index:5;pointer-events:none}
+        .story-content .story-gradient-bottom{position:absolute;bottom:0;left:0;right:0;height:160px;background:linear-gradient(to top,rgba(0,0,0,.7),transparent);z-index:5;pointer-events:none}
+
+        /* Progress Bars */
+        .story-progress-bar{position:absolute;top:8px;left:8px;right:8px;display:flex;gap:3px;z-index:10;padding:0 4px}
+        .story-progress-segment{flex:1;height:3px;background:rgba(255,255,255,.3);border-radius:3px;overflow:hidden}
+        .story-progress-fill{height:100%;background:white;border-radius:3px;width:0;transition:none}
+        .story-progress-fill.complete{width:100%!important}
+        .story-progress-fill.active{animation:progressFill 5s linear forwards}
+
+        /* Story Header */
+        .story-header{position:absolute;top:16px;left:12px;right:12px;display:flex;align-items:center;gap:10px;z-index:10}
+        .story-header img{width:36px;height:36px;border-radius:50%;object-fit:cover;border:2px solid rgba(255,255,255,.3)}
+        .story-header .story-user-name{font-size:14px;font-weight:700;color:white}
+        .story-header .story-time{font-size:11px;color:rgba(255,255,255,.6)}
+
+        /* Touch Areas */
+        .story-touch-left{position:absolute;top:0;right:0;bottom:0;width:35%;z-index:8;cursor:pointer}
+        .story-touch-right{position:absolute;top:0;left:0;bottom:0;width:35%;z-index:8;cursor:pointer}
+        .story-touch-center{position:absolute;top:0;left:35%;right:35%;bottom:0;z-index:7;cursor:pointer}
+
+        /* Story Actions */
+        .story-actions{position:absolute;bottom:0;left:0;right:0;z-index:10;padding:16px}
+        .story-reply-box{display:flex;gap:8px;align-items:center}
+        .story-reply-input{flex:1;background:transparent;border:1.5px solid rgba(255,255,255,.3);border-radius:24px;padding:10px 16px;color:white;font-size:14px;outline:none;transition:all .3s;font-family:'Tajawal',sans-serif}
+        .story-reply-input:focus{border-color:rgba(255,255,255,.6)}
+        .story-reply-input::placeholder{color:rgba(255,255,255,.5)}
+
+        .story-side-actions{position:absolute;bottom:80px;left:12px;display:flex;flex-direction:column;gap:16px;z-index:10;align-items:center}
+        .story-side-btn{display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;transition:all .2s}
+        .story-side-btn:hover{transform:scale(1.1)}
+        .story-side-btn .count{font-size:11px;color:white;font-weight:600}
+
+        /* Viewers Panel */
+        .viewers-panel{position:absolute;bottom:0;left:0;right:0;z-index:15;background:rgba(20,20,20,.95);backdrop-filter:blur(20px);border-radius:20px 20px 0 0;max-height:50dvh;display:none;animation:viewersSlide .4s cubic-bezier(.4,0,.2,1)}
+        .viewers-panel.active{display:block}
+        .viewers-panel-header{padding:16px;border-bottom:1px solid rgba(89,65,56,.2);display:flex;justify-content:space-between;align-items:center}
+        .viewers-list{padding:8px;max-height:40dvh;overflow-y:auto}
+        .viewer-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;transition:background .2s}
+        .viewer-item:hover{background:rgba(255,255,255,.04)}
+        .viewer-item img{width:36px;height:36px;border-radius:50%;object-fit:cover}
+
+        /* ═══════ Upload Area ═══════ */
+        .upload-zone{border:2px dashed rgba(89,65,56,.4);border-radius:20px;padding:40px 20px;text-align:center;cursor:pointer;transition:all .3s;position:relative;overflow:hidden}
+        .upload-zone:hover{border-color:#f26522;background:rgba(242,101,34,.04)}
+        .upload-zone.dragover{border-color:#f26522;background:rgba(242,101,34,.08)}
+
+        /* ═══════ Archive ═══════ */
+        .archive-card{position:relative;border-radius:16px;overflow:hidden;aspect-ratio:9/16;cursor:pointer;transition:all .3s}
+        .archive-card:hover{transform:scale(1.03)}
+        .archive-card img,.archive-card video{width:100%;height:100%;object-fit:cover}
+        .archive-card .archive-overlay{position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.8),transparent 60%);display:flex;flex-direction:column;justify-content:flex-end;padding:12px}
+
+        /* ═══════ Empty ═══════ */
+        .empty-state{text-align:center;padding:60px 20px}
+
+        /* ═══════ Buttons ═══════ */
+        .btn-orange{background:linear-gradient(135deg,#f26522,#e85d1c);color:white;font-weight:700;font-size:14px;padding:10px 20px;border-radius:12px;border:none;cursor:pointer;transition:all .3s;font-family:'Tajawal',sans-serif;display:flex;align-items:center;gap:6px}
+        .btn-orange:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(242,101,34,.3)}
+        .btn-ghost{background:transparent;border:1px solid rgba(89,65,56,.3);color:#e5e2e1;font-weight:600;font-size:13px;padding:8px 16px;border-radius:10px;cursor:pointer;transition:all .3s;font-family:'Tajawal',sans-serif;display:flex;align-items:center;gap:4px}
+        .btn-ghost:hover{border-color:#f26522;color:#f26522;background:rgba(242,101,34,.06)}
+
+        /* ═══════ Toast ═══════ */
+        .toast{position:fixed;top:24px;left:50%;transform:translateX(-50%) translateY(-100px);z-index:9999;padding:14px 28px;border-radius:14px;font-weight:700;font-size:14px;opacity:0;transition:all .5s cubic-bezier(.68,-.55,.265,1.55);display:flex;align-items:center;gap:10px;backdrop-filter:blur(12px);max-width:90vw}
+        .toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+        .toast.success{background:rgba(34,197,94,.15);border:1px solid rgba(34,197,94,.3);color:#4ade80}
+        .toast.error{background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.3);color:#f87171}
+        .toast.info{background:rgba(59,130,246,.15);border:1px solid rgba(59,130,246,.3);color:#60a5fa}
+
+        /* ═══════ Scrollbar ═══════ */
+        ::-webkit-scrollbar{width:4px;height:4px}
+        ::-webkit-scrollbar-track{background:transparent}
+        ::-webkit-scrollbar-thumb{background:#474746;border-radius:4px}
+
+        /* ═══════ Responsive ═══════ */
+        @media(max-width:640px){
+            .story-ring{width:60px;height:60px}
+            .story-ring-wrap{min-width:66px}
+        }
+    </style>
+</head>
+<body>
+<div class="app-bg"></div>
+<div id="toastEl" class="toast"></div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- STORY VIEWER (Full Screen) -->
+<!-- ═══════════════════════════════════════════ -->
+<div id="storyViewer" class="story-viewer">
+    <!-- Progress Bars -->
+    <div class="story-progress-bar" id="progressBar"></div>
+
+    <!-- Header -->
+    <div class="story-header">
+        <img id="viewerAvatar" src=""/>
+        <div class="flex-1">
+            <p class="story-user-name" id="viewerName"></p>
+            <p class="story-time" id="viewerTime"></p>
+        </div>
+        <button onclick="pauseStory()" id="pauseBtn" class="p-2 rounded-full hover:bg-white/10 transition-colors" title="إيقاف مؤقت">
+            <span class="material-symbols-outlined text-white text-[22px]">pause</span>
+        </button>
+        <button onclick="closeViewer()" class="p-2 rounded-full hover:bg-white/10 transition-colors">
+            <span class="material-symbols-outlined text-white text-[22px]">close</span>
+        </button>
+    </div>
+
+    <!-- Content -->
+    <div class="story-content" id="storyContent">
+        <img id="storyImage" src="" style="display:none"/>
+        <video id="storyVideo" style="display:none" playsinline></video>
+        <div class="story-gradient-top"></div>
+        <div class="story-gradient-bottom"></div>
+
+        <!-- Touch Areas -->
+        <div class="story-touch-right" onclick="prevStoryItem()"></div>
+        <div class="story-touch-center" onclick="togglePause()"></div>
+        <div class="story-touch-left" onclick="nextStoryItem()"></div>
+    </div>
+
+    <!-- Side Actions -->
+    <div class="story-side-actions">
+        <div class="story-side-btn" onclick="likeStory()">
+            <span class="material-symbols-outlined text-white text-[28px]" id="storyLikeIcon">favorite</span>
+            <span class="count" id="storyLikeCount">0</span>
+        </div>
+        <div class="story-side-btn" onclick="toggleViewers()">
+            <span class="material-symbols-outlined text-white text-[28px]">visibility</span>
+            <span class="count" id="storyViewCount">0</span>
+        </div>
+        <div class="story-side-btn" onclick="shareStory()">
+            <span class="material-symbols-outlined text-white text-[28px]">share</span>
+        </div>
+    </div>
+
+    <!-- Reply Box -->
+    <div class="story-actions">
+        <div class="story-reply-box">
+            <input type="text" class="story-reply-input" id="storyReplyInput" placeholder="اكتب رداً..." onkeydown="if(event.key==='Enter'){sendStoryReply()}"/>
+            <button onclick="sendStoryReply()" class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors">
+                <span class="material-symbols-outlined text-white text-[20px]">send</span>
+            </button>
+            <button onclick="toggleMute()" id="muteBtn" class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors">
+                <span class="material-symbols-outlined text-white text-[20px]">volume_up</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Viewers Panel -->
+    <div class="viewers-panel" id="viewersPanel">
+        <div class="viewers-panel-header">
+            <h4 class="font-bold text-sm flex items-center gap-2">
+                <span class="material-symbols-outlined text-[#f26522] text-[20px]">visibility</span>
+                المشاهدون
+                <span id="viewersCountText" class="text-xs text-[#7a7570]"></span>
+            </h4>
+            <button onclick="toggleViewers()" class="p-2 rounded-full hover:bg-white/5">
+                <span class="material-symbols-outlined text-[#7a7570] text-[20px]">close</span>
+            </button>
+        </div>
+        <div class="viewers-list" id="viewersList"></div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- MAIN PAGE -->
+<!-- ═══════════════════════════════════════════ -->
+<main class="relative z-10 pb-8 max-w-2xl mx-auto">
+
+    <!-- ═══ Header ═══ -->
+    <header class="glass border-b border-[#594138]/30 flex items-center justify-between px-4 h-14 sticky top-0 z-50">
+        <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-[#f26522] to-[#e85d1c] flex items-center justify-center">
+                <span class="material-symbols-outlined text-white text-[18px]" style="font-variation-settings:'FILL' 1">balance</span>
+            </div>
+            <h1 class="text-lg font-extrabold text-[#f26522]">القصص</h1>
+        </div>
+        <div class="flex items-center gap-1">
+            <button onclick="showArchive()" class="p-2 rounded-full hover:bg-white/5 text-[#7a7570] hover:text-[#f26522] transition-colors" title="الأرشيف">
+                <span class="material-symbols-outlined">inventory_2</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- ═══ Stories Ring Carousel ═══ -->
+    <div class="px-4 pt-4 pb-2" style="animation:fadeIn .5s ease">
+        <div class="stories-carousel" id="storiesCarousel">
+            <!-- My Story (Add) -->
+            <div class="story-ring-wrap" onclick="openUploader()">
+                <div class="story-ring add-story">
+                    <div class="story-ring-inner flex items-center justify-center bg-[#1a1a1a]">
+                        <span class="material-symbols-outlined text-[#7a7570] text-[28px]" id="myStoryIcon">add</span>
+                    </div>
+                </div>
+                <span class="text-[10px] font-bold text-[#7a7570]">قصتك</span>
+            </div>
+            <!-- Other Stories -->
+        </div>
+    </div>
+
+    <!-- ═══ Section: Active Stories ═══ -->
+    <div class="px-4 mt-4">
+        <div class="flex items-center justify-between mb-4" style="animation:fadeIn .6s ease">
+            <h2 class="font-extrabold text-lg">القصص النشطة</h2>
+            <span class="text-sm text-[#7a7570]" id="activeCount"></span>
+        </div>
+        <div id="storiesGrid" class="space-y-3">
+            <!-- Rendered dynamically -->
+        </div>
+    </div>
+
+    <!-- ═══ Empty State ═══ -->
+    <div id="emptyState" class="hidden empty-state px-4">
+        <div class="w-20 h-20 rounded-full bg-[#1a1a1a] flex items-center justify-center mx-auto mb-4">
+            <span class="material-symbols-outlined text-[40px] text-[#353534]">auto_stories</span>
+        </div>
+        <h3 class="text-xl font-bold text-[#353534] mb-2">لا قصص نشطة</h3>
+        <p class="text-sm text-[#7a7570]">ابدأ بنشر قصتك الأولى!</p>
+        <button onclick="openUploader()" class="btn-orange mx-auto mt-4">
+            <span class="material-symbols-outlined text-[18px]">add</span>
+            إنشاء قصة
+        </button>
+    </div>
+
+    <!-- ═══ Upload Section ═══ -->
+    <div id="uploadSection" class="hidden px-4 mt-6" style="animation:fadeInUp .4s ease">
+        <div class="glass rounded-2xl p-6">
+            <h3 class="font-extrabold text-lg text-[#f26522] mb-4 flex items-center gap-2">
+                <span class="material-symbols-outlined text-[22px]">auto_stories</span>
+                إنشاء قصة جديدة
+            </h3>
+
+            <div id="uploadZone" class="upload-zone mb-4" onclick="document.getElementById('storyFileInput').click()" ondragover="event.preventDefault();this.classList.add('dragover')" ondragleave="this.classList.remove('dragover')" ondrop="handleDrop(event)">
+                <span class="material-symbols-outlined text-5xl text-[#7a7570] mb-3 block">cloud_upload</span>
+                <p class="text-sm text-[#7a7570] mb-1">اسحب الملف هنا أو اضغط للاختيار</p>
+                <p class="text-xs text-[#7a7570]">صورة (JPG, PNG) أو فيديو (MP4) — حد أقصى 50MB</p>
+                <input type="file" id="storyFileInput" accept="image/*,video/*" class="hidden" onchange="handleStoryUpload(this)"/>
+            </div>
+
+            <!-- Preview -->
+            <div id="uploadPreview" class="hidden mb-4">
+                <div class="relative rounded-xl overflow-hidden border border-[#594138]/20" style="aspect-ratio:9/16;max-height:300px">
+                    <img id="previewImg" class="w-full h-full object-cover hidden"/>
+                    <video id="previewVid" class="w-full h-full object-cover hidden" controls></video>
+                    <button onclick="removeUpload()" class="absolute top-2 left-2 w-8 h-8 bg-black/60 rounded-full flex items-center justify-center hover:bg-red-500 transition-colors">
+                        <span class="material-symbols-outlined text-white text-[18px]">close</span>
+                    </button>
+                    <div id="previewDuration" class="absolute bottom-2 left-2 bg-black/70 text-white text-xs px-2 py-1 rounded hidden"></div>
+                </div>
+            </div>
+
+            <!-- Caption -->
+            <div class="mb-4">
+                <label class="text-sm font-semibold text-[#e1bfb3] mb-2 block">نص القصة (اختياري)</label>
+                <input type="text" id="storyCaption" class="w-full bg-[#1a1a1a] border border-[#594138]/20 rounded-xl px-4 py-3 text-sm text-[#e5e2e1] outline-none focus:border-[#f26522]/40 transition-colors font-['Tajawal']" placeholder="أضف نصاً لقصتك..." maxlength="200"/>
+            </div>
+
+            <div class="flex gap-3">
+                <button onclick="closeUploader()" class="btn-ghost flex-1 justify-center">إلغاء</button>
+                <button onclick="publishStory()" class="btn-orange flex-1 justify-center" id="publishStoryBtn">
+                    <span class="material-symbols-outlined text-[18px]">send</span>
+                    نشر القصة
+                </button>
+            </div>
+        </div>
+    </div>
+</main>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- ARCHIVE MODAL -->
+<!-- ═══════════════════════════════════════════ -->
+<div id="archiveModal" class="modal-bg" style="position:fixed;inset:0;background:rgba(0,0,0,.85);backdrop-filter:blur(4px);z-index:100;display:none;overflow-y:auto">
+    <div class="max-w-2xl mx-auto p-4">
+        <div class="flex items-center justify-between mb-6 pt-2">
+            <h2 class="text-xl font-extrabold text-[#f26522] flex items-center gap-2">
+                <span class="material-symbols-outlined text-[24px]">inventory_2</span>
+                أرشيف القصص
+            </h2>
+            <button onclick="closeArchive()" class="p-2 rounded-full hover:bg-white/10 transition-colors">
+                <span class="material-symbols-outlined text-white text-[24px]">close</span>
+            </button>
+        </div>
+        <div id="archiveGrid" class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            <!-- Rendered dynamically -->
+        </div>
+        <div id="archiveEmpty" class="hidden text-center py-20 text-[#7a7570]">
+            <span class="material-symbols-outlined text-5xl mb-3 block text-[#353534]">inventory_2</span>
+            <p class="font-bold">أرشيف فارغ</p>
+            <p class="text-sm mt-1">ستظهر القصص المنتهية هنا بعد 24 ساعة</p>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- JAVASCRIPT -->
+<!-- ═══════════════════════════════════════════ -->
+<script>
+const DB={get(k){try{return JSON.parse(localStorage.getItem('lb_'+k))}catch{return null}},set(k,v){localStorage.setItem('lb_'+k,JSON.stringify(v))},rm(k){localStorage.removeItem('lb_'+k)}};
+
+const ME={id:'usr_001',name:'عبدالملك بن محمد',username:'abdulmalik_m',avatar:'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop&crop=face'};
+
+const USERS=[
+    {id:'u1',name:'د. نورة القحطاني',avatar:'https://i.pravatar.cc/80?img=5'},
+    {id:'u2',name:'أ. فهد العتيبي',avatar:'https://i.pravatar.cc/80?img=12'},
+    {id:'u3',name:'المكتبة القانونية',avatar:'https://i.pravatar.cc/80?img=22'},
+    {id:'u4',name:'أ. سارة المنصور',avatar:'https://i.pravatar.cc/80?img=9'},
+    {id:'u5',name:'د. خالد الشمري',avatar:'https://i.pravatar.cc/80?img=15'},
+    {id:'u6',name:'أحمد البقمي',avatar:'https://i.pravatar.cc/80?img=51'},
+    {id:'u7',name:'منى الحربي',avatar:'https://i.pravatar.cc/80?img=44'}
+];
+
+let stories = DB.get('stories_v2') || [];
+let archive = DB.get('stories_archive') || [];
+let uploadedData = null;
+let uploadedType = null;
+let viewerTimer = null;
+let viewerPaused = false;
+let currentStoryUserId = null;
+let currentStoryItemIdx = 0;
+
+function genId(){return 's_'+Date.now()+'_'+Math.random().toString(36).substr(2,6)}
+function esc(t){const d=document.createElement('div');d.appendChild(document.createTextNode(t));return d.innerHTML}
+function ago(m){return new Date(Date.now()-m*60000).toISOString()}
+function formatTimeAgo(iso){const d=Math.floor((Date.now()-new Date(iso).getTime())/1000);if(d<60)return'الآن';if(d<3600)return'منذ '+Math.floor(d/60)+' د';if(d<86400)return'منذ '+Math.floor(d/3600)+' س';return new Date(iso).toLocaleDateString('ar-SA')}
+
+function save(){DB.set('stories_v2',stories)}
+function saveArchive(){DB.set('stories_archive',archive)}
+
+// ═══════════════════════════════════════════
+// GENERATE SAMPLES
+// ═══════════════════════════════════════════
+function generateSamples(){
+    if(stories.length>0){cleanupExpired();return}
+
+    const imgs=[
+        'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?w=600&h=1000&fit=crop',
+        'https://images.unsplash.com/photo-1505664194779-8beaceb93744?w=600&h=1000&fit=crop',
+        'https://images.unsplash.com/photo-1479142506502-19b3a3b7ff33?w=600&h=1000&fit=crop',
+        'https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=600&h=1000&fit=crop',
+        'https://images.unsplash.com/photo-1497366216548-37526070297c?w=600&h=1000&fit=crop',
+        'https://images.unsplash.com/photo-1589994965851-a8f479c573a9?w=600&h=1000&fit=crop',
+        'https://images.unsplash.com/photo-1436491865332-7a61a109db05?w=600&h=1000&fit=crop'
+    ];
+
+    stories=[
+        {userId:'u1',user:USERS[0],items:[
+            {id:genId(),type:'image',url:imgs[0],caption:'في جلسة المحكمة اليوم 🏛️',createdAt:ago(30),expiresAt:Date.now()+((24*60-30)*60000),viewers:['u2','u3','u4','u5','u6','u7','usr_001'],likes:['u2','u4'],seen:false},
+            {id:genId(),type:'image',url:imgs[1],caption:'القانون هو سلاح العدالة ⚖️',createdAt:ago(25),expiresAt:Date.now()+((24*60-25)*60000),viewers:['u2','u3','usr_001'],likes:['u2'],seen:false}
+        ]},
+        {userId:'u2',user:USERS[1],items:[
+            {id:genId(),type:'image',url:imgs[2],caption:'قراءة في أحكام المحكمة العليا',createdAt:ago(120),expiresAt:Date.now()+((24*60-120)*60000),viewers:['u1','u3','u4','usr_001'],likes:['u1','u3'],seen:false}
+        ]},
+        {userId:'u3',user:USERS[2],items:[
+            {id:genId(),type:'image',url:imgs[3],caption:'كتاب جديد في المكتبة! 📚',createdAt:ago(60),expiresAt:Date.now()+((24*60-60)*60000),viewers:['u1','u2','u4','u5','usr_001'],likes:['u1','u2','u5'],seen:false},
+            {id:genId(),type:'image',url:imgs[4],caption:'',createdAt:ago(55),expiresAt:Date.now()+((24*60-55)*60000),viewers:['u1','u2','usr_001'],likes:[],seen:false},
+            {id:genId(),type:'image',url:imgs[5],caption:'ملخص الأسبوع القانوني 📋',createdAt:ago(50),expiresAt:Date.now()+((24*60-50)*60000),viewers:['u1'],likes:['u1'],seen:false}
+        ]},
+        {userId:'u4',user:USERS[3],items:[
+            {id:genId(),type:'image',url:imgs[6],caption:'مؤتمر قانون الأسرة الدولي 🌍',createdAt:ago(200),expiresAt:Date.now()+((24*60-200)*60000),viewers:['u1','u2','u3','u5','usr_001'],likes:['u1','u5'],seen:true}
+        ]},
+        {userId:'u5',user:USERS[4],items:[
+            {id:genId(),type:'image',url:imgs[0],caption:'قرار قضائي جديد صدر اليوم ⚡',createdAt:ago(180),expiresAt:Date.now()+((24*60-180)*60000),viewers:['u1','u2','usr_001'],likes:['u1'],seen:true}
+        ]}
+    ];
+
+    // Add some archive
+    archive=[
+        {userId:'u1',user:USERS[0],items:[{id:genId(),type:'image',url:imgs[1],caption:'قديم - يوم في المحكمة',archivedAt:ago(2000)}],archivedAt:ago(2000)},
+        {userId:'u6',user:USERS[5],items:[{id:genId(),type:'image',url:imgs[3],caption:'قديم - نصيحة قانونية',archivedAt:ago(3000)}],archivedAt:ago(3000)}
+    ];
+
+    save();saveArchive();
+}
+
+// ═══════════════════════════════════════════
+// CLEANUP EXPIRED STORIES
+// ═══════════════════════════════════════════
+function cleanupExpired(){
+    const now = Date.now();
+    const active = [];
+    stories.forEach(s=>{
+        // Filter items that haven't expired
+        s.items = s.items.filter(item=>item.expiresAt > now);
+        if(s.items.length > 0){
+            active.push(s);
+        } else {
+            // Move to archive
+            s.archivedAt = new Date().toISOString();
+            archive.unshift(s);
+        }
+    });
+    stories = active;
+    save();saveArchive();
+}
+
+// ═══════════════════════════════════════════
+// RENDER CAROUSEL
+// ═══════════════════════════════════════════
+function renderCarousel(){
+    const carousel = document.getElementById('storiesCarousel');
+    // Keep the "My Story" add button, append others
+    let html = `
+        <div class="story-ring-wrap" onclick="openUploader()">
+            <div class="story-ring add-story" id="myStoryRing">
+                <div class="story-ring-inner flex items-center justify-center bg-[#1a1a1a]">
+                    <span class="material-symbols-outlined text-[#7a7570] text-[28px]" id="myStoryIconInner">add</span>
+                </div>
+            </div>
+            <span class="text-[10px] font-bold text-[#7a7570] truncate w-[76px] text-center">قصتك</span>
+        </div>
+    `;
+
+    stories.forEach(s=>{
+        const allSeen = s.items.every(i=>i.seen);
+        html += `
+            <div class="story-ring-wrap" onclick="openViewer('${s.userId}',0)">
+                <div class="story-ring ${allSeen?'seen':'unseen'}">
+                    <div class="story-ring-inner">
+                        <img src="${s.user.avatar}" alt="${esc(s.user.name)}"/>
+                    </div>
+                    ${s.items.length>1?`<div class="story-badge bg-[#f26522] text-white">${s.items.length}</div>`:''}
+                </div>
+                <span class="text-[10px] font-bold ${allSeen?'text-[#7a7570]':'text-[#e1bfb3]'} truncate w-[76px] text-center">${esc(s.user.name.split(' ')[0])}</span>
+            </div>
+        `;
+    });
+
+    carousel.innerHTML = html;
+}
+
+// ═══════════════════════════════════════════
+// RENDER STORIES GRID
+// ═══════════════════════════════════════════
+function renderGrid(){
+    const grid = document.getElementById('storiesGrid');
+    const empty = document.getElementById('emptyState');
+    const countEl = document.getElementById('activeCount');
+
+    if(stories.length === 0){
+        grid.innerHTML = '';
+        empty.classList.remove('hidden');
+        countEl.textContent = '';
+        return;
+    }
+
+    empty.classList.add('hidden');
+    countEl.textContent = stories.length + ' قصة نشطة';
+
+    grid.innerHTML = stories.map((s,idx)=>{
+        const latestItem = s.items[s.items.length - 1];
+        const allSeen = s.items.every(i=>i.seen);
+        const delay = Math.min(idx*0.08,0.5);
+
+        return `
+        <div class="glass rounded-2xl overflow-hidden cursor-pointer transition-all hover:border-[#f26522]/20 anim-fadeUp" style="animation-delay:${delay}s;opacity:0;border:1px solid rgba(89,65,56,.1)" onclick="openViewer('${s.userId}',0)">
+            <div class="flex gap-4 p-4 items-center">
+                <div class="story-ring ${allSeen?'seen':'unseen'}" style="width:52px;height:52px;flex-shrink:0">
+                    <div class="story-ring-inner">
+                        <img src="${s.user.avatar}"/>
+                    </div>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <div class="flex items-center gap-2">
+                        <h3 class="font-bold text-sm">${esc(s.user.name)}</h3>
+                        <span class="text-[10px] text-[#7a7570]">${formatTimeAgo(latestItem.createdAt)}</span>
+                    </div>
+                    <p class="text-xs text-[#7a7570] mt-1 truncate">${latestItem.caption||'قصة بدون نص'}</p>
+                    <div class="flex items-center gap-3 mt-2 text-[10px] text-[#7a7570]">
+                        <span class="flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">visibility</span>${latestItem.viewers.length}</span>
+                        <span class="flex items-center gap-1"><span class="material-symbols-outlined text-[14px]" style="font-variation-settings:'FILL' 1;color:#ef4444">favorite</span>${latestItem.likes.length}</span>
+                        <span class="flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">photo_library</span>${s.items.length}</span>
+                    </div>
+                </div>
+                <div class="w-16 h-24 rounded-xl overflow-hidden shrink-0">
+                    ${latestItem.type==='image'?`<img src="${latestItem.url}" class="w-full h-full object-cover"/>`:`<div class="w-full h-full bg-[#1a1a1a] flex items-center justify-center"><span class="material-symbols-outlined text-[#7a7570]">play_circle</span></div>`}
+                </div>
+            </div>
+        </div>`;
+    }).join('');
+}
+
+// ═══════════════════════════════════════════
+// STORY VIEWER
+// ═══════════════════════════════════════════
+function openViewer(userId, itemIdx){
+    const story = stories.find(s=>s.userId===userId);
+    if(!story) return;
+
+    currentStoryUserId = userId;
+    currentStoryItemIdx = itemIdx || 0;
+
+    document.getElementById('storyViewer').classList.add('active');
+    document.body.style.overflow='hidden';
+
+    renderViewer(story, currentStoryItemIdx);
+}
+
+function closeViewer(){
+    document.getElementById('storyViewer').classList.remove('active');
+    document.body.style.overflow='';
+    clearTimeout(viewerTimer);
+    viewerPaused = false;
+    currentStoryUserId = null;
+
+    // Mark as seen and refresh
+    renderCarousel();
+    renderGrid();
+}
+
+function renderViewer(story, idx){
+    if(idx >= story.items.length){nextUserStory();return}
+    if(idx < 0){prevUserStory();return}
+
+    currentStoryItemIdx = idx;
+    const item = story.items[idx];
+
+    // Mark as seen
+    item.seen = true;
+    if(!item.viewers.includes(ME.id)) item.viewers.push(ME.id);
+    save();
+
+    // Header
+    document.getElementById('viewerAvatar').src = story.user.avatar;
+    document.getElementById('viewerName').textContent = story.user.name;
+    document.getElementById('viewerTime').textContent = formatTimeAgo(item.createdAt);
+
+    // Content
+    const img = document.getElementById('storyImage');
+    const vid = document.getElementById('storyVideo');
+
+    if(item.type === 'image'){
+        img.src = item.url;
+        img.style.display = 'block';
+        vid.style.display = 'none';
+        vid.pause();
+    } else {
+        vid.src = item.url;
+        vid.style.display = 'block';
+        img.style.display = 'none';
+        vid.play();
+    }
+
+    // Caption overlay
+    const existing = document.getElementById('storyCaptionOverlay');
+    if(existing) existing.remove();
+    if(item.caption){
+        const cap = document.createElement('div');
+        cap.id = 'storyCaptionOverlay';
+        cap.style.cssText = 'position:absolute;bottom:100px;left:16px;right:16px;z-index:10;text-align:center';
+        cap.innerHTML = `<p class="text-white text-lg font-bold" style="text-shadow:0 2px 8px rgba(0,0,0,.8)">${esc(item.caption)}</p>`;
+        document.getElementById('storyContent').appendChild(cap);
+    }
+
+    // Progress bars
+    const bar = document.getElementById('progressBar');
+    bar.innerHTML = story.items.map((it,i)=>{
+        let cls = '';
+        if(i < idx) cls = 'complete';
+        if(i === idx) cls = 'active';
+        return `<div class="story-progress-segment"><div class="story-progress-fill ${cls}"></div></div>`;
+    }).join('');
+
+    // Like state
+    const likeIcon = document.getElementById('storyLikeIcon');
+    const likeCount = document.getElementById('storyLikeCount');
+    const isLiked = item.likes.includes(ME.id);
+    likeIcon.style.fontVariationSettings = isLiked ? "'FILL' 1" : "'FILL' 0";
+    likeIcon.style.color = isLiked ? '#ef4444' : 'white';
+    likeCount.textContent = item.likes.length;
+
+    // View count
+    document.getElementById('storyViewCount').textContent = item.viewers.length;
+
+    // Timer
+    clearTimeout(viewerTimer);
+    viewerPaused = false;
+    document.getElementById('pauseBtn').querySelector('.material-symbols-outlined').textContent = 'pause';
+
+    if(item.type === 'image'){
+        startTimer(story, idx, 5000);
+    } else {
+        // For video, use video duration
+        vid.onloadedmetadata = ()=>{
+            startTimer(story, idx, vid.duration * 1000);
+        };
+    }
+
+    // Close viewers panel
+    document.getElementById('viewersPanel').classList.remove('active');
+}
+
+function startTimer(story, idx, duration){
+    clearTimeout(viewerTimer);
+    if(viewerPaused) return;
+
+    viewerTimer = setTimeout(()=>{
+        nextStoryItem();
+    }, duration);
+}
+
+function togglePause(){
+    viewerPaused = !viewerPaused;
+    const btn = document.getElementById('pauseBtn').querySelector('.material-symbols-outlined');
+
+    if(viewerPaused){
+        btn.textContent = 'play_arrow';
+        clearTimeout(viewerTimer);
+        // Pause video too
+        document.getElementById('storyVideo').pause();
+        // Pause progress animation
+        document.querySelectorAll('.story-progress-fill.active').forEach(f=>{
+            f.style.animationPlayState = 'paused';
+        });
+    } else {
+        btn.textContent = 'pause';
+        document.getElementById('storyVideo').play();
+        document.querySelectorAll('.story-progress-fill.active').forEach(f=>{
+            f.style.animationPlayState = 'running';
+        });
+        // Restart remaining timer (simplified: restart from current)
+        const story = stories.find(s=>s.userId===currentStoryUserId);
+        if(story){
+            const item = story.items[currentStoryItemIdx];
+            startTimer(story, currentStoryItemIdx, item.type==='image'?5000:document.getElementById('storyVideo').duration*1000);
+        }
+    }
+}
+
+function pauseStory(){
+    togglePause();
+}
+
+function nextStoryItem(){
+    const story = stories.find(s=>s.userId===currentStoryUserId);
+    if(!story) return;
+
+    if(currentStoryItemIdx + 1 < story.items.length){
+        renderViewer(story, currentStoryItemIdx + 1);
+    } else {
+        nextUserStory();
+    }
+}
+
+function prevStoryItem(){
+    const story = stories.find(s=>s.userId===currentStoryUserId);
+    if(!story) return;
+
+    if(currentStoryItemIdx > 0){
+        renderViewer(story, currentStoryItemIdx - 1);
+    } else {
+        prevUserStory();
+    }
+}
+
+function nextUserStory(){
+    const currentIdx = stories.findIndex(s=>s.userId===currentStoryUserId);
+    if(currentIdx + 1 < stories.length){
+        openViewer(stories[currentIdx + 1].userId, 0);
+    } else {
+        closeViewer();
+        showToast('انتهت القصص','info');
+    }
+}
+
+function prevUserStory(){
+    const currentIdx = stories.findIndex(s=>s.userId===currentStoryUserId);
+    if(currentIdx > 0){
+        const prevStory = stories[currentIdx - 1];
+        openViewer(prevStory.userId, prevStory.items.length - 1);
+    }
+}
+
+// ═══════════════════════════════════════════
+// STORY ACTIONS
+// ═══════════════════════════════════════════
+function likeStory(){
+    const story = stories.find(s=>s.userId===currentStoryUserId);
+    if(!story) return;
+    const item = story.items[currentStoryItemIdx];
+    if(!item) return;
+
+    const idx = item.likes.indexOf(ME.id);
+    const icon = document.getElementById('storyLikeIcon');
+    const count = document.getElementById('storyLikeCount');
+
+    if(idx === -1){
+        item.likes.push(ME.id);
+        icon.style.fontVariationSettings = "'FILL' 1";
+        icon.style.color = '#ef4444';
+        icon.classList.add('anim-heart');
+        setTimeout(()=>icon.classList.remove('anim-heart'),500);
+    } else {
+        item.likes.splice(idx, 1);
+        icon.style.fontVariationSettings = "'FILL' 0";
+        icon.style.color = 'white';
+    }
+
+    count.textContent = item.likes.length;
+    save();
+}
+
+function sendStoryReply(){
+    const input = document.getElementById('storyReplyInput');
+    const text = input.value.trim();
+    if(!text) return;
+
+    const story = stories.find(s=>s.userId===currentStoryUserId);
+    if(!story) return;
+
+    showToast('تم إرسال الرد إلى '+story.user.name,'success');
+    input.value = '';
+}
+
+function shareStory(){
+    showToast('تم نسخ رابط القصة','success');
+}
+
+function toggleMute(){
+    const vid = document.getElementById('storyVideo');
+    const btn = document.getElementById('muteBtn').querySelector('.material-symbols-outlined');
+    vid.muted = !vid.muted;
+    btn.textContent = vid.muted ? 'volume_off' : 'volume_up';
+}
+
+// ═══════════════════════════════════════════
+// VIEWERS PANEL
+// ═══════════════════════════════════════════
+function toggleViewers(){
+    const panel = document.getElementById('viewersPanel');
+    panel.classList.toggle('active');
+
+    if(panel.classList.contains('active')){
+        renderViewers();
+    }
+}
+
+function renderViewers(){
+    const story = stories.find(s=>s.userId===currentStoryUserId);
+    if(!story) return;
+    const item = story.items[currentStoryItemIdx];
+    if(!item) return;
+
+    document.getElementById('viewersCountText').textContent = '('+item.viewers.length+')';
+
+    const list = document.getElementById('viewersList');
+    list.innerHTML = item.viewers.map(vid=>{
+        const user = USERS.find(u=>u.id===vid) || (vid===ME.id?ME:null);
+        if(!user) return '';
+        const isMe = vid === ME.id;
+        return `
+        <div class="viewer-item">
+            <img src="${user.avatar}"/>
+            <div class="flex-1">
+                <p class="font-bold text-sm">${esc(user.name)} ${isMe?'<span class="text-xs text-[#7a7570]">(أنت)</span>':''}</p>
+                <p class="text-[10px] text-[#7a7570]">@${esc(user.username||'')}</p>
+            </div>
+            ${item.likes.includes(vid)?'<span class="material-symbols-outlined text-red-400 text-[18px]" style="font-variation-settings:FILL 1">favorite</span>':''}
+        </div>`;
+    }).join('');
+}
+
+// ═══════════════════════════════════════════
+// UPLOAD STORY
+// ═══════════════════════════════════════════
+function openUploader(){
+    document.getElementById('uploadSection').classList.remove('hidden');
+    document.getElementById('uploadSection').scrollIntoView({behavior:'smooth'});
+}
+
+function closeUploader(){
+    document.getElementById('uploadSection').classList.add('hidden');
+    removeUpload();
+    document.getElementById('storyCaption').value = '';
+}
+
+function handleStoryUpload(input){
+    const file = input.files[0];
+    if(!file) return;
+    if(file.size > 50*1024*1024){showToast('حجم الملف يتجاوز 50MB','error');return}
+
+    const isImage = file.type.startsWith('image/');
+    const isVideo = file.type.startsWith('video/');
+
+    if(!isImage && !isVideo){showToast('يرجى اختيار صورة أو فيديو','error');return}
+
+    const reader = new FileReader();
+    reader.onload = function(e){
+        uploadedData = e.target.result;
+        uploadedType = isImage ? 'image' : 'video';
+
+        document.getElementById('uploadPreview').classList.remove('hidden');
+        document.getElementById('uploadZone').style.display = 'none';
+
+        if(isImage){
+            document.getElementById('previewImg').src = uploadedData;
+            document.getElementById('previewImg').classList.remove('hidden');
+            document.getElementById('previewVid').classList.add('hidden');
+        } else {
+            const vid = document.getElementById('previewVid');
+            vid.src = uploadedData;
+            vid.classList.remove('hidden');
+            document.getElementById('previewImg').classList.add('hidden');
+            vid.onloadedmetadata = ()=>{
+                const dur = document.getElementById('previewDuration');
+                dur.textContent = Math.floor(vid.duration)+' ثانية';
+                dur.classList.remove('hidden');
+                if(vid.duration > 60) showToast('القصة الطويلة قد لا تُعرض بالكامل','info');
+            };
+        }
+    };
+    reader.readAsDataURL(file);
+    input.value = '';
+}
+
+function handleDrop(e){
+    e.preventDefault();
+    e.currentTarget.classList.remove('dragover');
+    const file = e.dataTransfer.files[0];
+    if(file){
+        const input = document.getElementById('storyFileInput');
+        const dt = new DataTransfer();
+        dt.items.add(file);
+        input.files = dt.files;
+        handleStoryUpload(input);
+    }
+}
+
+function removeUpload(){
+    uploadedData = null;
+    uploadedType = null;
+    document.getElementById('uploadPreview').classList.add('hidden');
+    document.getElementById('uploadZone').style.display = '';
+    document.getElementById('previewImg').classList.add('hidden');
+    document.getElementById('previewVid').classList.add('hidden');
+    document.getElementById('previewVid').src = '';
+    document.getElementById('previewDuration').classList.add('hidden');
+}
+
+function publishStory(){
+    if(!uploadedData){showToast('يرجى اختيار صورة أو فيديو','error');return}
+
+    const caption = document.getElementById('storyCaption').value.trim();
+
+    const newItem = {
+        id:genId(),
+        type:uploadedType,
+        url:uploadedData,
+        caption:caption,
+        createdAt:new Date().toISOString(),
+        expiresAt:Date.now()+(24*60*60*1000),
+        viewers:[ME.id],
+        likes:[],
+        seen:true
+    };
+
+    // Find or create my story
+    let myStory = stories.find(s=>s.userId===ME.id);
+    if(!myStory){
+        myStory = {userId:ME.id,user:{...ME},items:[]};
+        stories.unshift(myStory);
+    }
+    myStory.items.push(newItem);
+
+    save();
+    closeUploader();
+    renderCarousel();
+    renderGrid();
+    showToast('تم نشر القصة بنجاح!','success');
+}
+
+// ═══════════════════════════════════════════
+// ARCHIVE
+// ═══════════════════════════════════════════
+function showArchive(){
+    document.getElementById('archiveModal').style.display = 'block';
+    document.body.style.overflow = 'hidden';
+    renderArchive();
+}
+
+function closeArchive(){
+    document.getElementById('archiveModal').style.display = 'none';
+    document.body.style.overflow = '';
+}
+
+function renderArchive(){
+    const grid = document.getElementById('archiveGrid');
+    const empty = document.getElementById('archiveEmpty');
+
+    if(archive.length === 0){
+        grid.innerHTML = '';
+        empty.classList.remove('hidden');
+        return;
+    }
+
+    empty.classList.add('hidden');
+    grid.innerHTML = archive.map((s,idx)=>{
+        const item = s.items[0];
+        return `
+        <div class="archive-card anim-fadeUp" style="animation-delay:${idx*0.08}s;opacity:0" onclick="showToast('عرض أرشيف ${esc(s.user.name)}','info')">
+            ${item.type==='image'?`<img src="${item.url}" loading="lazy"/>`:`<div class="w-full h-full bg-[#1a1a1a] flex items-center justify-center"><span class="material-symbols-outlined text-[#7a7570] text-[40px]">play_circle</span></div>`}
+            <div class="archive-overlay">
+                <div class="flex items-center gap-2">
+                    <img src="${s.user.avatar}" class="w-6 h-6 rounded-full object-cover"/>
+                    <span class="text-xs font-bold text-white">${esc(s.user.name)}</span>
+                </div>
+                <p class="text-[10px] text-white/60 mt-1">${item.caption?esc(item.caption.substring(0,40)):''}</p>
+                <p class="text-[10px] text-white/40 mt-0.5">${s.items.length} قصة • أُرشفت ${formatTimeAgo(s.archivedAt)}</p>
+            </div>
+        </div>`;
+    }).join('');
+}
+
+// ═══════════════════════════════════════════
+// KEYBOARD
+// ═══════════════════════════════════════════
+document.addEventListener('keydown',e=>{
+    if(document.getElementById('storyViewer').classList.contains('active')){
+        if(e.key==='Escape') closeViewer();
+        if(e.key==='ArrowLeft') nextStoryItem();
+        if(e.key==='ArrowRight') prevStoryItem();
+        if(e.key===' ') {e.preventDefault();togglePause()}
+    } else if(document.getElementById('archiveModal').style.display==='block'){
+        if(e.key==='Escape') closeArchive();
+    }
+});
+
+// ═══════════════════════════════════════════
+// TOUCH SWIPE ON VIEWER
+// ═══════════════════════════════════════════
+let touchStartX = 0;
+document.getElementById('storyViewer').addEventListener('touchstart',e=>{
+    touchStartX = e.touches[0].clientX;
+},{passive:true});
+document.getElementById('storyViewer').addEventListener('touchend',e=>{
+    const diff = touchStartX - e.changedTouches[0].clientX;
+    if(Math.abs(diff) > 60){
+        if(diff > 0) nextUserStory();
+        else prevUserStory();
+    }
+},{passive:true});
+
+// ═══════════════════════════════════════════
+// TOAST
+// ═══════════════════════════════════════════
+function showToast(msg,type='info'){
+    const t=document.getElementById('toastEl');
+    const icons={success:'check_circle',error:'error',info:'info'};
+    t.className='toast '+type;
+    t.innerHTML=`<span class="material-symbols-outlined text-[20px]">${icons[type]}</span> ${msg}`;
+    setTimeout(()=>t.classList.add('show'),10);
+    setTimeout(()=>t.classList.remove('show'),3500);
+}
+
+// ═══════════════════════════════════════════
+// AUTO CLEANUP TIMER (every minute)
+// ═══════════════════════════════════════════
+setInterval(()=>{cleanupExpired();renderCarousel();renderGrid()},60000);
+
+// ═══════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════
+document.addEventListener('DOMContentLoaded',function(){
+    generateSamples();
+    renderCarousel();
+    renderGrid();
+
+    console.log('%c لو بوك | نظام القصص ','background:#f26522;color:white;font-size:14px;font-weight:bold;border-radius:8px;padding:6px 14px');
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+<html class="dark" lang="ar" dir="rtl">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>لو بوك | لوحة الإدارة</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <style>
+        *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+        body{font-family:'Tajawal',sans-serif;min-height:100dvh;overflow-x:hidden;background:#0a0a0a;color:#e5e2e1}
+        .material-symbols-outlined{font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24;transition:all .2s ease}
+
+        .app-bg{position:fixed;inset:0;z-index:0;background:radial-gradient(ellipse at 20% 0%,rgba(242,101,34,.06) 0%,transparent 50%),radial-gradient(ellipse at 80% 100%,rgba(242,101,34,.04) 0%,transparent 50%),#0a0a0a}
+        .app-bg::after{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");opacity:.3;pointer-events:none}
+        .glass{background:rgba(32,31,31,.85);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
+
+        @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+        @keyframes fadeInUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+        @keyframes scaleIn{from{opacity:0;transform:scale(.9)}to{opacity:1;transform:scale(1)}}
+        @keyframes slideIn{from{opacity:0;transform:translateX(100%)}to{opacity:1;transform:translateX(0)}}
+        @keyframes countUp{from{opacity:.5;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+        @keyframes barGrow{from{transform:scaleY(0)}to{transform:scaleY(1)}}
+        @keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+        @keyframes dotPulse{0%{box-shadow:0 0 0 0 rgba(34,197,94,.5)}70%{box-shadow:0 0 0 6px rgba(34,197,94,0)}100%{box-shadow:0 0 0 0 rgba(34,197,94,0)}}
+        @keyframes ringDraw{from{stroke-dashoffset:283}to{stroke-dashoffset:var(--target)}}
+        @keyframes slideBar{from{width:0}to{width:var(--w)}}
+
+        .anim-fade{animation:fadeIn .3s ease}
+        .anim-fadeUp{animation:fadeInUp .35s ease}
+        .anim-scaleIn{animation:scaleIn .3s cubic-bezier(.4,0,.2,1)}
+        .anim-count{animation:countUp .4s ease}
+
+        /* ═══════ Sidebar Nav ═══════ */
+        .admin-nav{width:260px;border-left:1px solid rgba(89,65,56,.15);display:flex;flex-direction:column;flex-shrink:0;position:sticky;top:0;height:100dvh;overflow-y:auto}
+        .nav-item{display:flex;align-items:center;gap:12px;padding:12px 16px;border-radius:12px;cursor:pointer;transition:all .2s;font-size:14px;font-weight:600;color:#7a7570;margin:2px 8px}
+        .nav-item:hover{background:rgba(255,255,255,.04);color:#e5e2e1}
+        .nav-item.active{background:rgba(242,101,34,.12);color:#f26522}
+        .nav-item .nav-badge{margin-right:auto;font-size:10px;font-weight:700;padding:2px 8px;border-radius:8px;min-width:20px;text-align:center}
+
+        /* ═══════ Stat Cards ═══════ */
+        .stat-card{background:rgba(42,42,42,.3);border:1px solid rgba(89,65,56,.1);border-radius:16px;padding:20px;transition:all .3s;cursor:default}
+        .stat-card:hover{border-color:rgba(242,101,34,.15);transform:translateY(-2px)}
+        .stat-card .stat-icon{width:44px;height:44px;border-radius:14px;display:flex;align-items:center;justify-content:center;margin-bottom:12px}
+
+        /* ═══════ Charts ═══════ */
+        .bar-chart{display:flex;align-items:flex-end;gap:4px;height:120px;padding-top:8px}
+        .bar-chart .bar-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;height:100%;justify-content:flex-end}
+        .bar-chart .bar{width:100%;border-radius:4px 4px 0 0;transition:height 1s ease;transform-origin:bottom;animation:barGrow .8s ease forwards}
+        .bar-chart .bar-label{font-size:9px;color:#7a7570;white-space:nowrap}
+
+        .line-chart{position:relative;height:120px;overflow:hidden}
+        .line-chart svg{width:100%;height:100%}
+        .line-chart .grid-line{stroke:rgba(89,65,56,.15);stroke-width:1}
+
+        .donut-chart{position:relative;width:100px;height:100px}
+        .donut-chart svg{transform:rotate(-90deg)}
+        .donut-chart .donut-bg{fill:none;stroke:rgba(89,65,56,.2);stroke-width:8}
+        .donut-chart .donut-fill{fill:none;stroke-width:8;stroke-linecap:round;transition:stroke-dashoffset 1.5s ease}
+        .donut-chart .donut-center{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column}
+
+        /* ═══════ Data Table ═══════ */
+        .data-table{width:100%;border-collapse:separate;border-spacing:0}
+        .data-table thead th{padding:12px 14px;font-size:11px;font-weight:700;color:#7a7570;text-align:right;border-bottom:1px solid rgba(89,65,56,.15);text-transform:uppercase;letter-spacing:.5px;white-space:nowrap}
+        .data-table tbody td{padding:12px 14px;font-size:13px;border-bottom:1px solid rgba(89,65,56,.06);vertical-align:middle}
+        .data-table tbody tr{transition:background .2s}
+        .data-table tbody tr:hover{background:rgba(242,101,34,.03)}
+
+        /* ═══════ Status Badges ═══════ */
+        .status-badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;padding:3px 10px;border-radius:8px;white-space:nowrap}
+        .status-active{background:rgba(34,197,94,.12);color:#4ade80}
+        .status-disabled{background:rgba(239,68,68,.12);color:#f87171}
+        .status-pending{background:rgba(234,179,8,.12);color:#facc15}
+        .status-resolved{background:rgba(59,130,246,.12);color:#60a5fa}
+
+        /* ═══════ Report Severity ═══════ */
+        .severity-high{color:#ef4444}
+        .severity-medium{color:#facc15}
+        .severity-low{color:#22c55e}
+
+        /* ═══════ Tab Buttons ═══════ */
+        .tab-pills{display:flex;gap:4px;padding:4px;background:rgba(26,26,26,.5);border-radius:12px;border:1px solid rgba(89,65,56,.12);overflow-x:auto;scrollbar-width:none}
+        .tab-pills::-webkit-scrollbar{display:none}
+        .tab-pill{padding:8px 14px;border-radius:8px;font-weight:600;font-size:12px;cursor:pointer;transition:all .3s;border:none;background:transparent;color:#7a7570;font-family:'Tajawal',sans-serif;white-space:nowrap}
+        .tab-pill:hover{color:#e5e2e1;background:rgba(255,255,255,.04)}
+        .tab-pill.active{background:rgba(242,101,34,.15);color:#f26522}
+
+        /* ═══════ Buttons ═══════ */
+        .btn-orange{background:linear-gradient(135deg,#f26522,#e85d1c);color:white;font-weight:700;font-size:13px;padding:10px 20px;border-radius:12px;border:none;cursor:pointer;transition:all .3s;font-family:'Tajawal',sans-serif;display:flex;align-items:center;gap:6px}
+        .btn-orange:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(242,101,34,.3)}
+        .btn-ghost{background:transparent;border:1px solid rgba(89,65,56,.3);color:#e5e2e1;font-weight:600;font-size:13px;padding:8px 16px;border-radius:10px;cursor:pointer;transition:all .3s;font-family:'Tajawal',sans-serif;display:flex;align-items:center;gap:4px}
+        .btn-ghost:hover{border-color:#f26522;color:#f26522;background:rgba(242,101,34,.06)}
+        .btn-sm{padding:6px 12px;border-radius:8px;font-size:11px;font-weight:600;cursor:pointer;transition:all .2s;border:none;font-family:'Tajawal',sans-serif;display:inline-flex;align-items:center;gap:4px}
+        .btn-sm.accept{background:rgba(34,197,94,.15);color:#4ade80}
+        .btn-sm.accept:hover{background:rgba(34,197,94,.25)}
+        .btn-sm.reject{background:rgba(239,68,68,.15);color:#f87171}
+        .btn-sm.reject:hover{background:rgba(239,68,68,.25)}
+        .btn-sm.edit{background:rgba(59,130,246,.15);color:#60a5fa}
+        .btn-sm.edit:hover{background:rgba(59,130,246,.25)}
+        .btn-sm.warn{background:rgba(234,179,8,.15);color:#facc15}
+        .btn-sm.warn:hover{background:rgba(234,179,8,.25)}
+
+        /* ═══════ Input ═══════ */
+        .input-field{background:rgba(42,42,42,.6);border:1px solid rgba(89,65,56,.25);border-radius:12px;padding:10px 14px;color:#e5e2e1;font-size:13px;width:100%;outline:none;transition:all .3s;font-family:'Tajawal',sans-serif}
+        .input-field:focus{border-color:#f26522;box-shadow:0 0 0 3px rgba(242,101,34,.1)}
+        .input-field::placeholder{color:#7a7570}
+
+        /* ═══════ Modal ═══════ */
+        .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);z-index:100;display:none;align-items:center;justify-content:center;padding:16px}
+        .modal-bg.active{display:flex;animation:fadeIn .3s ease}
+        .modal-box{background:#1a1a1a;border:1px solid rgba(89,65,56,.3);border-radius:20px;width:100%;max-width:520px;max-height:90dvh;overflow-y:auto;animation:fadeInUp .4s cubic-bezier(.4,0,.2,1)}
+
+        /* ═══════ Toast ═══════ */
+        .toast{position:fixed;top:24px;left:50%;transform:translateX(-50%) translateY(-100px);z-index:9999;padding:14px 28px;border-radius:14px;font-weight:700;font-size:14px;opacity:0;transition:all .5s cubic-bezier(.68,-.55,.265,1.55);display:flex;align-items:center;gap:10px;backdrop-filter:blur(12px);max-width:90vw;color:white}
+        .toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+        .toast.success{background:rgba(34,197,94,.2);border:1px solid rgba(34,197,94,.4)}
+        .toast.error{background:rgba(239,68,68,.2);border:1px solid rgba(239,68,68,.4)}
+        .toast.info{background:rgba(59,130,246,.2);border:1px solid rgba(59,130,246,.4)}
+
+        /* ═══════ Scrollbar ═══════ */
+        ::-webkit-scrollbar{width:4px;height:4px}
+        ::-webkit-scrollbar-track{background:transparent}
+        ::-webkit-scrollbar-thumb{background:#474746;border-radius:4px}
+
+        /* ═══════ Responsive ═══════ */
+        @media(max-width:900px){
+            .admin-nav{display:none}
+            .mobile-nav{display:flex!important}
+        }
+        @media(min-width:901px){
+            .mobile-nav{display:none!important}
+        }
+    </style>
+</head>
+<body>
+<div class="app-bg"></div>
+<div id="toastEl" class="toast"></div>
+
+<div class="relative z-10 flex" style="min-height:100dvh">
+
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- SIDEBAR NAV -->
+    <!-- ═══════════════════════════════════════════ -->
+    <nav class="admin-nav glass">
+        <div class="p-4 border-b border-[#594138]/15">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-[#f26522] to-[#e85d1c] flex items-center justify-center">
+                    <span class="material-symbols-outlined text-white text-[20px]" style="font-variation-settings:'FILL' 1">admin_panel_settings</span>
+                </div>
+                <div>
+                    <h2 class="font-extrabold text-sm text-[#f26522]">لوحة الإدارة</h2>
+                    <p class="text-[10px] text-[#7a7570]">لو بوك — لوحة التحكم</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex-1 py-3">
+            <div class="nav-item active" onclick="switchSection('overview',this)" data-section="overview">
+                <span class="material-symbols-outlined text-[20px]">dashboard</span>نظرة عامة
+            </div>
+            <div class="nav-item" onclick="switchSection('users',this)" data-section="users">
+                <span class="material-symbols-outlined text-[20px]">people</span>المستخدمون
+                <span class="nav-badge bg-blue-500/15 text-blue-400">1,247</span>
+            </div>
+            <div class="nav-item" onclick="switchSection('posts',this)" data-section="posts">
+                <span class="material-symbols-outlined text-[20px]">article</span>المنشورات
+                <span class="nav-badge bg-green-500/15 text-green-400">89</span>
+            </div>
+            <div class="nav-item" onclick="switchSection('reports',this)" data-section="reports">
+                <span class="material-symbols-outlined text-[20px]">flag</span>البلاغات
+                <span class="nav-badge bg-red-500/15 text-red-400">23</span>
+            </div>
+            <div class="nav-item" onclick="switchSection('ads',this)" data-section="ads">
+                <span class="material-symbols-outlined text-[20px]">campaign</span>الإعلانات
+            </div>
+            <div class="nav-item" onclick="switchSection('analytics',this)" data-section="analytics">
+                <span class="material-symbols-outlined text-[20px]">analytics</span>الإحصائيات
+            </div>
+        </div>
+
+        <div class="p-4 border-t border-[#594138]/15">
+            <div class="flex items-center gap-3">
+                <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=40&h=40&fit=crop&crop=face" class="w-9 h-9 rounded-full object-cover"/>
+                <div class="flex-1 min-w-0">
+                    <p class="font-bold text-xs truncate">عبدالملك بن محمد</p>
+                    <p class="text-[10px] text-[#f26522]">مدير عام</p>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- MOBILE NAV -->
+    <!-- ═══════════════════════════════════════════ -->
+    <div class="mobile-nav fixed bottom-0 left-0 right-0 z-50 glass border-t border-[#594138]/20 px-2 py-2 justify-around" style="display:none">
+        <button class="flex flex-col items-center gap-0.5 p-2 rounded-xl text-[#f26522]" onclick="switchSection('overview')"><span class="material-symbols-outlined text-[20px]">dashboard</span><span class="text-[9px] font-bold">عامة</span></button>
+        <button class="flex flex-col items-center gap-0.5 p-2 rounded-xl text-[#7a7570]" onclick="switchSection('users')"><span class="material-symbols-outlined text-[20px]">people</span><span class="text-[9px]">مستخدمون</span></button>
+        <button class="flex flex-col items-center gap-0.5 p-2 rounded-xl text-[#7a7570]" onclick="switchSection('posts')"><span class="material-symbols-outlined text-[20px]">article</span><span class="text-[9px]">منشورات</span></button>
+        <button class="flex flex-col items-center gap-0.5 p-2 rounded-xl text-[#7a7570]" onclick="switchSection('reports')"><span class="material-symbols-outlined text-[20px]">flag</span><span class="text-[9px]">بلاغات</span></button>
+        <button class="flex flex-col items-center gap-0.5 p-2 rounded-xl text-[#7a7570]" onclick="switchSection('analytics')"><span class="material-symbols-outlined text-[20px]">analytics</span><span class="text-[9px]">إحصائيات</span></button>
+    </div>
+
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- MAIN CONTENT -->
+    <!-- ═══════════════════════════════════════════ -->
+    <main class="flex-1 min-w-0 overflow-y-auto" style="max-height:100dvh" id="mainContent">
+        <div class="max-w-5xl mx-auto p-6 pb-24" id="contentArea">
+            <!-- Rendered dynamically -->
+        </div>
+    </main>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- MODAL (shared) -->
+<!-- ═══════════════════════════════════════════ -->
+<div id="modal" class="modal-bg" onclick="if(event.target===this)closeModal()">
+    <div class="modal-box" id="modalContent"></div>
+</div>
+
+<script>
+const DB={get(k){try{return JSON.parse(localStorage.getItem('lb_'+k))}catch{return null}},set(k,v){localStorage.setItem('lb_'+k,JSON.stringify(v))}};
+function esc(t){const d=document.createElement('div');d.appendChild(document.createTextNode(t));return d.innerHTML}
+function genId(){return 'ad_'+Date.now()+'_'+Math.random().toString(36).substr(2,6)}
+function ago(m){return new Date(Date.now()-m*60000).toISOString()}
+function formatNum(n){if(n>=1000000)return(n/1000000).toFixed(1)+'M';if(n>=1000)return(n/1000).toFixed(1)+'K';return n.toString()}
+function formatTimeAgo(iso){const d=Math.floor((Date.now()-new Date(iso).getTime())/1000);if(d<60)return'الآن';if(d<3600)return'منذ '+Math.floor(d/60)+' د';if(d<86400)return'منذ '+Math.floor(d/3600)+' س';return new Date(iso).toLocaleDateString('ar-SA',{month:'short',day:'numeric'})}
+
+// ═══════════════════════════════════════════
+// DATA
+// ═══════════════════════════════════════════
+const USERS = [
+    {id:'u1',name:'د. نورة القحطاني',username:'nora_q',avatar:'https://i.pravatar.cc/60?img=5',email:'nora@email.com',verified:true,status:'active',posts:45,followers:12400,joined:ago(100000)},
+    {id:'u2',name:'أ. فهد العتيبي',username:'fahad_o',avatar:'https://i.pravatar.cc/60?img=12',email:'fahad@email.com',verified:true,status:'active',posts:67,followers:8900,joined:ago(90000)},
+    {id:'u3',name:'المكتبة القانونية',username:'law_library',avatar:'https://i.pravatar.cc/60?img=22',email:'lib@email.com',verified:true,status:'active',posts:234,followers:45600,joined:ago(120000)},
+    {id:'u4',name:'أ. سارة المنصور',username:'sarah_m',avatar:'https://i.pravatar.cc/60?img=9',email:'sarah@email.com',verified:false,status:'active',posts:23,followers:3200,joined:ago(50000)},
+    {id:'u5',name:'د. خالد الشمري',username:'khalid_s',avatar:'https://i.pravatar.cc/60?img=15',email:'khalid@email.com',verified:true,status:'active',posts:89,followers:18700,joined:ago(80000)},
+    {id:'u6',name:'أحمد البقمي',username:'ahmed_b',avatar:'https://i.pravatar.cc/60?img=51',email:'ahmed@email.com',verified:false,status:'disabled',posts:5,followers:890,joined:ago(20000)},
+    {id:'u7',name:'منى الحربي',username:'mona_h',avatar:'https://i.pravatar.cc/60?img=44',email:'mona@email.com',verified:false,status:'active',posts:34,followers:4100,joined:ago(30000)},
+    {id:'u8',name:'مؤسسة العدالة',username:'adala_org',avatar:'https://i.pravatar.cc/60?img=60',email:'info@adala.org',verified:true,status:'active',posts:156,followers:15800,joined:ago(110000)},
+    {id:'u9',name:'حساب وهمي',username:'fake_acc',avatar:'https://i.pravatar.cc/60?img=62',email:'fake@spam.com',verified:false,status:'disabled',posts:0,followers:2,joined:ago(5000)},
+    {id:'u10',name:'محمد السالم',username:'m_salem',avatar:'https://i.pravatar.cc/60?img=53',email:'msalem@email.com',verified:false,status:'active',posts:12,followers:2100,joined:ago(15000)}
+];
+
+const POSTS = [
+    {id:'p1',author:USERS[0],text:'نصيحة قانونية: عند توقيع أي عقد تجاري، تأكد من وجود بند التحكيم.',likes:2340,comments:189,views:12000,time:ago(120),status:'published',pinned:true,reported:false},
+    {id:'p2',author:USERS[1],text:'المحكمة العليا أصدرت قراراً جديداً لصالح حقوق المستهلك.',likes:5670,comments:432,views:34000,time:ago(300),status:'published',pinned:false,reported:false},
+    {id:'p3',author:USERS[2],text:'📚 أفضل 5 كتب للمبتدئين في القانون التجاري.',likes:8920,comments:567,views:56000,time:ago(600),status:'published',pinned:false,reported:false},
+    {id:'p4',author:USERS[4],text:'بحث جديد حول التحكيم الرقمي — ملخص مهم.',likes:4210,comments:198,views:23000,time:ago(450),status:'published',pinned:false,reported:false},
+    {id:'p5',author:USERS[9],text:'محتوى مشبوه يحتوي على روابط خارجية مشبوهة. تم الإبلاغ عنه.',likes:3,comments:0,views:45,time:ago(60),status:'under_review',pinned:false,reported:true},
+    {id:'p6',author:USERS[5],text:'منشور يحتوي على معلومات قانونية غير دقيقة.',likes:12,comments:8,views:230,time:ago(200),status:'under_review',pinned:false,reported:true},
+    {id:'p7',author:USERS[3],text:'كيف تحمي نفسك قانونياً عند تأسيس شركتك؟',likes:3450,comments:234,views:18000,time:ago(180),status:'published',pinned:false,reported:false},
+    {id:'p8',author:USERS[7],text:'إعلان: دورة جديدة في أساسيات القانون التجاري.',likes:2100,comments:178,views:9800,time:ago(50),status:'published',pinned:false,reported:false}
+];
+
+const REPORTS = [
+    {id:'r1',type:'spam',severity:'high',status:'pending',reporter:USERS[1],target:USERS[9],post:POSTS[4],reason:'محتوى سبام مع روابط مشبوهة',time:ago(30)},
+    {id:'r2',type:'harassment',severity:'high',status:'pending',reporter:USERS[3],target:USERS[5],post:null,reason:'رسائل مضايقة متكررة',time:ago(60)},
+    {id:'r3',type:'misinformation',severity:'medium',status:'pending',reporter:USERS[0],target:USERS[5],post:POSTS[5],reason:'معلومات قانونية غير صحيحة قد تضر بالجمهور',time:ago(120)},
+    {id:'r4',type:'inappropriate',severity:'medium',status:'resolved',reporter:USERS[4],target:USERS[6],post:null,reason:'صورة مخالفة لسياسات المجتمع',time:ago(300)},
+    {id:'r5',type:'spam',severity:'low',status:'resolved',reporter:USERS[2],target:USERS[9],post:null,reason:'نشر تعليقات متكررة',time:ago(500)},
+    {id:'r6',type:'copyright',severity:'medium',status:'pending',reporter:USERS[7],target:USERS[8],post:null,reason:'نسخ محتوى محمي بحقوق الطبع',time:ago(200)},
+    {id:'r7',type:'harassment',severity:'high',status:'pending',reporter:USERS[6],target:USERS[8],post:null,reason:'تهديدات وعبارات مسيئة',time:ago(45)}
+];
+
+const ADS = [
+    {id:'a1',title:'دورة المحاماة المتقدمة',advertiser:'أكاديمية القانون',image:null,budget:5000,spent:3200,impressions:45000,clicks:2300,ctr:5.1,status:'active',startDate:ago(2000),endDate:ago(-2000)},
+    {id:'a2',title:'استشارة قانونية مجانية',advertiser:'مكتب الراجحي',image:null,budget:3000,spent:3000,impressions:32000,clicks:1800,ctr:5.6,status:'completed',startDate:ago(5000),endDate:ago(500)},
+    {id:'a3',title:'تطبيق المحامي الذكي',advertiser:'شركة تقنية',image:null,budget:8000,spent:1200,impressions:12000,clicks:450,ctr:3.8,status:'active',startDate:ago(500),endDate:ago(-5000)}
+];
+
+const ANALYTICS = {
+    totalUsers:1247,newUsersToday:34,activeUsers:892,
+    totalPosts:8923,postsToday:156,postsThisWeek:890,
+    totalReports:23,pendingReports:5,
+    userGrowth:[450,520,580,640,720,810,890,950,1020,1080,1150,1247],
+    dailyPosts:[45,67,56,89,78,92,156,68,73,85,91,103,120,134,142,156],
+    topCategories:[{name:'قانون تجاري',pct:35,color:'#f26522'},{name:'قانون مدني',pct:25,color:'#3b82f6'},{name:'قانون أسرة',pct:18,color:'#22c55e'},{name:'قانون عمل',pct:12,color:'#a855f7'},{name:'أخرى',pct:10,color:'#7a7570'}],
+    engagement:[3.2,3.5,3.8,4.1,3.9,4.3,4.5,4.2,4.6,4.8,4.4,4.7],
+    peakHours:[{h:'6ص',v:15},{h:'8ص',v:35},{h:'10ص',v:65},{h:'12ظ',v:85},{h:'2ظ',v:70},{h:'4م',v:55},{h:'6م',v:75},{h:'8م',v:95},{h:'10م',v:100},{h:'12ص',v:40}]
+};
+
+// ═══════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════
+let currentSection = 'overview';
+let reportFilter = 'all';
+let postFilter = 'all';
+let userSearch = '';
+
+function switchSection(section, navBtn){
+    currentSection = section;
+
+    // Desktop nav highlight
+    document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+    const btn = navBtn || document.querySelector(`.nav-item[data-section="${section}"]`);
+    if(btn) btn.classList.add('active');
+
+    render();
+}
+
+function render(){
+    const area = document.getElementById('contentArea');
+    switch(currentSection){
+        case 'overview': renderOverview(area); break;
+        case 'users': renderUsers(area); break;
+        case 'posts': renderPosts(area); break;
+        case 'reports': renderReports(area); break;
+        case 'ads': renderAds(area); break;
+        case 'analytics': renderAnalytics(area); break;
+    }
+}
+
+// ═══════════════════════════════════════════
+// OVERVIEW
+// ═══════════════════════════════════════════
+function renderOverview(area){
+    const maxGrowth = Math.max(...ANALYTICS.userGrowth);
+    const maxDaily = Math.max(...ANALYTICS.dailyPosts);
+    const months = ['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+
+    area.innerHTML = `
+    <div class="flex items-center justify-between mb-6 anim-fade">
+        <div>
+            <h1 class="text-2xl font-extrabold">مرحباً عبدالملك 👋</h1>
+            <p class="text-sm text-[#7a7570] mt-1">إليك ملخص المنصة لهذا اليوم</p>
+        </div>
+        <span class="text-xs text-[#7a7570]">${new Date().toLocaleDateString('ar-SA',{weekday:'long',year:'numeric',month:'long',day:'numeric'})}</span>
+    </div>
+
+    <!-- Stat Cards -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <div class="stat-card anim-fadeUp" style="animation-delay:0s">
+            <div class="stat-icon" style="background:rgba(242,101,34,.12)"><span class="material-symbols-outlined text-[#f26522] text-[22px]" style="font-variation-settings:'FILL' 1">people</span></div>
+            <p class="text-2xl font-extrabold text-[#f26522] anim-count">${formatNum(ANALYTICS.totalUsers)}</p>
+            <p class="text-xs text-[#7a7570] mt-1">إجمالي المستخدمين</p>
+            <p class="text-[10px] text-green-400 mt-2 flex items-center gap-1"><span class="material-symbols-outlined text-[12px]">trending_up</span>+${ANALYTICS.newUsersToday} اليوم</p>
+        </div>
+        <div class="stat-card anim-fadeUp" style="animation-delay:.1s">
+            <div class="stat-icon" style="background:rgba(59,130,246,.12)"><span class="material-symbols-outlined text-blue-400 text-[22px]" style="font-variation-settings:'FILL' 1">article</span></div>
+            <p class="text-2xl font-extrabold text-blue-400 anim-count">${ANALYTICS.postsToday}</p>
+            <p class="text-xs text-[#7a7570] mt-1">منشورات اليوم</p>
+            <p class="text-[10px] text-[#7a7570] mt-2">إجمالي: ${formatNum(ANALYTICS.totalPosts)}</p>
+        </div>
+        <div class="stat-card anim-fadeUp" style="animation-delay:.2s">
+            <div class="stat-icon" style="background:rgba(34,197,94,.12)"><span class="material-symbols-outlined text-green-400 text-[22px]" style="font-variation-settings:'FILL' 1">person</span></div>
+            <p class="text-2xl font-extrabold text-green-400 anim-count">${formatNum(ANALYTICS.activeUsers)}</p>
+            <p class="text-xs text-[#7a7570] mt-1">مستخدم نشط</p>
+            <p class="text-[10px] text-green-400 mt-2">${Math.round(ANALYTICS.activeUsers/ANALYTICS.totalUsers*100)}% من الإجمالي</p>
+        </div>
+        <div class="stat-card anim-fadeUp" style="animation-delay:.3s">
+            <div class="stat-icon" style="background:rgba(239,68,68,.12)"><span class="material-symbols-outlined text-red-400 text-[22px]" style="font-variation-settings:'FILL' 1">flag</span></div>
+            <p class="text-2xl font-extrabold text-red-400 anim-count">${ANALYTICS.pendingReports}</p>
+            <p class="text-xs text-[#7a7570] mt-1">بلاغات معلقة</p>
+            <p class="text-[10px] text-red-400 mt-2 cursor-pointer hover:underline" onclick="switchSection('reports')">عرض الكل ←</p>
+        </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
+        <!-- User Growth Chart -->
+        <div class="bg-[#1a1a1a] rounded-2xl p-5 border border-[#594138]/15 anim-fadeUp" style="animation-delay:.4s">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="font-bold text-sm flex items-center gap-2"><span class="material-symbols-outlined text-green-400 text-[18px]" style="font-variation-settings:'FILL' 1">group_add</span>نمو المستخدمين</h3>
+                <span class="text-[10px] text-green-400 font-bold">+${Math.round((ANALYTICS.userGrowth[11]-ANALYTICS.userGrowth[0])/ANALYTICS.userGrowth[0]*100)}% هذا العام</span>
+            </div>
+            <div class="bar-chart">
+                ${ANALYTICS.userGrowth.map((v,i)=>{const h=Math.round((v/maxGrowth)*110);return `<div class="bar-col"><div class="bar" style="height:${h}px;background:${i%2===0?'rgba(242,101,34,.7)':'rgba(242,101,34,.35)'}"></div><span class="bar-label">${months[i].substring(0,3)}</span></div>`}).join('')}
+            </div>
+        </div>
+
+        <!-- Daily Posts Chart -->
+        <div class="bg-[#1a1a1a] rounded-2xl p-5 border border-[#594138]/15 anim-fadeUp" style="animation-delay:.5s">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="font-bold text-sm flex items-center gap-2"><span class="material-symbols-outlined text-blue-400 text-[18px]" style="font-variation-settings:'FILL' 1">bar_chart</span>المنشورات اليومية</h3>
+                <span class="text-[10px] text-blue-400 font-bold">متوسط: ${Math.round(ANALYTICS.dailyPosts.reduce((a,b)=>a+b)/ANALYTICS.dailyPosts.length)}</span>
+            </div>
+            <div class="bar-chart">
+                ${ANALYTICS.dailyPosts.map((v,i)=>{const h=Math.round((v/maxDaily)*110);return `<div class="bar-col"><div class="bar" style="height:${h}px;background:${i%2===0?'rgba(59,130,246,.7)':'rgba(59,130,246,.35)'}"></div><span class="bar-label">${i+1}</span></div>`}).join('')}
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom Row -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <!-- Categories Donut -->
+        <div class="bg-[#1a1a1a] rounded-2xl p-5 border border-[#594138]/15 anim-fadeUp" style="animation-delay:.6s">
+            <h3 class="font-bold text-sm mb-4 flex items-center gap-2"><span class="material-symbols-outlined text-purple-400 text-[18px]" style="font-variation-settings:'FILL' 1">donut_large</span>أقسام المحتوى</h3>
+            <div class="flex items-center gap-6">
+                <div class="donut-chart">
+                    <svg viewBox="0 0 100 100"><circle class="donut-bg" cx="50" cy="50" r="42"/>
+                        ${(()=>{
+                            let offset=0;
+                            const circ=2*Math.PI*42;
+                            return ANALYTICS.topCategories.map(c=>{
+                                const len=circ*(c.pct/100);
+                                const dash=circ-len;
+                                const o=offset;
+                                offset+=len;
+                                return `<circle cx="50" cy="50" r="42" fill="none" stroke="${c.color}" stroke-width="8" stroke-dasharray="${len} ${dash}" stroke-dashoffset="-${o}" style="transition:all 1s ease" transform="rotate(-90 50 50)"/>`;
+                            }).join('');
+                        })()}
+                    </svg>
+                    <div class="donut-center"><span class="text-lg font-extrabold">${ANALYTICS.totalPosts>1000?(ANALYTICS.totalPosts/1000).toFixed(1)+'K':ANALYTICS.totalPosts}</span><span class="text-[9px] text-[#7a7570]">منشور</span></div>
+                </div>
+                <div class="space-y-2 flex-1">
+                    ${ANALYTICS.topCategories.map(c=>`<div class="flex items-center gap-2"><div class="w-2.5 h-2.5 rounded-full shrink-0" style="background:${c.color}"></div><span class="text-xs flex-1 truncate">${c.name}</span><span class="text-xs font-bold" style="color:${c.color}">${c.pct}%</span></div>`).join('')}
+                </div>
+            </div>
+        </div>
+
+        <!-- Peak Hours -->
+        <div class="bg-[#1a1a1a] rounded-2xl p-5 border border-[#594138]/15 anim-fadeUp" style="animation-delay:.7s">
+            <h3 class="font-bold text-sm mb-4 flex items-center gap-2"><span class="material-symbols-outlined text-yellow-400 text-[18px]" style="font-variation-settings:'FILL' 1">schedule</span>ساعات الذروة</h3>
+            <div class="bar-chart" style="height:100px">
+                ${ANALYTICS.peakHours.map(h=>{const hh=Math.round(h.v);return `<div class="bar-col"><div class="bar" style="height:${hh}px;background:${h.v>80?'rgba(239,68,68,.6)':h.v>50?'rgba(234,179,8,.6)':'rgba(89,65,56,.4)'}"></div><span class="bar-label">${h.h}</span></div>`}).join('')}
+            </div>
+        </div>
+
+        <!-- Top Posts -->
+        <div class="bg-[#1a1a1a] rounded-2xl p-5 border border-[#594138]/15 anim-fadeUp" style="animation-delay:.8s">
+            <h3 class="font-bold text-sm mb-4 flex items-center gap-2"><span class="material-symbols-outlined text-[#f26522] text-[18px]" style="font-variation-settings:'FILL' 1">emoji_events</span>أكثر المنشورات تفاعلاً</h3>
+            <div class="space-y-3">
+                ${[...POSTS].filter(p=>p.status==='published').sort((a,b)=>b.likes-a.likes).slice(0,3).map((p,i)=>{
+                    const medals=['🥇','🥈','🥉'];
+                    return `<div class="flex items-center gap-3"><span class="text-lg">${medals[i]}</span><div class="flex-1 min-w-0"><p class="text-xs font-bold truncate">${esc(p.author.name)}</p><p class="text-[10px] text-[#7a7570] truncate">${esc(p.text.substring(0,40))}...</p></div><div class="text-right shrink-0"><p class="text-xs font-bold text-[#f26522]">${formatNum(p.likes)}</p><p class="text-[9px] text-[#7a7570]">إعجاب</p></div></div>`;
+                }).join('')}
+            </div>
+        </div>
+    </div>`;
+}
+
+// ═══════════════════════════════════════════
+// USERS MANAGEMENT
+// ═══════════════════════════════════════════
+function renderUsers(area){
+    const filtered = USERS.filter(u=>{
+        if(userSearch) return u.name.includes(userSearch)||u.username.includes(userSearch);
+        return true;
+    });
+
+    area.innerHTML = `
+    <div class="flex items-center justify-between mb-6 anim-fade">
+        <div>
+            <h1 class="text-xl font-extrabold">إدارة المستخدمين</h1>
+            <p class="text-sm text-[#7a7570] mt-1">${USERS.length} مستخدم مسجل</p>
+        </div>
+    </div>
+
+    <div class="flex gap-3 mb-4 anim-fade">
+        <div class="relative flex-1">
+            <span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-[#7a7570] text-[18px]">search</span>
+            <input type="text" class="input-field pr-10" placeholder="بحث عن مستخدم..." value="${userSearch}" oninput="userSearch=this.value;renderUsers(document.getElementById('contentArea'))"/>
+        </div>
+    </div>
+
+    <div class="bg-[#1a1a1a] rounded-2xl border border-[#594138]/15 overflow-x-auto anim-fadeUp">
+        <table class="data-table">
+            <thead>
+                <tr><th>المستخدم</th><th>البريد</th><th>المنشورات</th><th>المتابعين</th><th>الحالة</th><th>التوثيق</th><th>إجراءات</th></tr>
+            </thead>
+            <tbody>
+                ${filtered.map(u=>`
+                <tr>
+                    <td><div class="flex items-center gap-3"><img src="${u.avatar}" class="w-8 h-8 rounded-full object-cover"/><div><p class="font-bold text-xs">${esc(u.name)}</p><p class="text-[10px] text-[#7a7570]">@${esc(u.username)}</p></div></div></td>
+                    <td class="text-xs text-[#7a7570]">${esc(u.email)}</td>
+                    <td class="text-xs font-bold">${u.posts}</td>
+                    <td class="text-xs font-bold">${formatNum(u.followers)}</td>
+                    <td><span class="status-badge ${u.status==='active'?'status-active':'status-disabled'}">${u.status==='active'?'نشط':'معطّل'}</span></td>
+                    <td>${u.verified?'<span class="material-symbols-outlined text-blue-400 text-[18px]" style="font-variation-settings:FILL 1">verified</span>':'<span class="text-[10px] text-[#7a7570]">—</span>'}</td>
+                    <td>
+                        <div class="flex gap-1">
+                            ${u.status==='active'?`<button class="btn-sm warn" onclick="toggleUserStatus('${u.id}','disabled')"><span class="material-symbols-outlined text-[12px]">block</span>تعطيل</button>`:`<button class="btn-sm accept" onclick="toggleUserStatus('${u.id}','active')"><span class="material-symbols-outlined text-[12px]">check</span>تفعيل</button>`}
+                            ${!u.verified?`<button class="btn-sm edit" onclick="verifyUser('${u.id}')"><span class="material-symbols-outlined text-[12px]">verified</span>توثيق</button>`:`<button class="btn-sm reject" onclick="unverifyUser('${u.id}')"><span class="material-symbols-outlined text-[12px]">remove_moderator</span>إلغاء</button>`}
+                            <button class="btn-sm reject" onclick="deleteUser('${u.id}')"><span class="material-symbols-outlined text-[12px]">delete</span></button>
+                        </div>
+                    </td>
+                </tr>`).join('')}
+            </tbody>
+        </table>
+    </div>`;
+}
+
+function toggleUserStatus(uid, status){
+    const u=USERS.find(x=>x.id===uid);if(u){u.status=status;renderUsers(document.getElementById('contentArea'));showToast(status==='active'?'تم تفعيل الحساب':'تم تعطيل الحساب',status==='active'?'success':'error')}
+}
+function verifyUser(uid){const u=USERS.find(x=>x.id===uid);if(u){u.verified=true;renderUsers(document.getElementById('contentArea'));showToast('تم توثيق '+u.name,'success')}}
+function unverifyUser(uid){const u=USERS.find(x=>x.id===uid);if(u){u.verified=false;renderUsers(document.getElementById('contentArea'));showToast('تم إلغاء التوثيق','info')}}
+function deleteUser(uid){const idx=USERS.findIndex(x=>x.id===uid);if(idx>=0){const name=USERS[idx].name;USERS.splice(idx,1);renderUsers(document.getElementById('contentArea'));showToast('تم حذف '+name,'success')}}
+
+// ═══════════════════════════════════════════
+// POSTS MANAGEMENT
+// ═══════════════════════════════════════════
+function renderPosts(area){
+    const filtered = POSTS.filter(p=>postFilter==='all'||p.status===postFilter);
+
+    area.innerHTML = `
+    <div class="flex items-center justify-between mb-6 anim-fade">
+        <div>
+            <h1 class="text-xl font-extrabold">إدارة المنشورات</h1>
+            <p class="text-sm text-[#7a7570] mt-1">${POSTS.length} منشور</p>
+        </div>
+    </div>
+
+    <div class="tab-pills mb-4 anim-fade">
+        <button class="tab-pill ${postFilter==='all'?'active':''}" onclick="postFilter='all';renderPosts(document.getElementById('contentArea'))">الكل <span class="text-[10px] opacity-60">(${POSTS.length})</span></button>
+        <button class="tab-pill ${postFilter==='published'?'active':''}" onclick="postFilter='published';renderPosts(document.getElementById('contentArea'))">المنشورة <span class="text-[10px] opacity-60">(${POSTS.filter(p=>p.status==='published').length})</span></button>
+        <button class="tab-pill ${postFilter==='under_review'?'active':''}" onclick="postFilter='under_review';renderPosts(document.getElementById('contentArea'))">قيد المراجعة <span class="text-[10px] opacity-60">(${POSTS.filter(p=>p.status==='under_review').length})</span></button>
+    </div>
+
+    <div class="space-y-3">
+        ${filtered.map((p,idx)=>{
+            const delay=Math.min(idx*.06,.4);
+            return `
+            <div class="bg-[#1a1a1a] rounded-2xl p-4 border border-[#594138]/15 anim-fadeUp" style="animation-delay:${delay}s;opacity:0">
+                <div class="flex items-start gap-3">
+                    <img src="${p.author.avatar}" class="w-9 h-9 rounded-full object-cover shrink-0"/>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <span class="font-bold text-sm">${esc(p.author.name)}</span>
+                            <span class="text-[10px] text-[#7a7570]">${formatTimeAgo(p.time)}</span>
+                            <span class="status-badge ${p.status==='published'?'status-active':p.status==='under_review'?'status-pending':'status-disabled'}">${p.status==='published'?'منشور':'قيد المراجعة'}</span>
+                            ${p.pinned?'<span class="text-[10px] text-[#f26522] font-bold flex items-center gap-0.5"><span class="material-symbols-outlined text-[10px]" style="font-variation-settings:FILL 1">push_pin</span>مثبت</span>':''}
+                            ${p.reported?'<span class="text-[10px] text-red-400 font-bold flex items-center gap-0.5"><span class="material-symbols-outlined text-[10px]">flag</span>مُبلّغ عنه</span>':''}
+                        </div>
+                        <p class="text-sm text-[#e1bfb3] mt-2 leading-relaxed">${esc(p.text)}</p>
+                        <div class="flex items-center gap-4 mt-3 text-[10px] text-[#7a7570]">
+                            <span>❤️ ${formatNum(p.likes)}</span>
+                            <span>💬 ${formatNum(p.comments)}</span>
+                            <span>👁 ${formatNum(p.views)}</span>
+                        </div>
+                    </div>
+                    <div class="flex flex-col gap-1 shrink-0">
+                        ${p.status==='under_review'?`<button class="btn-sm accept" onclick="approvePost('${p.id}')">موافقة</button><button class="btn-sm reject" onclick="deletePost('${p.id}')">حذف</button>`:`<button class="btn-sm ${p.pinned?'warn':'edit'}" onclick="togglePin('${p.id}')">${p.pinned?'إلغاء التثبيت':'تثبيت'}</button><button class="btn-sm reject" onclick="deletePost('${p.id}')">حذف</button>`}
+                    </div>
+                </div>
+            </div>`;
+        }).join('')}
+    </div>`;
+}
+
+function approvePost(pid){const p=POSTS.find(x=>x.id===pid);if(p){p.status='published';p.reported=false;renderPosts(document.getElementById('contentArea'));showToast('تمت الموافقة على المنشور','success')}}
+function deletePost(pid){const idx=POSTS.findIndex(x=>x.id===pid);if(idx>=0){POSTS.splice(idx,1);renderPosts(document.getElementById('contentArea'));showToast('تم حذف المنشور','success')}}
+function togglePin(pid){const p=POSTS.find(x=>x.id===pid);if(p){p.pinned=!p.pinned;renderPosts(document.getElementById('contentArea'));showToast(p.pinned?'تم تثبيت المنشور':'تم إلغاء التثبيت','success')}}
+
+// ═══════════════════════════════════════════
+// REPORTS MANAGEMENT
+// ═══════════════════════════════════════════
+function renderReports(area){
+    const filtered = REPORTS.filter(r=>reportFilter==='all'||r.status===reportFilter);
+    const typeLabels={spam:'سبام',harassment:'مضايقة',misinformation:'معلومات خاطئة',inappropriate:'محتوى مخالف',copyright:'حقوق ملكية'};
+    const typeIcons={spam:'report',harassment:'sentiment_very_dissatisfied',misinformation:'fact_check',inappropriate:'explicit',copyright:'copyright'};
+    const sevColors={high:'#ef4444',medium:'#facc15',low:'#22c55e'};
+    const sevLabels={high:'عالي',medium:'متوسط',low:'منخفض'};
+
+    area.innerHTML = `
+    <div class="flex items-center justify-between mb-6 anim-fade">
+        <div>
+            <h1 class="text-xl font-extrabold">إدارة البلاغات</h1>
+            <p class="text-sm text-[#7a7570] mt-1">${REPORTS.length} بلاغ (${REPORTS.filter(r=>r.status==='pending').length} معلق)</p>
+        </div>
+    </div>
+
+    <div class="tab-pills mb-4 anim-fade">
+        <button class="tab-pill ${reportFilter==='all'?'active':''}" onclick="reportFilter='all';renderReports(document.getElementById('contentArea'))">الكل</button>
+        <button class="tab-pill ${reportFilter==='pending'?'active':''}" onclick="reportFilter='pending';renderReports(document.getElementById('contentArea'))">معلق <span class="text-red-400">(${REPORTS.filter(r=>r.status==='pending').length})</span></button>
+        <button class="tab-pill ${reportFilter==='resolved'?'active':''}" onclick="reportFilter='resolved';renderReports(document.getElementById('contentArea'))">محلول</button>
+    </div>
+
+    <div class="space-y-3">
+        ${filtered.map((r,idx)=>{
+            const delay=Math.min(idx*.06,.4);
+            return `
+            <div class="bg-[#1a1a1a] rounded-2xl p-4 border border-[#594138]/15 anim-fadeUp" style="animation-delay:${delay}s;opacity:0;${r.status==='resolved'?'opacity:.6':''}">
+                <div class="flex items-start gap-3">
+                    <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style="background:${sevColors[r.severity]}15">
+                        <span class="material-symbols-outlined text-[20px]" style="color:${sevColors[r.severity]}">${typeIcons[r.type]}</span>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center gap-2 flex-wrap mb-1">
+                            <span class="font-bold text-sm">${typeLabels[r.type]}</span>
+                            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full" style="background:${sevColors[r.severity]}15;color:${sevColors[r.severity]}">${sevLabels[r.severity]}</span>
+                            <span class="status-badge ${r.status==='pending'?'status-pending':'status-resolved'}">${r.status==='pending'?'معلق':'محلول'}</span>
+                            <span class="text-[10px] text-[#7a7570]">${formatTimeAgo(r.time)}</span>
+                        </div>
+                        <p class="text-sm text-[#e1bfb3] mb-2">${esc(r.reason)}</p>
+                        <div class="flex items-center gap-2 text-[10px] text-[#7a7570]">
+                            <span>المُبلّغ: <strong class="text-[#e1bfb3]">${esc(r.reporter.name)}</strong></span>
+                            <span>•</span>
+                            <span>ضد: <strong class="text-red-400">${esc(r.target.name)}</strong></span>
+                        </div>
+                    </div>
+                    ${r.status==='pending'?`
+                    <div class="flex flex-col gap-1 shrink-0">
+                        <button class="btn-sm accept" onclick="resolveReport('${r.id}')"><span class="material-symbols-outlined text-[12px]">check</span>حل</button>
+                        <button class="btn-sm reject" onclick="warnUser('${r.target.id}')"><span class="material-symbols-outlined text-[12px]">warning</span>تحذير</button>
+                        <button class="btn-sm reject" onclick="banReportedUser('${r.target.id}','${r.id}')"><span class="material-symbols-outlined text-[12px]">block</span>حظر</button>
+                    </div>`:`<span class="text-[10px] text-green-400 font-bold shrink-0">✓ تم الحل</span>`}
+                </div>
+            </div>`;
+        }).join('')}
+    </div>`;
+}
+
+function resolveReport(rid){const r=REPORTS.find(x=>x.id===rid);if(r){r.status='resolved';renderReports(document.getElementById('contentArea'));showToast('تم حل البلاغ','success')}}
+function warnUser(uid){showToast('تم إرسال تحذير للمستخدم','info')}
+function banReportedUser(uid,rid){const u=USERS.find(x=>x.id===uid);if(u){u.status='disabled'}resolveReport(rid);showToast('تم حظر المستخدم','error')}
+
+// ═══════════════════════════════════════════
+// ADS MANAGEMENT
+// ═══════════════════════════════════════════
+function renderAds(area){
+    area.innerHTML = `
+    <div class="flex items-center justify-between mb-6 anim-fade">
+        <div>
+            <h1 class="text-xl font-extrabold">إدارة الإعلانات</h1>
+            <p class="text-sm text-[#7a7570] mt-1">${ADS.length} إعلان</p>
+        </div>
+        <button class="btn-orange text-xs" onclick="openAdModal()"><span class="material-symbols-outlined text-[16px]">add</span>إعلان جديد</button>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
+        <div class="stat-card"><div class="stat-icon" style="background:rgba(242,101,34,.12)"><span class="material-symbols-outlined text-[#f26522] text-[22px]" style="font-variation-settings:'FILL' 1">campaign</span></div><p class="text-xl font-extrabold text-[#f26522]">${ADS.length}</p><p class="text-xs text-[#7a7570]">إجمالي الإعلانات</p></div>
+        <div class="stat-card"><div class="stat-icon" style="background:rgba(59,130,246,.12)"><span class="material-symbols-outlined text-blue-400 text-[22px]" style="font-variation-settings:'FILL' 1">visibility</span></p><p class="text-xl font-extrabold text-blue-400">${formatNum(ADS.reduce((s,a)=>s+a.impressions,0))}</p><p class="text-xs text-[#7a7570]">إجمالي المشاهدات</p></div>
+        <div class="stat-card"><div class="stat-icon" style="background:rgba(34,197,94,.12)"><span class="material-symbols-outlined text-green-400 text-[22px]" style="font-variation-settings:'FILL' 1">payments</span></div><p class="text-xl font-extrabold text-green-400">${formatNum(ADS.reduce((s,a)=>s+a.spent,0))} ر.س</p><p class="text-xs text-[#7a7570]">إجمالي الإنفاق</p></div>
+    </div>
+
+    <div class="space-y-3">
+        ${ADS.map((ad,idx)=>{
+            const delay=Math.min(idx*.08,.4);
+            const pct=Math.round(ad.spent/ad.budget*100);
+            return `
+            <div class="bg-[#1a1a1a] rounded-2xl p-5 border border-[#594138]/15 anim-fadeUp" style="animation-delay:${delay}s;opacity:0">
+                <div class="flex items-start justify-between mb-3">
+                    <div>
+                        <h3 class="font-bold text-sm">${esc(ad.title)}</h3>
+                        <p class="text-xs text-[#7a7570] mt-0.5">${esc(ad.advertiser)}</p>
+                    </div>
+                    <span class="status-badge ${ad.status==='active'?'status-active':'status-disabled'}">${ad.status==='active'?'نشط':'مكتمل'}</span>
+                </div>
+                <div class="grid grid-cols-4 gap-3 mb-3">
+                    <div class="text-center"><p class="text-sm font-extrabold text-blue-400">${formatNum(ad.impressions)}</p><p class="text-[9px] text-[#7a7570]">مشاهدات</p></div>
+                    <div class="text-center"><p class="text-sm font-extrabold text-green-400">${formatNum(ad.clicks)}</p><p class="text-[9px] text-[#7a7570]">نقرات</p></div>
+                    <div class="text-center"><p class="text-sm font-extrabold text-purple-400">${ad.ctr}%</p><p class="text-[9px] text-[#7a7570]">CTR</p></div>
+                    <div class="text-center"><p class="text-sm font-extrabold text-[#f26522]">${formatNum(ad.spent)}/${formatNum(ad.budget)}</p><p class="text-[9px] text-[#7a7570]">الميزانية</p></div>
+                </div>
+                <div class="h-2 bg-[#353534] rounded-full overflow-hidden mb-3"><div class="h-full rounded-full transition-all" style="width:${pct}%;background:${pct>90?'#ef4444':'#f26522'}"></div></div>
+                <div class="flex gap-2">
+                    <button class="btn-sm edit" onclick="showToast('تعديل الإعلان','info')"><span class="material-symbols-outlined text-[12px]">edit</span>تعديل</button>
+                    <button class="btn-sm reject" onclick="deleteAd('${ad.id}')"><span class="material-symbols-outlined text-[12px]">delete</span>حذف</button>
+                </div>
+            </div>`;
+        }).join('')}
+    </div>`;
+}
+
+function deleteAd(aid){const idx=ADS.findIndex(x=>x.id===aid);if(idx>=0){ADS.splice(idx,1);renderAds(document.getElementById('contentArea'));showToast('تم حذف الإعلان','success')}}
+function openAdModal(){
+    const modal=document.getElementById('modal');
+    document.getElementById('modalContent').innerHTML=`
+    <div class="p-5 border-b border-[#594138]/20 flex items-center justify-between">
+        <h3 class="text-lg font-extrabold text-[#f26522] flex items-center gap-2"><span class="material-symbols-outlined text-[22px]">campaign</span>إعلان جديد</h3>
+        <button onclick="closeModal()" class="p-2 rounded-full hover:bg-white/5"><span class="material-symbols-outlined text-[#7a7570]">close</span></button>
+    </div>
+    <div class="p-5 space-y-4">
+        <div><label class="text-sm font-semibold text-[#e1bfb3] mb-2 block">عنوان الإعلان</label><input type="text" id="adTitle" class="input-field" placeholder="مثال: دورة تدريبية"/></div>
+        <div><label class="text-sm font-semibold text-[#e1bfb3] mb-2 block">المعلن</label><input type="text" id="adAdvertiser" class="input-field" placeholder="اسم الشركة أو المعلن"/></div>
+        <div class="grid grid-cols-2 gap-3">
+            <div><label class="text-sm font-semibold text-[#e1bfb3] mb-2 block">الميزانية (ر.س)</label><input type="number" id="adBudget" class="input-field" placeholder="5000"/></div>
+            <div><label class="text-sm font-semibold text-[#e1bfb3] mb-2 block">المدة (أيام)</label><input type="number" id="adDuration" class="input-field" placeholder="30"/></div>
+        </div>
+        <button onclick="createAd()" class="btn-orange w-full justify-center"><span class="material-symbols-outlined text-[16px]">add</span>إنشاء الإعلان</button>
+    </div>`;
+    modal.classList.add('active');
+}
+
+function createAd(){
+    const title=document.getElementById('adTitle').value.trim();
+    if(!title){showToast('أدخل عنوان الإعلان','error');return}
+    ADS.push({id:genId(),title,advertiser:document.getElementById('adAdvertiser').value.trim()||'معلن',image:null,budget:parseInt(document.getElementById('adBudget').value)||5000,spent:0,impressions:0,clicks:0,ctr:0,status:'active',startDate:new Date().toISOString(),endDate:ago(-30*1440)});
+    closeModal();renderAds(document.getElementById('contentArea'));showToast('تم إنشاء الإعلان','success');
+}
+
+// ═══════════════════════════════════════════
+// FULL ANALYTICS
+// ═══════════════════════════════════════════
+function renderAnalytics(area){
+    const months=['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+    const maxG=Math.max(...ANALYTICS.userGrowth);
+    const maxD=Math.max(...ANALYTICS.dailyPosts);
+    const maxE=Math.max(...ANALYTICS.engagement);
+
+    area.innerHTML=`
+    <div class="flex items-center justify-between mb-6 anim-fade">
+        <div><h1 class="text-xl font-extrabold">الإحصائيات التفصيلية</h1><p class="text-sm text-[#7a7570] mt-1">تحليل شامل لأداء المنصة</p></div>
+    </div>
+
+    <!-- KPI Cards -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <div class="stat-card anim-fadeUp" style="animation-delay:0s"><p class="text-2xl font-extrabold text-[#f26522]">${formatNum(ANALYTICS.totalUsers)}</p><p class="text-xs text-[#7a7570]">إجمالي المستخدمين</p><p class="text-[10px] text-green-400 mt-1">+${Math.round((ANALYTICS.userGrowth[11]-ANALYTICS.userGrowth[10])/ANALYTICS.userGrowth[10]*100)}% هذا الشهر</p></div>
+        <div class="stat-card anim-fadeUp" style="animation-delay:.1s"><p class="text-2xl font-extrabold text-blue-400">${formatNum(ANALYTICS.totalPosts)}</p><p class="text-xs text-[#7a7570]">إجمالي المنشورات</p><p class="text-[10px] text-blue-400 mt-1">${ANALYTICS.postsThisWeek} هذا الأسبوع</p></div>
+        <div class="stat-card anim-fadeUp" style="animation-delay:.2s"><p class="text-2xl font-extrabold text-green-400">${formatNum(ANALYTICS.activeUsers)}</p><p class="text-xs text-[#7a7570]">مستخدم نشط</p><p class="text-[10px] text-green-400 mt-1">${Math.round(ANALYTICS.activeUsers/ANALYTICS.totalUsers*100)}% معدل النشاط</p></div>
+        <div class="stat-card anim-fadeUp" style="animation-delay:.3s"><p class="text-2xl font-extrabold text-purple-400">${(ANALYTICS.engagement[ANALYTICS.engagement.length-1]).toFixed(1)}%</p><p class="text-xs text-[#7a7570]">معدل التفاعل</p><p class="text-[10px] text-green-400 mt-1">▲ تحسن مستمر</p></div>
+    </div>
+
+    <!-- User Growth (detailed) -->
+    <div class="bg-[#1a1a1a] rounded-2xl p-5 border border-[#594138]/15 mb-6 anim-fadeUp" style="animation-delay:.4s">
+        <h3 class="font-bold text-sm mb-4">نمو المستخدمين الشهري</h3>
+        <div class="bar-chart" style="height:150px">
+            ${ANALYTICS.userGrowth.map((v,i)=>{const h=Math.round((v/maxG)*140);return `<div class="bar-col"><div class="bar" style="height:${h}px;background:linear-gradient(to top,rgba(242,101,34,.4),rgba(242,101,34,.8))"></div><span class="bar-label">${months[i].substring(0,3)}</span></div>`}).join('')}
+        </div>
+        <div class="flex justify-between mt-3 text-[10px] text-[#7a7570]"><span>يناير: ${ANALYTICS.userGrowth[0]}</span><span>ديسمبر: ${ANALYTICS.userGrowth[11]}</span></div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        <!-- Daily Posts (detailed) -->
+        <div class="bg-[#1a1a1a] rounded-2xl p-5 border border-[#594138]/15 anim-fadeUp" style="animation-delay:.5s">
+            <h3 class="font-bold text-sm mb-4">المنشورات — آخر 16 يوم</h3>
+            <div class="bar-chart" style="height:130px">
+                ${ANALYTICS.dailyPosts.map((v,i)=>{const h=Math.round((v/maxD)*120);return `<div class="bar-col"><div class="bar" style="height:${h}px;background:linear-gradient(to top,rgba(59,130,246,.4),rgba(59,130,246,.8))"></div><span class="bar-label">${i+1}</span></div>`}).join('')}
+            </div>
+        </div>
+
+        <!-- Engagement Trend -->
+        <div class="bg-[#1a1a1a] rounded-2xl p-5 border border-[#594138]/15 anim-fadeUp" style="animation-delay:.6s">
+            <h3 class="font-bold text-sm mb-4">معدل التفاعل الشهري</h3>
+            <div class="bar-chart" style="height:130px">
+                ${ANALYTICS.engagement.map((v,i)=>{const h=Math.round((v/maxE)*120);return `<div class="bar-col"><div class="bar" style="height:${h}px;background:linear-gradient(to top,rgba(34,197,94,.4),rgba(34,197,94,.8))"></div><span class="bar-label">${months[i].substring(0,3)}</span></div>`}).join('')}
+            </div>
+        </div>
+    </div>
+
+    <!-- Category + Peak Hours -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="bg-[#1a1a1a] rounded-2xl p-5 border border-[#594138]/15 anim-fadeUp" style="animation-delay:.7s">
+            <h3 class="font-bold text-sm mb-4">توزيع الأقسام</h3>
+            ${ANALYTICS.topCategories.map(c=>`<div class="mb-3"><div class="flex items-center justify-between mb-1"><span class="text-xs">${c.name}</span><span class="text-xs font-bold" style="color:${c.color}">${c.pct}%</span></div><div class="h-2 bg-[#353534] rounded-full overflow-hidden"><div class="h-full rounded-full" style="width:${c.pct}%;background:${c.color};animation:slideBar .8s ease forwards;--w:${c.pct}%"></div></div></div>`).join('')}
+        </div>
+
+        <div class="bg-[#1a1a1a] rounded-2xl p-5 border border-[#594138]/15 anim-fadeUp" style="animation-delay:.8s">
+            <h3 class="font-bold text-sm mb-4">ساعات الذروة</h3>
+            <div class="bar-chart" style="height:120px">
+                ${ANALYTICS.peakHours.map(h=>`<div class="bar-col"><div class="bar" style="height:${h.v}px;background:${h.v>80?'rgba(239,68,68,.7)':h.v>50?'rgba(234,179,8,.7)':'rgba(89,65,56,.4)'}"></div><span class="bar-label">${h.h}</span></div>`).join('')}
+            </div>
+            <p class="text-[10px] text-[#7a7570] mt-2 text-center">أعلى نشاط: 10 مساءً</p>
+        </div>
+    </div>`;
+}
+
+// ═══════════════════════════════════════════
+// MODAL
+// ═══════════════════════════════════════════
+function closeModal(){document.getElementById('modal').classList.remove('active')}
+
+// ═══════════════════════════════════════════
+// TOAST
+// ═══════════════════════════════════════════
+function showToast(msg,type='info'){
+    const t=document.getElementById('toastEl');
+    const icons={success:'check_circle',error:'error',info:'info'};
+    t.className='toast '+type;
+    t.innerHTML=`<span class="material-symbols-outlined text-[20px]">${icons[type]}</span> ${msg}`;
+    setTimeout(()=>t.classList.add('show'),10);
+    setTimeout(()=>t.classList.remove('show'),3500);
+}
+
+// ═══════════════════════════════════════════
+// KEYBOARD
+// ═══════════════════════════════════════════
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal()});
+
+// ═══════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════
+document.addEventListener('DOMContentLoaded',function(){
+    render();
+    console.log('%c لو بوك | لوحة الإدارة ','background:#f26522;color:white;font-size:14px;font-weight:bold;border-radius:8px;padding:6px 14px');
+});
+</script>
+</body>
+</html>

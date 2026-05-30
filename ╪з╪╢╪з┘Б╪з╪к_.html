@@ -1,0 +1,1382 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>لو بوك | وحدة الباكند المحلي</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <style>
+        *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+        :root{--bg:#0a0a0a;--surface:#1a1a1a;--accent:#f26522;--text:#e5e2e1;--text-muted:#7a7570;--border:rgba(89,65,56,.12);--green:#22c55e;--red:#ef4444;--blue:#3b82f6;--purple:#a855f7;--yellow:#eab308}
+        body{font-family:'Tajawal',sans-serif;min-height:100dvh;background:var(--bg);color:var(--text);overflow-x:hidden}
+        code,.mono{font-family:'DM Mono',monospace}
+        .material-symbols-outlined{font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24}
+
+        .bg-main{position:fixed;inset:0;z-index:0;background:radial-gradient(ellipse at 15% 0%,rgba(242,101,34,.07) 0%,transparent 55%),#0a0a0a}
+        .bg-main::after{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");opacity:.3;pointer-events:none}
+
+        @keyframes fadeInUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+        @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+        @keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+        @keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+        @keyframes progressPulse{0%{width:0}100%{width:100%}}
+
+        .a-fadeUp{animation:fadeInUp .5s cubic-bezier(.4,0,.2,1) both}
+        .a-fade{animation:fadeIn .3s ease both}
+
+        .glass-card{background:rgba(42,42,42,.25);backdrop-filter:blur(16px);border:1px solid var(--border);border-radius:20px}
+
+        .btn{font-family:'Tajawal',sans-serif;font-weight:700;font-size:14px;padding:12px 24px;border-radius:14px;border:none;cursor:pointer;transition:all .3s cubic-bezier(.4,0,.2,1);display:inline-flex;align-items:center;gap:8px}
+        .btn:active{transform:scale(.96)}
+        .btn-primary{background:linear-gradient(135deg,var(--accent),#d4561a);color:white}
+        .btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(242,101,34,.3)}
+        .btn-primary:disabled{opacity:.5;cursor:not-allowed;transform:none;box-shadow:none}
+        .btn-ghost{background:transparent;color:var(--text);border:1px solid var(--border)}
+        .btn-ghost:hover{border-color:var(--accent);color:var(--accent)}
+        .btn-danger{background:rgba(239,68,68,.12);color:var(--red);border:1px solid rgba(239,68,68,.2)}
+        .btn-danger:hover{background:rgba(239,68,68,.2)}
+
+        .input-field{background:rgba(42,42,42,.5);border:1px solid rgba(89,65,56,.2);border-radius:14px;padding:12px 16px;color:var(--text);font-size:14px;width:100%;outline:none;transition:all .3s;font-family:'Tajawal',sans-serif}
+        .input-field:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(242,101,34,.12)}
+        .input-field::placeholder{color:var(--text-muted)}
+
+        .tabs{display:flex;gap:4px;padding:4px;background:rgba(26,26,26,.5);border-radius:14px;border:1px solid var(--border);overflow-x:auto;scrollbar-width:none}
+        .tabs::-webkit-scrollbar{display:none}
+        .tab{padding:10px 16px;border-radius:10px;font-weight:600;font-size:12px;cursor:pointer;transition:all .3s;border:none;background:transparent;color:var(--text-muted);font-family:'Tajawal',sans-serif;white-space:nowrap;display:flex;align-items:center;gap:6px}
+        .tab:hover{color:var(--text);background:rgba(255,255,255,.04)}
+        .tab.active{background:rgba(242,101,34,.15);color:var(--accent)}
+
+        .console{background:#080808;border:1px solid rgba(89,65,56,.15);border-radius:14px;max-height:400px;overflow-y:auto;font-size:11px;font-family:'DM Mono',monospace}
+        .console-line{padding:5px 12px;border-bottom:1px solid rgba(89,65,56,.04);display:flex;gap:8px;line-height:1.6}
+        .console-line:hover{background:rgba(255,255,255,.015)}
+
+        .badge{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;padding:4px 10px;border-radius:8px}
+        .badge-green{background:rgba(34,197,94,.12);color:var(--green)}
+        .badge-blue{background:rgba(59,130,246,.12);color:var(--blue)}
+        .badge-red{background:rgba(239,68,68,.12);color:var(--red)}
+        .badge-orange{background:rgba(242,101,34,.12);color:var(--accent)}
+
+        .toast{position:fixed;top:24px;left:50%;transform:translateX(-50%) translateY(-100px);z-index:9999;padding:14px 28px;border-radius:14px;font-weight:700;font-size:14px;opacity:0;transition:all .5s cubic-bezier(.68,-.55,.265,1.55);display:flex;align-items:center;gap:10px;backdrop-filter:blur(12px);max-width:90vw;color:white}
+        .toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+        .toast.success{background:rgba(34,197,94,.2);border:1px solid rgba(34,197,94,.4)}
+        .toast.error{background:rgba(239,68,68,.2);border:1px solid rgba(239,68,68,.4)}
+        .toast.info{background:rgba(59,130,246,.2);border:1px solid rgba(59,130,246,.4)}
+
+        .drop-zone{border:2px dashed rgba(89,65,56,.3);border-radius:16px;padding:40px;text-align:center;cursor:pointer;transition:all .3s;position:relative}
+        .drop-zone:hover,.drop-zone.dragover{border-color:var(--accent);background:rgba(242,101,34,.04)}
+        .drop-zone input{position:absolute;inset:0;opacity:0;cursor:pointer}
+
+        .file-preview{position:relative;border-radius:12px;overflow:hidden;aspect-ratio:16/9;background:#111}
+        .file-preview img,.file-preview video{width:100%;height:100%;object-fit:contain}
+        .file-preview .remove-btn{position:absolute;top:8px;left:8px;width:28px;height:28px;border-radius:50%;background:rgba(0,0,0,.7);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s}
+        .file-preview .remove-btn:hover{background:var(--red)}
+
+        .video-player{position:relative;border-radius:16px;overflow:hidden;background:#000;aspect-ratio:16/9}
+        .video-player video{width:100%;height:100%;object-fit:contain}
+        .video-controls{position:absolute;bottom:0;left:0;right:0;padding:12px 16px;background:linear-gradient(transparent,rgba(0,0,0,.8));display:flex;align-items:center;gap:10px}
+        .video-controls button{background:none;border:none;color:white;cursor:pointer;padding:4px;border-radius:8px;transition:background .2s}
+        .video-controls button:hover{background:rgba(255,255,255,.15)}
+        .video-progress{flex:1;height:4px;background:rgba(255,255,255,.2);border-radius:2px;cursor:pointer;position:relative}
+        .video-progress .fill{height:100%;background:var(--accent);border-radius:2px;transition:width .1s}
+        .video-time{font-size:11px;color:rgba(255,255,255,.7);font-family:'DM Mono',monospace;white-space:nowrap}
+
+        .pw-strength{height:4px;border-radius:2px;overflow:hidden;background:rgba(89,65,56,.15)}
+        .pw-strength .bar{height:100%;border-radius:2px;transition:all .3s}
+
+        ::-webkit-scrollbar{width:4px;height:4px}
+        ::-webkit-scrollbar-track{background:transparent}
+        ::-webkit-scrollbar-thumb{background:#474746;border-radius:4px}
+    </style>
+</head>
+<body>
+<div class="bg-main"></div>
+<div id="toastEl" class="toast"></div>
+
+<header class="fixed top-0 w-full z-50 h-14 flex items-center px-4" style="background:rgba(10,10,10,.85);backdrop-filter:blur(20px);border-bottom:1px solid var(--border)">
+    <div class="flex items-center gap-2">
+        <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background:linear-gradient(135deg,var(--accent),#d4561a)">
+            <span class="material-symbols-outlined text-white text-[18px]" style="font-variation-settings:'FILL' 1">storage</span>
+        </div>
+        <h1 class="text-base font-extrabold" style="color:var(--accent)">وحدة الباكند المحلي</h1>
+    </div>
+    <span class="badge badge-green mr-auto">يعمل بدون سيرفر</span>
+</header>
+
+<main class="relative z-10 pt-16 pb-8 max-w-3xl mx-auto px-4">
+    <!-- Tabs -->
+    <div class="tabs mb-5 a-fade">
+        <button class="tab active" onclick="switchTab('storage',this)"><span class="material-symbols-outlined text-[15px]">database</span>التخزين الدائم</button>
+        <button class="tab" onclick="switchTab('upload',this)"><span class="material-symbols-outlined text-[15px]">upload_file</span>رفع الملفات</button>
+        <button class="tab" onclick="switchTab('video',this)"><span class="material-symbols-outlined text-[15px]">smart_display</span>مشغّل الفيديو</button>
+        <button class="tab" onclick="switchTab('password',this)"><span class="material-symbols-outlined text-[15px]">key</span>كلمة المرور</button>
+        <button class="tab" onclick="switchTab('delete',this)"><span class="material-symbols-outlined text-[15px]">delete_forever</span>حذف الحساب</button>
+    </div>
+
+    <div id="content"></div>
+</main>
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+// ██  1. IndexedDB — التخزين الدائم  ██
+// ═══════════════════════════════════════════════════════════════
+const LobukDB = {
+    _dbName: 'LobukDatabase',
+    _version: 1,
+    _db: null,
+
+    /**
+     * فتح/إنشاء قاعدة البيانات
+     * IndexedDB لا يُمحى عند مسح localStorage
+     * يتحمل حتى 500MB+ من البيانات
+     */
+    async init(){
+        return new Promise((resolve, reject) => {
+            const request = indexedDB.open(this._dbName, this._version);
+
+            request.onupgradeneeded = (e) => {
+                const db = e.target.result;
+
+                // إنشاء مخازن البيانات (Object Stores)
+                if(!db.objectStoreNames.contains('users')){
+                    const usersStore = db.createObjectStore('users', {keyPath:'id'});
+                    usersStore.createIndex('username', 'username', {unique:true});
+                    usersStore.createIndex('email', 'email', {unique:true});
+                }
+                if(!db.objectStoreNames.contains('posts')){
+                    const postsStore = db.createObjectStore('posts', {keyPath:'id', autoIncrement:true});
+                    postsStore.createIndex('authorId', 'authorId');
+                    postsStore.createIndex('createdAt', 'createdAt');
+                }
+                if(!db.objectStoreNames.contains('comments')){
+                    db.createObjectStore('comments', {keyPath:'id', autoIncrement:true});
+                }
+                if(!db.objectStoreNames.contains('messages')){
+                    db.createObjectStore('messages', {keyPath:'id', autoIncrement:true});
+                }
+                if(!db.objectStoreNames.contains('files')){
+                    // تخزين الملفات المرفوعة (صور/فيديو)
+                    db.createObjectStore('files', {keyPath:'id'});
+                }
+                if(!db.objectStoreNames.contains('conversations')){
+                    db.createObjectStore('conversations', {keyPath:'id'});
+                }
+                if(!db.objectStoreNames.contains('notifications')){
+                    db.createObjectStore('notifications', {keyPath:'id', autoIncrement:true});
+                }
+                if(!db.objectStoreNames.contains('settings')){
+                    db.createObjectStore('settings', {keyPath:'key'});
+                }
+                console.log('[IndexedDB] تم إنشاء/تحديث قاعدة البيانات');
+            };
+
+            request.onsuccess = (e) => {
+                this._db = e.target.result;
+                console.log('[IndexedDB] ✅ تم فتح قاعدة البيانات بنجاح');
+                resolve(this._db);
+            };
+
+            request.onerror = (e) => {
+                console.error('[IndexedDB] ❌ خطأ:', e.target.error);
+                reject(e.target.error);
+            };
+        });
+    },
+
+    /**
+     * إضافة عنصر إلى مخزن معين
+     */
+    async add(storeName, data){
+        return new Promise((resolve, reject) => {
+            try{
+                const tx = this._db.transaction(storeName, 'readwrite');
+                const store = tx.objectStore(storeName);
+                if(!data.id) data.id = 'id_' + Date.now() + '_' + Math.random().toString(36).substr(2,6);
+                if(!data.createdAt) data.createdAt = new Date().toISOString();
+                const request = store.add(data);
+                request.onsuccess = () => { console.log(`[DB] تمت الإضافة → ${storeName}`); resolve(data); };
+                request.onerror = (e) => { console.error('[DB] خطأ إضافة:', e.target.error); reject(e.target.error); };
+            }catch(e){ reject(e); }
+        });
+    },
+
+    /**
+     * قراءة عنصر بالمفتاح
+     */
+    async get(storeName, key){
+        return new Promise((resolve, reject) => {
+            try{
+                const tx = this._db.transaction(storeName, 'readonly');
+                const request = tx.objectStore(storeName).get(key);
+                request.onsuccess = () => resolve(request.result || null);
+                request.onerror = (e) => reject(e.target.error);
+            }catch(e){ reject(e); }
+        });
+    },
+
+    /**
+     * قراءة كل العناصر
+     */
+    async getAll(storeName){
+        return new Promise((resolve, reject) => {
+            try{
+                const tx = this._db.transaction(storeName, 'readonly');
+                const request = tx.objectStore(storeName).getAll();
+                request.onsuccess = () => resolve(request.result || []);
+                request.onerror = (e) => reject(e.target.error);
+            }catch(e){ reject(e); }
+        });
+    },
+
+    /**
+     * تحديث عنصر
+     */
+    async update(storeName, data){
+        return new Promise((resolve, reject) => {
+            try{
+                const tx = this._db.transaction(storeName, 'readwrite');
+                data.updatedAt = new Date().toISOString();
+                const request = tx.objectStore(storeName).put(data);
+                request.onsuccess = () => { console.log(`[DB] تم التحديث → ${storeName}`); resolve(data); };
+                request.onerror = (e) => reject(e.target.error);
+            }catch(e){ reject(e); }
+        });
+    },
+
+    /**
+     * حذف عنصر بالمفتاح
+     */
+    async remove(storeName, key){
+        return new Promise((resolve, reject) => {
+            try{
+                const tx = this._db.transaction(storeName, 'readwrite');
+                const request = tx.objectStore(storeName).delete(key);
+                request.onsuccess = () => { console.log(`[DB] تم الحذف ← ${storeName}/${key}`); resolve(true); };
+                request.onerror = (e) => reject(e.target.error);
+            }catch(e){ reject(e); }
+        });
+    },
+
+    /**
+     * حذف كل البيانات في مخزن
+     */
+    async clear(storeName){
+        return new Promise((resolve, reject) => {
+            try{
+                const tx = this._db.transaction(storeName, 'readwrite');
+                const request = tx.objectStore(storeName).clear();
+                request.onsuccess = () => resolve(true);
+                request.onerror = (e) => reject(e.target.error);
+            }catch(e){ reject(e); }
+        });
+    },
+
+    /**
+     * حذف قاعدة البيانات بالكامل (حذف الحساب)
+     */
+    async deleteDatabase(){
+        this._db?.close();
+        return new Promise((resolve, reject) => {
+            const request = indexedDB.deleteDatabase(this._dbName);
+            request.onsuccess = () => { console.log('[IndexedDB] 🗑️ تم حذف قاعدة البيانات بالكامل'); resolve(true); };
+            request.onerror = (e) => reject(e.target.error);
+            request.onblocked = () => reject(new Error('الحذف محظور — أغلق جميع التبويبات'));
+        });
+    },
+
+    /**
+     * حجم البيانات المخزنة (تقريبي)
+     */
+    async getStorageEstimate(){
+        if(navigator.storage && navigator.storage.estimate){
+            const est = await navigator.storage.estimate();
+            return {used: est.usage || 0, quota: est.quota || 0, pct: Math.round((est.usage/est.quota)*100)};
+        }
+        return {used:0, quota:0, pct:0};
+    }
+};
+
+// ═══════════════════════════════════════════════════════════════
+// ██  2. File Upload — رفع الملفات الحقيقي  ██
+// ═══════════════════════════════════════════════════════════════
+const LobukFiles = {
+    _maxImageSize: 5 * 1024 * 1024,   // 5MB
+    _maxVideoSize: 50 * 1024 * 1024,  // 50MB
+    _allowedImageTypes: ['image/jpeg','image/png','image/gif','image/webp'],
+    _allowedVideoTypes: ['video/mp4','video/webm','video/ogg'],
+
+    /**
+     * معالجة ملف مُختار
+     * يقرأ الملف باستخدام FileReader ويُرجعه كـDataURL
+     */
+    async processFile(file){
+        // التحقق من النوع
+        const isImage = this._allowedImageTypes.includes(file.type);
+        const isVideo = this._allowedVideoTypes.includes(file.type);
+
+        if(!isImage && !isVideo){
+            throw new Error('نوع الملف غير مدعوم: ' + file.type);
+        }
+
+        // التحقق من الحجم
+        if(isImage && file.size > this._maxImageSize){
+            throw new Error('حجم الصورة يتجاوز 5MB ('+this.formatSize(file.size)+')');
+        }
+        if(isVideo && file.size > this._maxVideoSize){
+            throw new Error('حجم الفيديو يتجاوز 50MB ('+this.formatSize(file.size)+')');
+        }
+
+        // قراءة الملف كـ DataURL (يُخزّن في IndexedDB)
+        const dataUrl = await this.readAsDataURL(file);
+
+        // إنشاء Blob URL للعرض السريع (لا يُخزّن — يختفي عند تحديث الصفحة)
+        const blobUrl = URL.createObjectURL(file);
+
+        return {
+            id: 'file_' + Date.now() + '_' + Math.random().toString(36).substr(2,6),
+            name: file.name,
+            type: file.type,
+            size: file.size,
+            isImage,
+            isVideo,
+            dataUrl,   // دائم — يُخزّن في IndexedDB
+            blobUrl,   // سريع — للعرض الفوري
+            createdAt: new Date().toISOString()
+        };
+    },
+
+    /**
+     * قراءة ملف كـ DataURL
+     */
+    readAsDataURL(file){
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = () => reject(new Error('فشل قراءة الملف'));
+            reader.readAsDataURL(file);
+        });
+    },
+
+    /**
+     * حفظ ملف في IndexedDB
+     */
+    async saveFile(fileData){
+        await LobukDB.add('files', fileData);
+        console.log('[Files] ✅ تم حفظ: ' + fileData.name + ' (' + this.formatSize(fileData.size) + ')');
+        return fileData;
+    },
+
+    /**
+     * جلب كل الملفات
+     */
+    async getAllFiles(){
+        return await LobukDB.getAll('files');
+    },
+
+    /**
+     * حذف ملف
+     */
+    async deleteFile(fileId){
+        await LobukDB.remove('files', fileId);
+        console.log('[Files] 🗑️ تم حذف الملف: ' + fileId);
+    },
+
+    /**
+     * ضغط الصورة (اختياري — يُقلل الحجم)
+     */
+    async compressImage(dataUrl, maxWidth=1200, quality=0.8){
+        return new Promise((resolve) => {
+            const img = new Image();
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                let w = img.width, h = img.height;
+                if(w > maxWidth){ h = (h * maxWidth) / w; w = maxWidth; }
+                canvas.width = w; canvas.height = h;
+                canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+                resolve(canvas.toDataURL('image/jpeg', quality));
+            };
+            img.src = dataUrl;
+        });
+    },
+
+    formatSize(bytes){
+        if(bytes < 1024) return bytes + ' B';
+        if(bytes < 1024*1024) return (bytes/1024).toFixed(1) + ' KB';
+        return (bytes/(1024*1024)).toFixed(1) + ' MB';
+    }
+};
+
+// ═══════════════════════════════════════════════════════════════
+// ██  3. Password Hashing — Web Crypto API  ██
+// ═══════════════════════════════════════════════════════════════
+const LobukAuth = {
+    /**
+     * تشفير كلمة المرور بـ SHA-256
+     * في المتصفح فقط — الإنتاج يستخدم bcrypt في الباك إند
+     */
+    async hashPassword(password){
+        const encoder = new TextEncoder();
+        const data = encoder.encode(password + 'lobuk_salt_2025');
+        const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        return hashArray.map(b => b.toString(16).padStart(2,'0')).join('');
+    },
+
+    /**
+     * التحقق من كلمة المرور
+     */
+    async verifyPassword(password, storedHash){
+        const hash = await this.hashPassword(password);
+        return hash === storedHash;
+    },
+
+    /**
+     * فحص قوة كلمة المرور
+     */
+    checkStrength(password){
+        const checks = {
+            length: password.length >= 8,
+            upper: /[A-Z]/.test(password),
+            lower: /[a-z]/.test(password),
+            digit: /[0-9]/.test(password),
+            special: /[^A-Za-z0-9]/.test(password),
+        };
+        const score = Object.values(checks).filter(Boolean).length;
+        const labels = ['ضعيف جداً','ضعيف','مقبول','جيد','قوي','قوي جداً'];
+        const colors = ['#ef4444','#ef4444','#eab308','#3b82f6','#22c55e','#22c55e'];
+        return {checks, score, maxScore:5, label:labels[score], color:colors[score], pct:Math.round(score/5*100)};
+    },
+
+    /**
+     * تسجيل مستخدم جديد مع تشفير كلمة المرور
+     */
+    async register(username, email, password){
+        // تشفير كلمة المرور
+        const hashedPw = await this.hashPassword(password);
+
+        // إنشاء المستخدم
+        const user = {
+            id: 'user_' + Date.now(),
+            username,
+            email,
+            passwordHash: hashedPw,  // ← لا يُخزّن كنص صريح!
+            name: username,
+            avatar: 'https://i.pravatar.cc/80?u=' + username,
+            bio: '',
+            verified: false,
+            role: 'user',
+            createdAt: new Date().toISOString()
+        };
+
+        await LobukDB.add('users', user);
+        console.log('[Auth] ✅ تسجيل جديد: ' + username + ' (كلمة المرور مشفّرة)');
+        return user;
+    },
+
+    /**
+     * تسجيل الدخول
+     */
+    async login(usernameOrEmail, password){
+        const users = await LobukDB.getAll('users');
+        const user = users.find(u => u.username === usernameOrEmail || u.email === usernameOrEmail);
+        if(!user) throw new Error('المستخدم غير موجود');
+
+        const valid = await this.verifyPassword(password, user.passwordHash);
+        if(!valid) throw new Error('كلمة المرور خاطئة');
+
+        // حفظ الجلسة
+        const session = {userId:user.id, username:user.username, role:user.role, loginAt:new Date().toISOString()};
+        localStorage.setItem('lobuk_session', JSON.stringify(session));
+        console.log('[Auth] ✅ دخول ناجح: ' + user.username);
+        return user;
+    },
+
+    /**
+     * تحديث كلمة المرور (حقيقي — يُحدّث الهاش في IndexedDB)
+     */
+    async changePassword(userId, oldPassword, newPassword){
+        const user = await LobukDB.get('users', userId);
+        if(!user) throw new Error('المستخدم غير موجود');
+
+        // التحقق من القديمة
+        const valid = await this.verifyPassword(oldPassword, user.passwordHash);
+        if(!valid) throw new Error('كلمة المرور الحالية خاطئة');
+
+        // تشفير الجديدة
+        user.passwordHash = await this.hashPassword(newPassword);
+        await LobukDB.update('users', user);
+
+        console.log('[Auth] ✅ تم تحديث كلمة المرور (hash جديد)');
+        return true;
+    },
+
+    /**
+     * حذف الحساب نهائياً
+     */
+    async deleteAccount(userId, password){
+        const user = await LobukDB.get('users', userId);
+        if(!user) throw new Error('المستخدم غير موجود');
+
+        // التحقق من كلمة المرور قبل الحذف
+        const valid = await this.verifyPassword(password, user.passwordHash);
+        if(!valid) throw new Error('كلمة المرور خاطئة — لا يمكن الحذف');
+
+        // حذف كل البيانات المرتبطة
+        const posts = (await LobukDB.getAll('posts')).filter(p => p.authorId === userId);
+        for(const p of posts) await LobukDB.remove('posts', p.id);
+
+        const comments = (await LobukDB.getAll('comments')).filter(c => c.authorId === userId);
+        for(const c of comments) await LobukDB.remove('comments', c.id);
+
+        // حذف الملفات المرفوعة
+        const files = (await LobukDB.getAll('files')).filter(f => f.uploaderId === userId);
+        for(const f of files) await LobukDB.remove('files', f.id);
+
+        // حذف المستخدم نفسه
+        await LobukDB.remove('users', userId);
+
+        // مسح الجلسة
+        localStorage.removeItem('lobuk_session');
+
+        console.log('[Auth] 🗑️ تم حذف الحساب وجميع البيانات المرتبطة');
+        return true;
+    },
+
+    /**
+     * الحصول على المستخدم الحالي
+     */
+    async getCurrentUser(){
+        const session = JSON.parse(localStorage.getItem('lobuk_session') || 'null');
+        if(!session) return null;
+        return await LobukDB.get('users', session.userId);
+    },
+
+    /**
+     * تسجيل الخروج
+     */
+    logout(){
+        localStorage.removeItem('lobuk_session');
+        console.log('[Auth] 👋 تسجيل خروج');
+    }
+};
+
+// ═══════════════════════════════════════════════════════════════
+// ██  4. Console Logger  ██
+// ═══════════════════════════════════════════════════════════════
+const Logger = {
+    _lines: [],
+    log(type, msg, detail=''){
+        const time = new Date().toLocaleTimeString('ar-SA',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+        this._lines.unshift({time, type, msg, detail});
+        this.render();
+    },
+    render(){
+        const el = document.getElementById('consoleOutput');
+        if(!el) return;
+        const colors = {success:'text-green-400 bg-green-500/10',error:'text-red-400 bg-red-500/10',info:'text-blue-400 bg-blue-500/10',warn:'text-yellow-400 bg-yellow-500/10',data:'text-purple-400 bg-purple-500/10'};
+        el.innerHTML = this._lines.slice(0,30).map(l=>`<div class="console-line"><span style="color:#4a4a4a;flex-shrink:0">${l.time}</span><span class="${colors[l.type]||''}" style="font-weight:700;padding:0 4px;border-radius:3px;font-size:10px;flex-shrink:0">${l.type.toUpperCase()}</span><span style="color:#a3a3a3;flex:1;word-break:break-all">${l.msg}</span>${l.detail?`<span style="color:#4a4a4a;font-size:10px;flex-shrink:0">${l.detail}</span>`:''}</div>`).join('');
+    },
+    clear(){this._lines=[];this.render();}
+};
+
+// ═══════════════════════════════════════════════════════════════
+// ██  UI RENDERING  ██
+// ═══════════════════════════════════════════════════════════════
+function esc(t){if(typeof t!=='string')return'';return t.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#x27;'}[c]))}
+
+let currentTab = 'storage';
+let uploadedFiles = [];
+
+function switchTab(tab, btn){
+    currentTab = tab;
+    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+    if(btn) btn.classList.add('active');
+    render();
+}
+
+function render(){
+    const area = document.getElementById('content');
+    switch(currentTab){
+        case 'storage': renderStorage(area); break;
+        case 'upload': renderUpload(area); break;
+        case 'video': renderVideo(area); break;
+        case 'password': renderPassword(area); break;
+        case 'delete': renderDelete(area); break;
+    }
+}
+
+// ═══════════════════════════════════════════
+// TAB 1: STORAGE
+// ═══════════════════════════════════════════
+async function renderStorage(area){
+    let est = {used:0,quota:0,pct:0};
+    try{est = await LobukDB.getStorageEstimate();}catch(e){}
+    const usedMB = (est.used/(1024*1024)).toFixed(2);
+    const quotaMB = (est.quota/(1024*1024)).toFixed(0);
+
+    area.innerHTML = `
+    <div class="glass-card p-5 mb-5 a-fadeUp">
+        <div class="flex items-center gap-3 mb-4">
+            <div class="w-12 h-12 rounded-xl flex items-center justify-center" style="background:rgba(59,130,246,.12)">
+                <span class="material-symbols-outlined text-blue-400 text-[24px]" style="font-variation-settings:'FILL' 1">database</span>
+            </div>
+            <div>
+                <h2 class="font-extrabold text-lg">IndexedDB — التخزين الدائم</h2>
+                <p class="text-xs" style="color:var(--text-muted)">يُخزّن البيانات فعلياً في المتصفح ولا يُمحى عند مسح localStorage</p>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3 mb-4">
+            <div class="p-3 rounded-xl text-center" style="background:rgba(42,42,42,.3)">
+                <p class="text-xl font-extrabold text-blue-400">${usedMB} MB</p>
+                <p class="text-[10px]" style="color:var(--text-muted)">المستخدم</p>
+            </div>
+            <div class="p-3 rounded-xl text-center" style="background:rgba(42,42,42,.3)">
+                <p class="text-xl font-extrabold" style="color:var(--text-muted)">${quotaMB} MB</p>
+                <p class="text-[10px]" style="color:var(--text-muted)">الحد الأقصى</p>
+            </div>
+        </div>
+
+        <div class="h-2 rounded-full overflow-hidden mb-4" style="background:rgba(89,65,56,.15)">
+            <div class="h-full rounded-full transition-all" style="width:${Math.min(est.pct,100)}%;background:var(--blue)"></div>
+        </div>
+
+        <button class="btn btn-primary w-full justify-center" onclick="testStorage()">
+            <span class="material-symbols-outlined text-[16px]">play_arrow</span>
+            اختبار: إضافة + قراءة + تحديث + حذف
+        </button>
+    </div>
+
+    <!-- Console -->
+    <div class="glass-card p-4 a-fadeUp" style="animation-delay:.1s;opacity:0">
+        <div class="flex items-center justify-between mb-3">
+            <h3 class="font-bold text-sm flex items-center gap-2">
+                <span class="material-symbols-outlined text-[var(--accent)] text-[16px]">terminal</span>
+                سجل العمليات
+            </h3>
+            <button onclick="Logger.clear()" class="text-xs font-bold px-3 py-1.5 rounded-lg" style="background:rgba(242,101,34,.1);color:var(--accent);border:1px solid rgba(242,101,34,.2)">مسح</button>
+        </div>
+        <div class="console" id="consoleOutput">
+            <div class="console-line"><span style="color:#4a4a4a">--:--:--</span><span class="text-green-400 bg-green-500/10" style="font-weight:700;padding:0 4px;border-radius:3px;font-size:10px">READY</span><span style="color:#a3a3a3">اضغط "اختبار" لبدء العمليات</span></div>
+        </div>
+    </div>`;
+}
+
+async function testStorage(){
+    Logger.clear();
+    Logger.log('info', '═══ اختبار IndexedDB ═══');
+
+    try{
+        // CREATE
+        Logger.log('data', '→ إنشاء مستخدم تجريبي...');
+        const user = await LobukDB.add('users', {name:'عبدالملك التجريبي',email:'test@lobuk.sa',role:'user'});
+        Logger.log('success', '✓ تمت الإضافة', 'id: '+user.id);
+
+        // READ
+        Logger.log('data', '→ قراءة المستخدم...');
+        const fetched = await LobukDB.get('users', user.id);
+        Logger.log('success', '✓ تم العثور: '+fetched.name);
+
+        // UPDATE
+        Logger.log('data', '→ تحديث المستخدم...');
+        fetched.bio = 'نبذة جديدة بعد التحديث';
+        await LobukDB.update('users', fetched);
+        Logger.log('success', '✓ تم التحديث', 'bio: '+ fetched.bio);
+
+        // READ ALL
+        const allUsers = await LobukDB.getAll('users');
+        Logger.log('data', '→ عدد المستخدمين: '+allUsers.length);
+
+        // ADD POST
+        Logger.log('data', '→ إنشاء منشور...');
+        const post = await LobukDB.add('posts', {authorId:user.id,text:'منشور تجريبي تم تخزنيه في IndexedDB!',likes:0});
+        Logger.log('success', '✓ تم إنشاء المنشور', 'id: '+post.id);
+
+        // DELETE
+        Logger.log('data', '→ حذف المستخدم التجريبي...');
+        await LobukDB.remove('users', user.id);
+        Logger.log('success', '✓ تم الحذف');
+
+        Logger.log('data', '→ حذف المنشور التجريبي...');
+        await LobukDB.remove('posts', post.id);
+        Logger.log('success', '✓ تم الحذف');
+
+        // VERIFY
+        const remaining = await LobukDB.getAll('users');
+        Logger.log('data', '→ المستخدمون المتبقون: '+remaining.length);
+
+        Logger.log('info', '═══ ✅ انتهى الاختبار بنجاح ═══');
+        showToast('اختبار IndexedDB مكتمل — كل شيء يعمل!','success');
+
+    }catch(e){
+        Logger.log('error', '❌ خطأ: '+e.message);
+        showToast('حدث خطأ: '+e.message,'error');
+    }
+}
+
+// ═══════════════════════════════════════════
+// TAB 2: FILE UPLOAD
+// ═══════════════════════════════════════════
+function renderUpload(area){
+    area.innerHTML = `
+    <div class="glass-card p-5 mb-5 a-fadeUp">
+        <div class="flex items-center gap-3 mb-4">
+            <div class="w-12 h-12 rounded-xl flex items-center justify-center" style="background:rgba(34,197,94,.12)">
+                <span class="material-symbols-outlined text-green-400 text-[24px]" style="font-variation-settings:'FILL' 1">upload_file</span>
+            </div>
+            <div>
+                <h2 class="font-extrabold text-lg">رفع الملفات الحقيقي</h2>
+                <p class="text-xs" style="color:var(--text-muted)">FileReader API — يقرأ الملفات ويحفظها في IndexedDB</p>
+            </div>
+        </div>
+
+        <!-- Drop Zone -->
+        <div class="drop-zone mb-4" id="dropZone">
+            <input type="file" id="fileInput" accept="image/*,video/*" multiple onchange="handleFiles(this.files)"/>
+            <span class="material-symbols-outlined text-[40px] block mx-auto mb-2" style="color:var(--text-muted)">cloud_upload</span>
+            <p class="font-bold text-sm" style="color:var(--text-secondary)">اسحب الملفات هنا أو اضغط للاختيار</p>
+            <p class="text-[10px] mt-1" style="color:var(--text-muted)">صور: JPG, PNG, GIF, WebP (حد 5MB) • فيديو: MP4, WebM (حد 50MB)</p>
+        </div>
+
+        <!-- File Previews -->
+        <div id="filePreviews" class="grid grid-cols-2 gap-3 mb-4"></div>
+
+        <!-- Actions -->
+        <div class="flex gap-3" id="uploadActions" style="display:none">
+            <button class="btn btn-primary flex-1 justify-center" onclick="saveAllFiles()">
+                <span class="material-symbols-outlined text-[16px]">save</span>
+                حفظ في IndexedDB
+            </button>
+            <button class="btn btn-ghost" onclick="clearPreviews()">
+                <span class="material-symbols-outlined text-[16px]">delete</span>
+                مسح
+            </button>
+        </div>
+    </div>
+
+    <!-- Saved Files -->
+    <div class="glass-card p-5 a-fadeUp" style="animation-delay:.1s;opacity:0">
+        <h3 class="font-bold text-sm mb-3 flex items-center gap-2">
+            <span class="material-symbols-outlined text-blue-400 text-[16px]" style="font-variation-settings:'FILL' 1">folder</span>
+            الملفات المحفوظة في IndexedDB
+        </h3>
+        <div id="savedFiles" class="space-y-2"></div>
+    </div>`;
+
+    loadSavedFiles();
+
+    // Drag & Drop
+    setTimeout(()=>{
+        const dz = document.getElementById('dropZone');
+        if(!dz) return;
+        dz.addEventListener('dragover', e=>{e.preventDefault();dz.classList.add('dragover')});
+        dz.addEventListener('dragleave', ()=>dz.classList.remove('dragover'));
+        dz.addEventListener('drop', e=>{e.preventDefault();dz.classList.remove('dragover');handleFiles(e.dataTransfer.files)});
+    },100);
+}
+
+async function handleFiles(fileList){
+    for(const file of fileList){
+        try{
+            Logger.log('data','→ معالجة: '+file.name+' ('+LobukFiles.formatSize(file.size)+')');
+            const processed = await LobukFiles.processFile(file);
+            uploadedFiles.push(processed);
+            Logger.log('success','✓ تمت معالجة: '+file.name);
+        }catch(e){
+            Logger.log('error','❌ '+e.message);
+            showToast(e.message,'error');
+        }
+    }
+    renderPreviews();
+}
+
+function renderPreviews(){
+    const container = document.getElementById('filePreviews');
+    const actions = document.getElementById('uploadActions');
+    if(!container) return;
+
+    if(uploadedFiles.length === 0){
+        container.innerHTML = '';
+        if(actions) actions.style.display = 'none';
+        return;
+    }
+
+    if(actions) actions.style.display = 'flex';
+
+    container.innerHTML = uploadedFiles.map((f,i) => `
+    <div class="file-preview">
+        ${f.isImage ? `<img src="${f.dataUrl}" alt="${esc(f.name)}"/>` : `<video src="${f.dataUrl}" muted></video>`}
+        <button class="remove-btn" onclick="removePreview(${i})">
+            <span class="material-symbols-outlined text-white text-[16px]">close</span>
+        </button>
+        <div style="position:absolute;bottom:8px;right:8px;left:8px">
+            <div class="text-[9px] font-bold truncate px-2 py-1 rounded-lg" style="background:rgba(0,0,0,.7);color:white">${esc(f.name)} • ${LobukFiles.formatSize(f.size)}</div>
+        </div>
+    </div>`).join('');
+}
+
+function removePreview(idx){
+    uploadedFiles.splice(idx, 1);
+    renderPreviews();
+}
+
+function clearPreviews(){
+    uploadedFiles = [];
+    renderPreviews();
+}
+
+async function saveAllFiles(){
+    if(uploadedFiles.length === 0) return;
+    Logger.log('info','═══ حفظ الملفات في IndexedDB ═══');
+
+    try{
+        for(const f of uploadedFiles){
+            // ضغط الصور قبل الحفظ
+            if(f.isImage && f.size > 1024*1024){
+                Logger.log('data','→ ضغط: '+f.name);
+                f.dataUrl = await LobukFiles.compressImage(f.dataUrl);
+            }
+            await LobukFiles.saveFile(f);
+            Logger.log('success','✓ حُفظ: '+f.name);
+        }
+
+        showToast('تم حفظ '+uploadedFiles.length+' ملف في IndexedDB','success');
+        uploadedFiles = [];
+        renderPreviews();
+        loadSavedFiles();
+    }catch(e){
+        Logger.log('error','❌ '+e.message);
+        showToast('خطأ في الحفظ: '+e.message,'error');
+    }
+}
+
+async function loadSavedFiles(){
+    const container = document.getElementById('savedFiles');
+    if(!container) return;
+
+    try{
+        const files = await LobukFiles.getAllFiles();
+        if(files.length === 0){
+            container.innerHTML = '<p class="text-xs text-center py-6" style="color:var(--text-muted)">لا ملفات محفوظة بعد</p>';
+            return;
+        }
+        container.innerHTML = files.map(f=>`
+        <div class="flex items-center gap-3 p-3 rounded-xl" style="background:rgba(42,42,42,.2)">
+            <div class="w-12 h-12 rounded-lg overflow-hidden shrink-0" style="background:#111">
+                ${f.isImage?`<img src="${f.dataUrl}" class="w-full h-full object-cover"/>`:`<span class="material-symbols-outlined text-blue-400 text-[20px] flex items-center justify-center w-full h-full">smart_display</span>`}
+            </div>
+            <div class="flex-1 min-w-0"><span class="text-xs font-bold block truncate">${esc(f.name)}</span><span class="text-[10px]" style="color:var(--text-muted)">${LobukFiles.formatSize(f.size)} • ${f.isImage?'صورة':'فيديو'}</span></div>
+            <button onclick="deleteSavedFile('${f.id}')" class="p-2 rounded-lg hover:bg-red-500/10"><span class="material-symbols-outlined text-red-400 text-[16px]">delete</span></button>
+        </div>`).join('');
+    }catch(e){
+        container.innerHTML = '<p class="text-xs text-center py-6" style="color:var(--red)">'+e.message+'</p>';
+    }
+}
+
+async function deleteSavedFile(id){
+    await LobukFiles.deleteFile(id);
+    loadSavedFiles();
+    showToast('تم حذف الملف','info');
+}
+
+// ═══════════════════════════════════════════
+// TAB 3: VIDEO PLAYER
+// ═══════════════════════════════════════════
+function renderVideo(area){
+    area.innerHTML = `
+    <div class="glass-card p-5 mb-5 a-fadeUp">
+        <div class="flex items-center gap-3 mb-4">
+            <div class="w-12 h-12 rounded-xl flex items-center justify-center" style="background:rgba(239,68,68,.12)">
+                <span class="material-symbols-outlined text-red-400 text-[24px]" style="font-variation-settings:'FILL' 1">smart_display</span>
+            </div>
+            <div>
+                <h2 class="font-extrabold text-lg">مشغّل الفيديو الحقيقي</h2>
+                <p class="text-xs" style="color:var(--text-muted)">&lt;video&gt; مع عناصر تحكم كاملة — يدعم الملفات المرفوعة</p>
+            </div>
+        </div>
+
+        <!-- Video Player -->
+        <div class="video-player mb-4" id="videoPlayerContainer">
+            <video id="mainVideo" preload="metadata">
+                <source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4"/>
+                متصفحك لا يدعم تشغيل الفيديو
+            </video>
+            <div class="video-controls" id="videoControls">
+                <button onclick="togglePlay()" id="playBtn">
+                    <span class="material-symbols-outlined text-[20px]">play_arrow</span>
+                </button>
+                <div class="video-progress" id="videoProgress" onclick="seekVideo(event)">
+                    <div class="fill" id="progressFill" style="width:0%"></div>
+                </div>
+                <span class="video-time" id="videoTime">0:00 / 0:00</span>
+                <button onclick="toggleMute()" id="muteBtn">
+                    <span class="material-symbols-outlined text-[18px]">volume_up</span>
+                </button>
+                <button onclick="toggleFullscreen()">
+                    <span class="material-symbols-outlined text-[18px]">fullscreen</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Upload Custom Video -->
+        <div class="text-center">
+            <label class="btn btn-ghost cursor-pointer inline-flex">
+                <span class="material-symbols-outlined text-[16px]">upload_file</span>
+                ارفع فيديو من جهازك
+                <input type="file" accept="video/*" class="hidden" onchange="loadCustomVideo(this.files[0])"/>
+            </label>
+        </div>
+    </div>
+
+    <div class="glass-card p-5 a-fadeUp" style="animation-delay:.1s;opacity:0">
+        <h3 class="font-bold text-sm mb-3">فيديوهات محفوظة في IndexedDB</h3>
+        <div id="savedVideos" class="space-y-2"></div>
+    </div>`;
+
+    initVideoPlayer();
+    loadSavedVideos();
+}
+
+function initVideoPlayer(){
+    const video = document.getElementById('mainVideo');
+    if(!video) return;
+
+    video.addEventListener('timeupdate', ()=>{
+        const pct = (video.currentTime / video.duration) * 100;
+        const fill = document.getElementById('progressFill');
+        const time = document.getElementById('videoTime');
+        if(fill) fill.style.width = pct + '%';
+        if(time) time.textContent = formatTime(video.currentTime) + ' / ' + formatTime(video.duration);
+    });
+
+    video.addEventListener('ended', ()=>{
+        const btn = document.getElementById('playBtn');
+        if(btn) btn.innerHTML = '<span class="material-symbols-outlined text-[20px]">replay</span>';
+    });
+}
+
+function togglePlay(){
+    const video = document.getElementById('mainVideo');
+    const btn = document.getElementById('playBtn');
+    if(!video) return;
+
+    if(video.paused){
+        video.play();
+        btn.innerHTML = '<span class="material-symbols-outlined text-[20px]">pause</span>';
+    } else {
+        video.pause();
+        btn.innerHTML = '<span class="material-symbols-outlined text-[20px]">play_arrow</span>';
+    }
+}
+
+function seekVideo(e){
+    const video = document.getElementById('mainVideo');
+    const bar = document.getElementById('videoProgress');
+    if(!video || !bar) return;
+    const rect = bar.getBoundingClientRect();
+    const pct = (e.clientX - rect.left) / rect.width;
+    video.currentTime = pct * video.duration;
+}
+
+function toggleMute(){
+    const video = document.getElementById('mainVideo');
+    const btn = document.getElementById('muteBtn');
+    if(!video) return;
+    video.muted = !video.muted;
+    btn.innerHTML = `<span class="material-symbols-outlined text-[18px]">${video.muted?'volume_off':'volume_up'}</span>`;
+}
+
+function toggleFullscreen(){
+    const container = document.getElementById('videoPlayerContainer');
+    if(!container) return;
+    if(document.fullscreenElement) document.exitFullscreen();
+    else container.requestFullscreen?.();
+}
+
+function formatTime(sec){
+    if(isNaN(sec)) return '0:00';
+    const m = Math.floor(sec/60);
+    const s = Math.floor(sec%60);
+    return m+':'+s.toString().padStart(2,'0');
+}
+
+async function loadCustomVideo(file){
+    if(!file) return;
+    try{
+        Logger.log('data','→ معالجة الفيديو: '+file.name);
+        const processed = await LobukFiles.processFile(file);
+
+        // عرضه في المشغّل
+        const video = document.getElementById('mainVideo');
+        if(video){
+            video.src = processed.dataUrl;
+            video.load();
+        }
+
+        // حفظه
+        await LobukFiles.saveFile(processed);
+        Logger.log('success','✓ تم تحميل وحفظ: '+file.name);
+        showToast('تم تحميل الفيديو','success');
+        loadSavedVideos();
+    }catch(e){
+        Logger.log('error','❌ '+e.message);
+        showToast(e.message,'error');
+    }
+}
+
+async function loadSavedVideos(){
+    const container = document.getElementById('savedVideos');
+    if(!container) return;
+    const files = await LobukFiles.getAllFiles();
+    const videos = files.filter(f=>f.isVideo);
+    if(videos.length === 0){
+        container.innerHTML = '<p class="text-xs text-center py-4" style="color:var(--text-muted)">لا فيديوهات محفوظة</p>';
+        return;
+    }
+    container.innerHTML = videos.map(v=>`
+    <div class="flex items-center gap-3 p-3 rounded-xl cursor-pointer" style="background:rgba(42,42,42,.2)" onclick="playSavedVideo('${v.id}')">
+        <span class="material-symbols-outlined text-red-400 text-[24px]">smart_display</span>
+        <div class="flex-1"><span class="text-xs font-bold block">${esc(v.name)}</span><span class="text-[10px]" style="color:var(--text-muted)">${LobukFiles.formatSize(v.size)}</span></div>
+        <button onclick="event.stopPropagation();deleteSavedFile('${v.id}');loadSavedVideos()" class="p-2 rounded-lg hover:bg-red-500/10"><span class="material-symbols-outlined text-red-400 text-[14px]">delete</span></button>
+    </div>`).join('');
+}
+
+async function playSavedVideo(id){
+    const file = await LobukDB.get('files', id);
+    if(!file) return;
+    const video = document.getElementById('mainVideo');
+    if(video){
+        video.src = file.dataUrl;
+        video.load();
+        video.play();
+        const btn = document.getElementById('playBtn');
+        if(btn) btn.innerHTML = '<span class="material-symbols-outlined text-[20px]">pause</span>';
+    }
+}
+
+// ═══════════════════════════════════════════
+// TAB 4: PASSWORD
+// ═══════════════════════════════════════════
+function renderPassword(area){
+    area.innerHTML = `
+    <div class="glass-card p-5 mb-5 a-fadeUp">
+        <div class="flex items-center gap-3 mb-4">
+            <div class="w-12 h-12 rounded-xl flex items-center justify-center" style="background:rgba(168,85,247,.12)">
+                <span class="material-symbols-outlined text-purple-400 text-[24px]" style="font-variation-settings:'FILL' 1">key</span>
+            </div>
+            <div>
+                <h2 class="font-extrabold text-lg">تشفير كلمة المرور</h2>
+                <p class="text-xs" style="color:var(--text-muted)">Web Crypto API (SHA-256) — حقيقي ويعمل في المتصفح</p>
+            </div>
+        </div>
+
+        <!-- Register Demo -->
+        <h3 class="font-bold text-sm mb-3">1. إنشاء حساب (مع تشفير)</h3>
+        <div class="space-y-3 mb-5">
+            <input type="text" class="input-field" id="regUser" placeholder="اسم المستخدم" value="demo_user"/>
+            <input type="email" class="input-field" id="regEmail" placeholder="البريد" value="demo@lobuk.sa"/>
+            <div>
+                <input type="password" class="input-field" id="regPw" placeholder="كلمة المرور" oninput="updatePwStrength(this.value)"/>
+                <div class="pw-strength mt-2"><div class="bar" id="pwBar" style="width:0%;background:#ef4444"></div></div>
+                <p class="text-[10px] mt-1" id="pwLabel" style="color:var(--text-muted)">أدخل كلمة مرور لفحص قوتها</p>
+            </div>
+            <button class="btn btn-primary w-full justify-center" onclick="doRegister()">
+                <span class="material-symbols-outlined text-[16px]">person_add</span>
+                تسجيل (سيتم تشفير كلمة المرور)
+            </button>
+        </div>
+
+        <!-- Login Demo -->
+        <h3 class="font-bold text-sm mb-3">2. تسجيل دخول</h3>
+        <div class="space-y-3 mb-5">
+            <input type="text" class="input-field" id="loginUser" placeholder="اسم المستخدم أو البريد"/>
+            <input type="password" class="input-field" id="loginPw" placeholder="كلمة المرور"/>
+            <button class="btn btn-ghost w-full justify-center" onclick="doLogin()">
+                <span class="material-symbols-outlined text-[16px]">login</span>
+                تسجيل الدخول
+            </button>
+        </div>
+
+        <!-- Change Password -->
+        <h3 class="font-bold text-sm mb-3">3. تحديث كلمة المرور (حقيقي)</h3>
+        <div class="space-y-3 mb-4">
+            <input type="password" class="input-field" id="oldPw" placeholder="كلمة المرور الحالية"/>
+            <input type="password" class="input-field" id="newPw" placeholder="كلمة المرور الجديدة (8+ أحرف)"/>
+            <button class="btn btn-primary w-full justify-center" onclick="doChangePassword()">
+                <span class="material-symbols-outlined text-[16px]">lock_reset</span>
+                تحديث كلمة المرور
+            </button>
+        </div>
+
+        <!-- Current User -->
+        <div id="currentUserDisplay" class="p-3 rounded-xl" style="background:rgba(42,42,42,.3)"></div>
+    </div>
+
+    <!-- Console -->
+    <div class="glass-card p-4 a-fadeUp" style="animation-delay:.1s;opacity:0">
+        <div class="flex items-center justify-between mb-3">
+            <h3 class="font-bold text-sm flex items-center gap-2">
+                <span class="material-symbols-outlined text-[var(--accent)] text-[16px]">terminal</span>
+                سجل العمليات
+            </h3>
+            <button onclick="Logger.clear()" class="text-xs font-bold px-3 py-1.5 rounded-lg" style="background:rgba(242,101,34,.1);color:var(--accent)">مسح</button>
+        </div>
+        <div class="console" id="consoleOutput"></div>
+    </div>`;
+
+    updateCurrentUserDisplay();
+}
+
+function updatePwStrength(pw){
+    const s = LobukAuth.checkStrength(pw);
+    const bar = document.getElementById('pwBar');
+    const label = document.getElementById('pwLabel');
+    if(bar){bar.style.width=s.pct+'%';bar.style.background=s.color;}
+    if(label){label.textContent=pw?s.label+' ('+s.score+'/'+s.maxScore+')':'أدخل كلمة مرور';label.style.color=s.color||'var(--text-muted)';}
+}
+
+async function doRegister(){
+    Logger.clear();
+    const username = document.getElementById('regUser').value.trim();
+    const email = document.getElementById('regEmail').value.trim();
+    const password = document.getElementById('regPw').value;
+
+    if(!username||!email||!password){showToast('أدخل جميع الحقول','error');return}
+    if(password.length<8){showToast('كلمة المرور 8 أحرف على الأقل','error');return}
+
+    try{
+        Logger.log('info','═══ تسجيل حساب جديد ═══');
+        Logger.log('data','→ تشفير كلمة المرور بـ SHA-256...');
+        const user = await LobukAuth.register(username, email, password);
+        Logger.log('success','✓ تم التشفير','hash: '+user.passwordHash.substring(0,20)+'...');
+        Logger.log('success','✓ تم إنشاء الحساب','user: '+user.username);
+        Logger.log('data','→ كلمة المرور الأصلية لم تُخزّن! فقط الهاش.');
+        showToast('تم إنشاء الحساب — كلمة المرور مشفّرة!','success');
+        updateCurrentUserDisplay();
+    }catch(e){
+        Logger.log('error','❌ '+e.message);
+        showToast(e.message,'error');
+    }
+}
+
+async function doLogin(){
+    Logger.clear();
+    const user = document.getElementById('loginUser').value.trim();
+    const pw = document.getElementById('loginPw').value;
+
+    if(!user||!pw){showToast('أدخل اسم المستخدم وكلمة المرور','error');return}
+
+    try{
+        Logger.log('info','═══ تسجيل دخول ═══');
+        Logger.log('data','→ التحقق من كلمة المرور...');
+        const u = await LobukAuth.login(user, pw);
+        Logger.log('success','✓ دخول ناجح: '+u.username);
+        Logger.log('data','→ تم مقارنة SHA-256 hash — متطابق');
+        showToast('مرحباً '+u.username+'!','success');
+        updateCurrentUserDisplay();
+    }catch(e){
+        Logger.log('error','❌ '+e.message);
+        showToast(e.message,'error');
+    }
+}
+
+async function doChangePassword(){
+    Logger.clear();
+    const oldPw = document.getElementById('oldPw').value;
+    const newPw = document.getElementById('newPw').value;
+
+    if(!oldPw||!newPw){showToast('أدخل كلمة المرور الحالية والجديدة','error');return}
+    if(newPw.length<8){showToast('كلمة المرور الجديدة 8 أحرف على الأقل','error');return}
+
+    const session = JSON.parse(localStorage.getItem('lobuk_session')||'null');
+    if(!session){showToast('سجّل الدخول أولاً','error');return}
+
+    try{
+        Logger.log('info','═══ تحديث كلمة المرور ═══');
+        Logger.log('data','→ التحقق من القديمة...');
+        await LobukAuth.changePassword(session.userId, oldPw, newPw);
+        Logger.log('success','✓ تم التحقق من القديمة');
+        Logger.log('success','✓ تم تشفير الجديدة وحفظها');
+        Logger.log('data','→ الهاش القديم حُذف — الهاش الجديد محفوظ');
+        showToast('تم تحديث كلمة المرور!','success');
+        document.getElementById('oldPw').value='';
+        document.getElementById('newPw').value='';
+    }catch(e){
+        Logger.log('error','❌ '+e.message);
+        showToast(e.message,'error');
+    }
+}
+
+async function updateCurrentUserDisplay(){
+    const el = document.getElementById('currentUserDisplay');
+    if(!el) return;
+    const user = await LobukAuth.getCurrentUser();
+    if(!user){
+        el.innerHTML = '<p class="text-xs text-center" style="color:var(--text-muted)">غير مسجل الدخول</p>';
+        return;
+    }
+    el.innerHTML = `
+    <div class="flex items-center gap-3">
+        <img src="${user.avatar}" class="w-10 h-10 rounded-full object-cover"/>
+        <div class="flex-1">
+            <span class="font-bold text-sm block">${esc(user.name)}</span>
+            <span class="text-[10px] font-mono" style="color:var(--text-muted)">@${esc(user.username)} • ${user.email}</span>
+        </div>
+        <span class="badge badge-green">مسجّل</span>
+    </div>
+    <div class="mt-2 p-2 rounded-lg" style="background:rgba(42,42,42,.3)">
+        <p class="text-[9px] font-mono break-all" style="color:var(--text-muted)">passwordHash: ${user.passwordHash?.substring(0,40)}...</p>
+    </div>`;
+}
+
+// ═══════════════════════════════════════════
+// TAB 5: DELETE ACCOUNT
+// ═══════════════════════════════════════════
+function renderDelete(area){
+    area.innerHTML = `
+    <div class="glass-card p-5 mb-5 a-fadeUp">
+        <div class="flex items-center gap-3 mb-4">
+            <div class="w-12 h-12 rounded-xl flex items-center justify-center" style="background:rgba(239,68,68,.12)">
+                <span class="material-symbols-outlined text-red-400 text-[24px]" style="font-variation-settings:'FILL' 1">delete_forever</span>
+            </div>
+            <div>
+                <h2 class="font-extrabold text-lg">حذف الحساب نهائياً</h2>
+                <p class="text-xs" style="color:var(--text-muted)">حذف فعلي من IndexedDB — لا يمكن التراجع</p>
+            </div>
+        </div>
+
+        <div class="p-4 rounded-xl mb-4" style="background:rgba(239,68,68,.05);border:1px solid rgba(239,68,68,.15)">
+            <div class="flex items-start gap-2">
+                <span class="material-symbols-outlined text-red-400 text-[18px] mt-0.5" style="font-variation-settings:'FILL' 1">warning</span>
+                <div class="text-xs" style="color:var(--text-secondary)">
+                    <p class="font-bold text-red-400 mb-1">تحذير: هذا الإجراء نهائي!</p>
+                    <p>عند الحذف سيتم:</p>
+                    <ul class="list-disc list-inside mt-1 space-y-0.5" style="color:var(--text-muted)">
+                        <li>حذف حسابك من IndexedDB</li>
+                        <li>حذف جميع منشوراتك</li>
+                        <li>حذف جميع تعليقاتك</li>
+                        <li>حذف جميع ملفاتك المرفوعة</li>
+                        <li>مسح جلسة تسجيل الدخول</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="space-y-3 mb-4">
+            <input type="password" class="input-field" id="deletePw" placeholder="أدخل كلمة المرور للتأكيد"/>
+            <button class="btn btn-danger w-full justify-center" onclick="doDeleteAccount()">
+                <span class="material-symbols-outlined text-[16px]">delete_forever</span>
+                نعم، احذف حسابي نهائياً
+            </button>
+        </div>
+
+        <!-- Also: Nuclear Option -->
+        <hr style="border-color:var(--border);margin:16px 0"/>
+        <h3 class="font-bold text-sm mb-2" style="color:var(--red)">الخيار النووي — حذف كل قاعدة البيانات</h3>
+        <p class="text-xs mb-3" style="color:var(--text-muted)">يحذف قاعدة البيانات بالكامل (كل المستخدمين والمنشورات والملفات)</p>
+        <button class="btn btn-danger w-full justify-center" onclick="doNuclearDelete()">
+            <span class="material-symbols-outlined text-[16px]">auto_delete</span>
+            حذف قاعدة البيانات بالكامل
+        </button>
+    </div>
+
+    <div class="glass-card p-4 a-fadeUp" style="animation-delay:.1s;opacity:0">
+        <div class="flex items-center justify-between mb-3">
+            <h3 class="font-bold text-sm flex items-center gap-2">
+                <span class="material-symbols-outlined text-[var(--accent)] text-[16px]">terminal</span>
+                سجل العمليات
+            </h3>
+            <button onclick="Logger.clear()" class="text-xs font-bold px-3 py-1.5 rounded-lg" style="background:rgba(242,101,34,.1);color:var(--accent)">مسح</button>
+        </div>
+        <div class="console" id="consoleOutput"></div>
+    </div>`;
+}
+
+async function doDeleteAccount(){
+    Logger.clear();
+    const pw = document.getElementById('deletePw').value;
+    if(!pw){showToast('أدخل كلمة المرور','error');return}
+
+    const session = JSON.parse(localStorage.getItem('lobuk_session')||'null');
+    if(!session){showToast('سجّل الدخول أولاً','error');return}
+
+    if(!confirm('هل أنت متأكد من حذف حسابك نهائياً؟')) return;
+
+    try{
+        Logger.log('info','═══ حذف الحساب ═══');
+        Logger.log('data','→ التحقق من كلمة المرور...');
+        await LobukAuth.deleteAccount(session.userId, pw);
+        Logger.log('success','✓ تم التحقق — كلمة المرور صحيحة');
+        Logger.log('success','✓ تم حذف المستخدم');
+        Logger.log('success','✓ تم حذف جميع المنشورات والتعليقات');
+        Logger.log('success','✓ تم حذف جميع الملفات المرفوعة');
+        Logger.log('success','✓ تم مسح الجلسة');
+        Logger.log('info','═══ 🗑️ تم حذف الحساب نهائياً ═══');
+        showToast('تم حذف الحساب نهائياً','info');
+    }catch(e){
+        Logger.log('error','❌ '+e.message);
+        showToast(e.message,'error');
+    }
+}
+
+async function doNuclearDelete(){
+    if(!confirm('⚠️ تحذير: سيتم حذف كل شيء!\n\nكل المستخدمين، المنشورات، الملفات...\n\nهل أنت متأكد؟')) return;
+    if(!confirm('تأكيد أخير: هذا لا يمكن التراجع عنه!')) return;
+
+    Logger.clear();
+    try{
+        Logger.log('warn','═══ 💣 الحذف النووي ═══');
+        Logger.log('data','→ حذف قاعدة البيانات IndexedDB...');
+        await LobukDB.deleteDatabase();
+        Logger.log('success','✓ تم حذف قاعدة البيانات بالكامل');
+        localStorage.clear();
+        Logger.log('success','✓ تم مسح localStorage');
+        Logger.log('info','═══ تم حذف everything ═══');
+        showToast('تم حذف كل شيء — أعد تحميل الصفحة','info');
+
+        // Re-init after 2s
+        setTimeout(async()=>{
+            await LobukDB.init();
+            Logger.log('success','✓ تم إنشاء قاعدة بيانات جديدة فارغة');
+        }, 2000);
+    }catch(e){
+        Logger.log('error','❌ '+e.message);
+        showToast(e.message,'error');
+    }
+}
+
+// ═══════════════════════════════════════════
+// ██  TOAST  ██
+// ═══════════════════════════════════════════
+function showToast(msg,type='info'){
+    const t=document.getElementById('toastEl');
+    const icons={success:'check_circle',error:'error',info:'info'};
+    t.className='toast '+type;
+    t.innerHTML=`<span class="material-symbols-outlined text-[18px]">${icons[type]||'info'}</span> ${msg}`;
+    setTimeout(()=>t.classList.add('show'),10);
+    setTimeout(()=>t.classList.remove('show'),3500);
+}
+
+// ═══════════════════════════════════════════
+// ██  INIT  ██
+// ═══════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', async function(){
+    // Initialize IndexedDB
+    try{
+        await LobukDB.init();
+        showToast('تم تهيئة IndexedDB بنجاح','success');
+    }catch(e){
+        showToast('خطأ في تهيئة قاعدة البيانات: '+e.message,'error');
+    }
+
+    // Render
+    render();
+
+    console.log('%c لو بوك | وحدة الباكند المحلي ','background:linear-gradient(135deg,#f26522,#d4561a);color:white;font-size:14px;font-weight:bold;border-radius:8px;padding:6px 14px');
+    console.log('%c IndexedDB ✓ | File Upload ✓ | Video Player ✓ | Password Hash ✓ | Account Delete ✓ ','background:#1a1a1a;color:#4ade80;font-size:11px;border-radius:4px;padding:4px 10px');
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,2491 @@
+```html
+<!DOCTYPE html>
+<html class="dark" lang="ar" dir="rtl">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>لو بوك | نظام المصادقة</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            font-family: 'Tajawal', sans-serif;
+            min-height: 100dvh;
+            overflow-x: hidden;
+            background: #0a0a0a;
+            color: #e5e2e1;
+        }
+
+        /* ═══════ Background Mesh ═══════ */
+        .auth-bg {
+            position: fixed; inset: 0; z-index: 0;
+            background:
+                radial-gradient(ellipse at 15% 80%, rgba(242,101,34,0.08) 0%, transparent 50%),
+                radial-gradient(ellipse at 85% 20%, rgba(242,101,34,0.05) 0%, transparent 50%),
+                radial-gradient(ellipse at 50% 50%, rgba(30,30,30,1) 0%, #0a0a0a 100%);
+        }
+        .auth-bg::after {
+            content: '';
+            position: fixed; inset: 0;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+            opacity: 0.3;
+            pointer-events: none;
+        }
+
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            transition: all 0.2s ease;
+        }
+        .filled-icon {
+            font-variation-settings: 'FILL' 1;
+            color: #f26522 !important;
+        }
+
+        /* ═══════ Glassmorphism ═══════ */
+        .glass-card {
+            background: rgba(32, 31, 31, 0.75);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.06);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+        }
+
+        /* ═══════ Page Transitions ═══════ */
+        .auth-page {
+            display: none;
+            animation: pageIn 0.5s cubic-bezier(0.4,0,0.2,1) forwards;
+        }
+        .auth-page.active { display: flex; }
+
+        @keyframes pageIn {
+            from { opacity: 0; transform: translateY(24px) scale(0.98); }
+            to   { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(12px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes pop {
+            0%   { transform: scale(1); }
+            50%  { transform: scale(1.15); }
+            100% { transform: scale(1); }
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20% { transform: translateX(-8px); }
+            40% { transform: translateX(8px); }
+            60% { transform: translateX(-6px); }
+            80% { transform: translateX(6px); }
+        }
+        @keyframes pulseGlow {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(242,101,34,0.4); }
+            50% { box-shadow: 0 0 20px 4px rgba(242,101,34,0.15); }
+        }
+        @keyframes slideInRight {
+            from { opacity: 0; transform: translateX(30px); }
+            to   { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes countUp {
+            from { opacity: 0; transform: scale(0.5); }
+            to   { opacity: 1; transform: scale(1); }
+        }
+
+        .animate-shake { animation: shake 0.5s ease; }
+        .animate-pop { animation: pop 0.3s ease-in-out; }
+        .animate-slide-in { animation: slideInRight 0.4s ease forwards; }
+
+        /* ═══════ Inputs ═══════ */
+        .auth-input {
+            background: rgba(42,42,42,0.6);
+            border: 1px solid rgba(89,65,56,0.4);
+            border-radius: 12px;
+            padding: 14px 16px;
+            color: #e5e2e1;
+            font-size: 15px;
+            width: 100%;
+            transition: all 0.3s ease;
+            outline: none;
+            font-family: 'Tajawal', sans-serif;
+        }
+        .auth-input:focus {
+            border-color: #f26522;
+            box-shadow: 0 0 0 3px rgba(242,101,34,0.15);
+            background: rgba(42,42,42,0.9);
+        }
+        .auth-input::placeholder {
+            color: #7a7570;
+        }
+        .auth-input.error {
+            border-color: #ef4444;
+            box-shadow: 0 0 0 3px rgba(239,68,68,0.15);
+        }
+
+        /* ═══════ Buttons ═══════ */
+        .btn-primary {
+            background: linear-gradient(135deg, #f26522, #e85d1c);
+            color: white;
+            font-weight: 700;
+            font-size: 16px;
+            padding: 14px 28px;
+            border-radius: 12px;
+            border: none;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.3s ease;
+            font-family: 'Tajawal', sans-serif;
+            position: relative;
+            overflow: hidden;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(242,101,34,0.35);
+        }
+        .btn-primary:active {
+            transform: translateY(0) scale(0.98);
+        }
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        .btn-primary .spinner {
+            display: none;
+            width: 20px; height: 20px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+            margin: 0 auto;
+        }
+        .btn-primary.loading .btn-text { display: none; }
+        .btn-primary.loading .spinner { display: block; }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid rgba(89,65,56,0.5);
+            color: #e5e2e1;
+            font-weight: 600;
+            font-size: 14px;
+            padding: 12px 24px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Tajawal', sans-serif;
+            width: 100%;
+        }
+        .btn-outline:hover {
+            border-color: #f26522;
+            background: rgba(242,101,34,0.08);
+            color: #f26522;
+        }
+
+        /* ═══════ Captcha ═══════ */
+        .captcha-box {
+            background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
+            border: 2px dashed rgba(242,101,34,0.4);
+            border-radius: 12px;
+            padding: 16px 24px;
+            position: relative;
+            overflow: hidden;
+        }
+        .captcha-box::before {
+            content: '';
+            position: absolute; inset: 0;
+            background:
+                repeating-linear-gradient(45deg, transparent, transparent 8px, rgba(255,255,255,0.015) 8px, rgba(255,255,255,0.015) 16px);
+            pointer-events: none;
+        }
+        .captcha-text {
+            font-size: 36px;
+            font-weight: 800;
+            letter-spacing: 12px;
+            text-align: center;
+            font-style: italic;
+            user-select: none;
+            text-shadow:
+                2px 2px 0 rgba(242,101,34,0.3),
+                -1px -1px 0 rgba(0,0,0,0.3);
+        }
+        .captcha-char {
+            display: inline-block;
+            transform: rotate(var(--rot)) translateY(var(--ty));
+            color: var(--clr);
+        }
+
+        /* ═══════ Password Strength ═══════ */
+        .strength-bar {
+            height: 4px;
+            border-radius: 4px;
+            background: rgba(255,255,255,0.1);
+            overflow: hidden;
+            margin-top: 8px;
+        }
+        .strength-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.4s ease, background 0.4s ease;
+            width: 0%;
+        }
+
+        /* ═══════ Toast ═══════ */
+        .toast {
+            position: fixed;
+            top: 24px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-100px);
+            z-index: 9999;
+            padding: 14px 28px;
+            border-radius: 14px;
+            font-weight: 700;
+            font-size: 14px;
+            opacity: 0;
+            transition: all 0.5s cubic-bezier(0.68,-0.55,0.265,1.55);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            backdrop-filter: blur(12px);
+            max-width: 90vw;
+        }
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+        .toast.success {
+            background: rgba(34,197,94,0.15);
+            border: 1px solid rgba(34,197,94,0.3);
+            color: #4ade80;
+        }
+        .toast.error {
+            background: rgba(239,68,68,0.15);
+            border: 1px solid rgba(239,68,68,0.3);
+            color: #f87171;
+        }
+        .toast.info {
+            background: rgba(59,130,246,0.15);
+            border: 1px solid rgba(59,130,246,0.3);
+            color: #60a5fa;
+        }
+
+        /* ═══════ Password Toggle ═══════ */
+        .pass-toggle {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: #7a7570;
+            transition: color 0.2s;
+            background: none;
+            border: none;
+            padding: 4px;
+        }
+        .pass-toggle:hover { color: #f26522; }
+
+        /* ═══════ Divider ═══════ */
+        .divider {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            color: #7a7570;
+            font-size: 13px;
+        }
+        .divider::before, .divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: rgba(89,65,56,0.3);
+        }
+
+        /* ═══════ Checkbox ═══════ */
+        .custom-check {
+            appearance: none;
+            width: 20px; height: 20px;
+            border: 2px solid rgba(89,65,56,0.5);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+            flex-shrink: 0;
+        }
+        .custom-check:checked {
+            background: #f26522;
+            border-color: #f26522;
+        }
+        .custom-check:checked::after {
+            content: '✓';
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 12px;
+            font-weight: 800;
+        }
+
+        /* ═══════ Sessions ═══════ */
+        .session-card {
+            background: rgba(42,42,42,0.4);
+            border: 1px solid rgba(89,65,56,0.2);
+            border-radius: 14px;
+            padding: 16px;
+            transition: all 0.3s;
+        }
+        .session-card:hover {
+            border-color: rgba(242,101,34,0.3);
+            background: rgba(42,42,42,0.6);
+        }
+        .session-card.current {
+            border-color: rgba(242,101,34,0.4);
+            background: rgba(242,101,34,0.05);
+        }
+
+        /* ═══════ Tabs ═══════ */
+        .tab-btn {
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: none;
+            background: transparent;
+            color: #7a7570;
+            font-family: 'Tajawal', sans-serif;
+        }
+        .tab-btn.active {
+            background: rgba(242,101,34,0.15);
+            color: #f26522;
+        }
+        .tab-btn:hover:not(.active) {
+            color: #e5e2e1;
+            background: rgba(255,255,255,0.04);
+        }
+
+        /* ═══════ 2FA Digits ═══════ */
+        .otp-input {
+            width: 52px; height: 60px;
+            text-align: center;
+            font-size: 24px;
+            font-weight: 800;
+            background: rgba(42,42,42,0.6);
+            border: 2px solid rgba(89,65,56,0.3);
+            border-radius: 14px;
+            color: #f26522;
+            outline: none;
+            transition: all 0.3s;
+            font-family: 'Tajawal', sans-serif;
+        }
+        .otp-input:focus {
+            border-color: #f26522;
+            box-shadow: 0 0 0 3px rgba(242,101,34,0.15);
+        }
+
+        /* ═══════ Verification Badge ═══════ */
+        .badge-verified {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: rgba(59,130,246,0.15);
+            color: #60a5fa;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .badge-pending {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: rgba(234,179,8,0.15);
+            color: #facc15;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .badge-rejected {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: rgba(239,68,68,0.15);
+            color: #f87171;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        /* ═══════ Scrollbar ═══════ */
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #474746; border-radius: 4px; }
+
+        /* ═══════ Home preview ═══════ */
+        .home-preview {
+            display: none;
+        }
+        .home-preview.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+
+        /* ═══════ Responsive ═══════ */
+        @media (max-width: 480px) {
+            .auth-card { margin: 16px; padding: 24px 20px; }
+            .otp-input { width: 44px; height: 52px; font-size: 20px; }
+            .captcha-text { font-size: 28px; letter-spacing: 8px; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Background -->
+    <div class="auth-bg"></div>
+
+    <!-- Toast Container -->
+    <div id="toastEl" class="toast"></div>
+
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- AUTH PAGES WRAPPER -->
+    <!-- ═══════════════════════════════════════════ -->
+    <div id="authWrapper" class="relative z-10 min-h-dvh flex items-center justify-center p-4">
+
+        <!-- ============================================ -->
+        <!-- PAGE: LOGIN -->
+        <!-- ============================================ -->
+        <section id="page-login" class="auth-page active w-full max-w-md flex-col items-center justify-center">
+            <!-- Logo -->
+            <div class="text-center mb-8">
+                <div class="w-20 h-20 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-[#f26522] to-[#e85d1c] flex items-center justify-center shadow-lg" style="animation: pulseGlow 3s infinite;">
+                    <span class="material-symbols-outlined text-white" style="font-size:40px; font-variation-settings:'FILL' 1;">balance</span>
+                </div>
+                <h1 class="text-3xl font-extrabold text-[#f26522] tracking-tight">لو بوك</h1>
+                <p class="text-sm text-[#7a7570] mt-1">المنصة القانونية الشاملة</p>
+            </div>
+
+            <div class="auth-card glass-card rounded-2xl p-8 w-full">
+                <h2 class="text-xl font-bold mb-1">تسجيل الدخول</h2>
+                <p class="text-sm text-[#7a7570] mb-6">أدخل بياناتك للمتابعة</p>
+
+                <form id="loginForm" onsubmit="return handleLogin(event)" class="space-y-4">
+                    <!-- Email or Phone -->
+                    <div>
+                        <label class="text-sm font-semibold text-[#e1bfb3] mb-2 block">البريد الإلكتروني أو رقم الهاتف</label>
+                        <div class="relative">
+                            <span class="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-[#7a7570] text-[20px]">person</span>
+                            <input type="text" id="loginEmail" class="auth-input pr-12" placeholder="example@email.com" autocomplete="username" required/>
+                        </div>
+                    </div>
+
+                    <!-- Password -->
+                    <div>
+                        <label class="text-sm font-semibold text-[#e1bfb3] mb-2 block">كلمة المرور</label>
+                        <div class="relative">
+                            <span class="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-[#7a7570] text-[20px]">lock</span>
+                            <input type="password" id="loginPassword" class="auth-input pr-12 pl-12" placeholder="••••••••" autocomplete="current-password" required/>
+                            <button type="button" class="pass-toggle" onclick="togglePassVisibility('loginPassword', this)">
+                                <span class="material-symbols-outlined text-[20px]">visibility_off</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Remember + Forgot -->
+                    <div class="flex items-center justify-between">
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" class="custom-check" id="rememberMe"/>
+                            <span class="text-sm text-[#7a7570]">تذكرني</span>
+                        </label>
+                        <a href="javascript:void(0)" onclick="showPage('page-forgot')" class="text-sm text-[#f26522] hover:underline font-semibold">نسيت كلمة المرور؟</a>
+                    </div>
+
+                    <!-- Submit -->
+                    <button type="submit" class="btn-primary" id="loginBtn">
+                        <span class="btn-text">تسجيل الدخول</span>
+                        <div class="spinner"></div>
+                    </button>
+                </form>
+
+                <!-- Divider -->
+                <div class="divider my-6">أو</div>
+
+                <!-- Social Login -->
+                <div class="grid grid-cols-2 gap-3 mb-6">
+                    <button class="btn-outline flex items-center justify-center gap-2" onclick="socialLogin('google')">
+                        <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+                        Google
+                    </button>
+                    <button class="btn-outline flex items-center justify-center gap-2" onclick="socialLogin('apple')">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="#fff"><path d="M17.05 20.28c-.98.95-2.05.88-3.08.4-1.09-.5-2.08-.48-3.24 0-1.44.62-2.2.44-3.06-.4C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/></svg>
+                        Apple
+                    </button>
+                </div>
+
+                <!-- Register Link -->
+                <p class="text-center text-sm text-[#7a7570]">
+                    ليس لديك حساب؟
+                    <a href="javascript:void(0)" onclick="showPage('page-register')" class="text-[#f26522] font-bold hover:underline">أنشئ واحداً</a>
+                </p>
+            </div>
+        </section>
+
+        <!-- ============================================ -->
+        <!-- PAGE: REGISTER -->
+        <!-- ============================================ -->
+        <section id="page-register" class="auth-page w-full max-w-md flex-col items-center justify-center">
+            <div class="text-center mb-6">
+                <div class="w-16 h-16 mx-auto mb-3 rounded-2xl bg-gradient-to-br from-[#f26522] to-[#e85d1c] flex items-center justify-center shadow-lg">
+                    <span class="material-symbols-outlined text-white" style="font-size:32px; font-variation-settings:'FILL' 1;">person_add</span>
+                </div>
+                <h1 class="text-2xl font-extrabold text-[#f26522]">إنشاء حساب جديد</h1>
+                <p class="text-sm text-[#7a7570] mt-1">انضم إلى المجتمع القانوني</p>
+            </div>
+
+            <div class="auth-card glass-card rounded-2xl p-8 w-full">
+                <form id="registerForm" onsubmit="return handleRegister(event)" class="space-y-4">
+                    <!-- Full Name -->
+                    <div>
+                        <label class="text-sm font-semibold text-[#e1bfb3] mb-2 block">الاسم الكامل</label>
+                        <div class="relative">
+                            <span class="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-[#7a7570] text-[20px]">badge</span>
+                            <input type="text" id="regName" class="auth-input pr-12" placeholder="محمد أحمد العلي" required/>
+                        </div>
+                    </div>
+
+                    <!-- Phone -->
+                    <div>
+                        <label class="text-sm font-semibold text-[#e1bfb3] mb-2 block">رقم الهاتف</label>
+                        <div class="relative">
+                            <span class="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-[#7a7570] text-[20px]">phone</span>
+                            <input type="tel" id="regPhone" class="auth-input pr-12" placeholder="+966 5XX XXX XXXX" required dir="ltr" style="text-align:left; padding-left:16px;"/>
+                        </div>
+                    </div>
+
+                    <!-- Email (Optional) -->
+                    <div>
+                        <label class="text-sm font-semibold text-[#e1bfb3] mb-2 block">
+                            البريد الإلكتروني <span class="text-[#7a7570] font-normal">(اختياري)</span>
+                        </label>
+                        <div class="relative">
+                            <span class="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-[#7a7570] text-[20px]">mail</span>
+                            <input type="email" id="regEmail" class="auth-input pr-12" placeholder="example@email.com" dir="ltr" style="text-align:left; padding-left:16px;"/>
+                        </div>
+                    </div>
+
+                    <!-- Password -->
+                    <div>
+                        <label class="text-sm font-semibold text-[#e1bfb3] mb-2 block">كلمة المرور</label>
+                        <div class="relative">
+                            <span class="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-[#7a7570] text-[20px]">lock</span>
+                            <input type="password" id="regPassword" class="auth-input pr-12 pl-12" placeholder="8 أحرف على الأقل" required oninput="checkPasswordStrength(this.value)"/>
+                            <button type="button" class="pass-toggle" onclick="togglePassVisibility('regPassword', this)">
+                                <span class="material-symbols-outlined text-[20px]">visibility_off</span>
+                            </button>
+                        </div>
+                        <!-- Strength Indicator -->
+                        <div class="strength-bar mt-2">
+                            <div id="strengthFill" class="strength-fill"></div>
+                        </div>
+                        <p id="strengthText" class="text-xs mt-1 text-[#7a7570]"></p>
+                    </div>
+
+                    <!-- Confirm Password -->
+                    <div>
+                        <label class="text-sm font-semibold text-[#e1bfb3] mb-2 block">تأكيد كلمة المرور</label>
+                        <div class="relative">
+                            <span class="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-[#7a7570] text-[20px]">lock_reset</span>
+                            <input type="password" id="regPasswordConfirm" class="auth-input pr-12 pl-12" placeholder="أعد إدخال كلمة المرور" required/>
+                            <button type="button" class="pass-toggle" onclick="togglePassVisibility('regPasswordConfirm', this)">
+                                <span class="material-symbols-outlined text-[20px]">visibility_off</span>
+                            </button>
+                        </div>
+                        <p id="passwordMatchMsg" class="text-xs mt-1 hidden"></p>
+                    </div>
+
+                    <!-- Captcha -->
+                    <div>
+                        <label class="text-sm font-semibold text-[#e1bfb3] mb-2 block">أثبت أنك إنسان</label>
+                        <div class="captcha-box mb-3 flex items-center justify-between">
+                            <div id="captchaDisplay" class="captcha-text flex-1" style="direction:ltr;"></div>
+                            <button type="button" onclick="generateCaptcha()" class="text-[#f26522] hover:text-white transition-colors p-2 rounded-lg hover:bg-white/5" title="تحديث الرمز">
+                                <span class="material-symbols-outlined">refresh</span>
+                            </button>
+                        </div>
+                        <input type="text" id="captchaInput" class="auth-input" placeholder="اكتب الرمز الموضح أعلاه (4 أحرف/أرقام)" maxlength="4" dir="ltr" style="text-align:center; font-size:20px; font-weight:700; letter-spacing:8px;" required autocomplete="off"/>
+                        <p class="text-xs text-[#7a7570] mt-1">اكتب الأحرف والأرقام الظاهرة في الصورة</p>
+                    </div>
+
+                    <!-- Terms -->
+                    <label class="flex items-start gap-3 cursor-pointer">
+                        <input type="checkbox" class="custom-check mt-0.5" id="acceptTerms" required/>
+                        <span class="text-sm text-[#7a7570]">
+                            أوافق على
+                            <a href="javascript:void(0)" class="text-[#f26522] hover:underline">الشروط والأحكام</a>
+                            و
+                            <a href="javascript:void(0)" class="text-[#f26522] hover:underline">سياسة الخصوصية</a>
+                        </span>
+                    </label>
+
+                    <!-- Submit -->
+                    <button type="submit" class="btn-primary" id="registerBtn">
+                        <span class="btn-text">إنشاء الحساب</span>
+                        <div class="spinner"></div>
+                    </button>
+                </form>
+
+                <p class="text-center text-sm text-[#7a7570] mt-5">
+                    لديك حساب بالفعل؟
+                    <a href="javascript:void(0)" onclick="showPage('page-login')" class="text-[#f26522] font-bold hover:underline">تسجيل الدخول</a>
+                </p>
+            </div>
+        </section>
+
+        <!-- ============================================ -->
+        <!-- PAGE: FORGOT PASSWORD -->
+        <!-- ============================================ -->
+        <section id="page-forgot" class="auth-page w-full max-w-md flex-col items-center justify-center">
+            <div class="text-center mb-6">
+                <div class="w-16 h-16 mx-auto mb-3 rounded-2xl bg-gradient-to-br from-[#f26522] to-[#e85d1c] flex items-center justify-center shadow-lg">
+                    <span class="material-symbols-outlined text-white" style="font-size:32px; font-variation-settings:'FILL' 1;">lock_reset</span>
+                </div>
+                <h1 class="text-2xl font-extrabold text-[#f26522]">استعادة كلمة المرور</h1>
+                <p class="text-sm text-[#7a7570] mt-1">أدخل بريدك الإلكتروني أو رقم هاتفك</p>
+            </div>
+
+            <div class="auth-card glass-card rounded-2xl p-8 w-full">
+                <!-- Step 1: Enter Email/Phone -->
+                <form id="forgotStep1" onsubmit="return handleForgotStep1(event)" class="space-y-4">
+                    <div>
+                        <label class="text-sm font-semibold text-[#e1bfb3] mb-2 block">البريد الإلكتروني أو رقم الهاتف</label>
+                        <div class="relative">
+                            <span class="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-[#7a7570] text-[20px]">alternate_email</span>
+                            <input type="text" id="forgotEmail" class="auth-input pr-12" placeholder="أدخل بريدك أو رقم هاتفك" required/>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn-primary" id="forgotBtn1">
+                        <span class="btn-text">إرسال رمز التحقق</span>
+                        <div class="spinner"></div>
+                    </button>
+                </form>
+
+                <!-- Step 2: Enter Reset Code -->
+                <form id="forgotStep2" class="space-y-4 hidden" onsubmit="return handleForgotStep2(event)">
+                    <div class="text-center p-4 rounded-xl bg-[#f26522]/10 border border-[#f26522]/20 mb-2">
+                        <span class="material-symbols-outlined text-[#f26522] mb-1">mark_email_read</span>
+                        <p class="text-sm text-[#e1bfb3]">تم إرسال رمز التحقق إلى</p>
+                        <p class="text-sm font-bold text-[#f26522] mt-1" id="forgotTarget"></p>
+                    </div>
+                    <div>
+                        <label class="text-sm font-semibold text-[#e1bfb3] mb-2 block">رمز التحقق</label>
+                        <input type="text" id="forgotCode" class="auth-input text-center" placeholder="XXXX" maxlength="6" dir="ltr" style="font-size:24px; font-weight:700; letter-spacing:10px;" required/>
+                    </div>
+                    <button type="submit" class="btn-primary" id="forgotBtn2">
+                        <span class="btn-text">التحقق من الرمز</span>
+                        <div class="spinner"></div>
+                    </button>
+                    <p class="text-center text-xs text-[#7a7570]">
+                        لم يصلك الرمز؟
+                        <a href="javascript:void(0)" onclick="resendResetCode()" class="text-[#f26522] font-semibold hover:underline">إعادة الإرسال</a>
+                    </p>
+                </form>
+
+                <!-- Step 3: New Password -->
+                <form id="forgotStep3" class="space-y-4 hidden" onsubmit="return handleForgotStep3(event)">
+                    <div class="text-center p-3 rounded-xl bg-green-500/10 border border-green-500/20 mb-2">
+                        <span class="material-symbols-outlined text-green-400 mb-1">check_circle</span>
+                        <p class="text-sm text-green-400">تم التحقق بنجاح</p>
+                    </div>
+                    <div>
+                        <label class="text-sm font-semibold text-[#e1bfb3] mb-2 block">كلمة المرور الجديدة</label>
+                        <div class="relative">
+                            <input type="password" id="newPassword" class="auth-input pl-12" placeholder="8 أحرف على الأقل" required oninput="checkPasswordStrength(this.value)"/>
+                            <button type="button" class="pass-toggle" onclick="togglePassVisibility('newPassword', this)">
+                                <span class="material-symbols-outlined text-[20px]">visibility_off</span>
+                            </button>
+                        </div>
+                        <div class="strength-bar mt-2">
+                            <div id="strengthFill2" class="strength-fill"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="text-sm font-semibold text-[#e1bfb3] mb-2 block">تأكيد كلمة المرور</label>
+                        <div class="relative">
+                            <input type="password" id="newPasswordConfirm" class="auth-input pl-12" placeholder="أعد إدخال كلمة المرور" required/>
+                            <button type="button" class="pass-toggle" onclick="togglePassVisibility('newPasswordConfirm', this)">
+                                <span class="material-symbols-outlined text-[20px]">visibility_off</span>
+                            </button>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn-primary" id="forgotBtn3">
+                        <span class="btn-text">تحديث كلمة المرور</span>
+                        <div class="spinner"></div>
+                    </button>
+                </form>
+
+                <p class="text-center text-sm text-[#7a7570] mt-5">
+                    <a href="javascript:void(0)" onclick="showPage('page-login')" class="text-[#f26522] font-bold hover:underline">العودة لتسجيل الدخول</a>
+                </p>
+            </div>
+        </section>
+
+        <!-- ============================================ -->
+        <!-- PAGE: 2FA SETUP / VERIFY -->
+        <!-- ============================================ -->
+        <section id="page-2fa" class="auth-page w-full max-w-md flex-col items-center justify-center">
+            <div class="text-center mb-6">
+                <div class="w-16 h-16 mx-auto mb-3 rounded-2xl bg-gradient-to-br from-[#f26522] to-[#e85d1c] flex items-center justify-center shadow-lg">
+                    <span class="material-symbols-outlined text-white" style="font-size:32px; font-variation-settings:'FILL' 1;">security</span>
+                </div>
+                <h1 class="text-2xl font-extrabold text-[#f26522]">التحقق بخطوتين</h1>
+                <p class="text-sm text-[#7a7570] mt-1">أدخل رمز PIN المكون من 6 أرقام</p>
+            </div>
+
+            <div class="auth-card glass-card rounded-2xl p-8 w-full">
+                <!-- Toggle 2FA -->
+                <div class="flex items-center justify-between p-4 rounded-xl bg-[#2a2a2a]/50 mb-6">
+                    <div class="flex items-center gap-3">
+                        <span class="material-symbols-outlined text-[#f26522]">shield</span>
+                        <div>
+                            <p class="font-bold text-sm">التحقق بخطوتين</p>
+                            <p class="text-xs text-[#7a7570]" id="2faStatus">معطّل</p>
+                        </div>
+                    </div>
+                    <label class="relative inline-flex cursor-pointer">
+                        <input type="checkbox" id="toggle2FA" class="sr-only" onchange="handleToggle2FA(this)"/>
+                        <div class="w-12 h-6 bg-[#353534] rounded-full transition-colors duration-300" id="toggle2FABg">
+                            <div class="absolute top-0.5 w-5 h-5 bg-white rounded-full transition-transform duration-300 shadow-md" id="toggle2FADot" style="right:4px;"></div>
+                        </div>
+                    </label>
+                </div>
+
+                <!-- 2FA PIN Input (shown when enabled) -->
+                <div id="pinSection" class="hidden">
+                    <p class="text-sm text-center text-[#e1bfb3] mb-4">أدخل رمز PIN المكون من 6 أرقام لتأمين حسابك</p>
+                    <div class="flex justify-center gap-3 mb-6" id="pinContainer">
+                        <input type="tel" class="otp-input" maxlength="1" data-index="0" oninput="handleOTPInput(this)" onkeydown="handleOTPKeydown(event, this)"/>
+                        <input type="tel" class="otp-input" maxlength="1" data-index="1" oninput="handleOTPInput(this)" onkeydown="handleOTPKeydown(event, this)"/>
+                        <input type="tel" class="otp-input" maxlength="1" data-index="2" oninput="handleOTPInput(this)" onkeydown="handleOTPKeydown(event, this)"/>
+                        <input type="tel" class="otp-input" maxlength="1" data-index="3" oninput="handleOTPInput(this)" onkeydown="handleOTPKeydown(event, this)"/>
+                        <input type="tel" class="otp-input" maxlength="1" data-index="4" oninput="handleOTPInput(this)" onkeydown="handleOTPKeydown(event, this)"/>
+                        <input type="tel" class="otp-input" maxlength="1" data-index="5" oninput="handleOTPInput(this)" onkeydown="handleOTPKeydown(event, this)"/>
+                    </div>
+                    <button onclick="verify2FAPin()" class="btn-primary mb-4" id="verifyPinBtn">
+                        <span class="btn-text">تفعيل والتحقق</span>
+                        <div class="spinner"></div>
+                    </button>
+
+                    <!-- Backup Codes -->
+                    <div id="backupCodesSection" class="hidden">
+                        <div class="p-4 rounded-xl bg-yellow-500/10 border border-yellow-500/20 mb-4">
+                            <div class="flex items-center gap-2 mb-2">
+                                <span class="material-symbols-outlined text-yellow-400 text-[20px]">warning</span>
+                                <p class="text-sm font-bold text-yellow-400">أكواد الاستعادة</p>
+                            </div>
+                            <p class="text-xs text-[#7a7570] mb-3">احتفظ بهذه الأكواد في مكان آمن. يمكنك استخدامها إذا فقدت وصولك إلى الرمز.</p>
+                            <div id="backupCodesList" class="grid grid-cols-2 gap-2"></div>
+                        </div>
+                        <button onclick="copyBackupCodes()" class="btn-outline flex items-center justify-center gap-2">
+                            <span class="material-symbols-outlined text-[18px]">content_copy</span>
+                            نسخ الأكواد
+                        </button>
+                    </div>
+                </div>
+
+                <div class="text-center mt-5">
+                    <a href="javascript:void(0)" onclick="navigateToSettings()" class="text-sm text-[#f26522] font-bold hover:underline">العودة للإعدادات</a>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================ -->
+        <!-- PAGE: ACCOUNT VERIFICATION -->
+        <!-- ============================================ -->
+        <section id="page-verify" class="auth-page w-full max-w-md flex-col items-center justify-center">
+            <div class="text-center mb-6">
+                <div class="w-16 h-16 mx-auto mb-3 rounded-2xl bg-gradient-to-br from-[#3b82f6] to-[#2563eb] flex items-center justify-center shadow-lg">
+                    <span class="material-symbols-outlined text-white" style="font-size:32px; font-variation-settings:'FILL' 1;">verified_user</span>
+                </div>
+                <h1 class="text-2xl font-extrabold text-[#3b82f6]">توثيق الحساب</h1>
+                <p class="text-sm text-[#7a7570] mt-1">ارفع وثيقة هويتك للحصول على شارة التوثيق</p>
+            </div>
+
+            <div class="auth-card glass-card rounded-2xl p-8 w-full">
+                <!-- Current Status -->
+                <div id="verifyStatus" class="p-4 rounded-xl mb-6">
+                    <!-- Filled dynamically -->
+                </div>
+
+                <!-- Upload Form -->
+                <div id="verifyForm" class="space-y-4">
+                    <div>
+                        <label class="text-sm font-semibold text-[#e1bfb3] mb-2 block">نوع الوثيقة</label>
+                        <select id="docType" class="auth-input" style="cursor:pointer;">
+                            <option value="">اختر نوع الوثيقة</option>
+                            <option value="national_id">بطاقة هوية وطنية</option>
+                            <option value="passport">جواز سفر</option>
+                            <option value="license">رخصة قيادة</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="text-sm font-semibold text-[#e1bfb3] mb-2 block">صورة الوثيقة</label>
+                        <div id="uploadZone" class="border-2 border-dashed border-[#594138] rounded-xl p-8 text-center cursor-pointer hover:border-[#f26522] transition-colors" onclick="document.getElementById('docFile').click()">
+                            <span class="material-symbols-outlined text-4xl text-[#7a7570] mb-2">cloud_upload</span>
+                            <p class="text-sm text-[#7a7570]">اضغط لرفع الصورة</p>
+                            <p class="text-xs text-[#7a7570] mt-1">PNG, JPG (حد أقصى 5MB)</p>
+                            <input type="file" id="docFile" accept="image/*" class="hidden" onchange="handleDocUpload(this)"/>
+                        </div>
+                        <div id="uploadPreview" class="hidden mt-3 relative">
+                            <img id="previewImg" class="w-full h-40 object-cover rounded-xl border border-[#594138]"/>
+                            <button type="button" onclick="removeDocUpload()" class="absolute top-2 left-2 w-8 h-8 bg-red-500/80 rounded-full flex items-center justify-center hover:bg-red-500">
+                                <span class="material-symbols-outlined text-white text-[18px]">close</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="text-sm font-semibold text-[#e1bfb3] mb-2 block">الاسم على الوثيقة</label>
+                        <input type="text" id="docName" class="auth-input" placeholder="كما هو مكتوب على الوثيقة" required/>
+                    </div>
+
+                    <button onclick="submitVerification()" class="btn-primary" id="verifyBtn">
+                        <span class="btn-text">إرسال طلب التوثيق</span>
+                        <div class="spinner"></div>
+                    </button>
+                </div>
+
+                <div class="text-center mt-5">
+                    <a href="javascript:void(0)" onclick="navigateToSettings()" class="text-sm text-[#f26522] font-bold hover:underline">العودة للإعدادات</a>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================ -->
+        <!-- PAGE: SESSIONS MANAGEMENT -->
+        <!-- ============================================ -->
+        <section id="page-sessions" class="auth-page w-full max-w-lg flex-col items-center justify-center">
+            <div class="text-center mb-6">
+                <div class="w-16 h-16 mx-auto mb-3 rounded-2xl bg-gradient-to-br from-[#f26522] to-[#e85d1c] flex items-center justify-center shadow-lg">
+                    <span class="material-symbols-outlined text-white" style="font-size:32px; font-variation-settings:'FILL' 1;">devices</span>
+                </div>
+                <h1 class="text-2xl font-extrabold text-[#f26522]">إدارة الجلسات</h1>
+                <p class="text-sm text-[#7a7570] mt-1">الأجهزة والجلسات النشطة حالياً</p>
+            </div>
+
+            <div class="auth-card glass-card rounded-2xl p-8 w-full">
+                <!-- Current Session -->
+                <div class="mb-6">
+                    <h3 class="text-sm font-bold text-[#e1bfb3] mb-3 flex items-center gap-2">
+                        <span class="material-symbols-outlined text-[#f26522] text-[18px]">smartphone</span>
+                        الجلسة الحالية
+                    </h3>
+                    <div class="session-card current">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-xl bg-[#f26522]/15 flex items-center justify-center">
+                                    <span class="material-symbols-outlined text-[#f26522] text-[20px]" id="currentDeviceIcon">smartphone</span>
+                                </div>
+                                <div>
+                                    <p class="font-bold text-sm" id="currentDeviceInfo">جهازك الحالي</p>
+                                    <p class="text-xs text-[#7a7570]" id="currentDeviceLocation">الموقع: تم تحديده تلقائياً</p>
+                                    <p class="text-xs text-green-400 mt-0.5 flex items-center gap-1">
+                                        <span class="w-1.5 h-1.5 bg-green-400 rounded-full inline-block"></span> نشط الآن
+                                    </p>
+                                </div>
+                            </div>
+                            <span class="badge-verified">
+                                <span class="material-symbols-outlined text-[14px]" style="font-variation-settings:'FILL' 1;">check</span>
+                                حالي
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Other Sessions -->
+                <div>
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="text-sm font-bold text-[#e1bfb3] flex items-center gap-2">
+                            <span class="material-symbols-outlined text-[#7a7570] text-[18px]">computer</span>
+                            جلسات أخرى
+                        </h3>
+                        <button onclick="terminateAllSessions()" class="text-xs text-red-400 hover:text-red-300 font-semibold hover:underline transition-colors">إنهاء الكل</button>
+                    </div>
+                    <div id="sessionsList" class="space-y-3">
+                        <!-- Filled dynamically -->
+                    </div>
+                </div>
+
+                <div class="text-center mt-6">
+                    <a href="javascript:void(0)" onclick="navigateToSettings()" class="text-sm text-[#f26522] font-bold hover:underline">العودة للإعدادات</a>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================ -->
+        <!-- PAGE: SETTINGS (Simple Hub) -->
+        <!-- ============================================ -->
+        <section id="page-settings" class="auth-page w-full max-w-md flex-col items-center justify-center">
+            <div class="text-center mb-6">
+                <div class="w-16 h-16 mx-auto mb-3 rounded-2xl bg-gradient-to-br from-[#f26522] to-[#e85d1c] flex items-center justify-center shadow-lg">
+                    <span class="material-symbols-outlined text-white" style="font-size:32px; font-variation-settings:'FILL' 1;">settings</span>
+                </div>
+                <h1 class="text-2xl font-extrabold text-[#f26522]">الإعدادات</h1>
+            </div>
+
+            <div class="auth-card glass-card rounded-2xl p-6 w-full space-y-2">
+                <button onclick="showPage('page-2fa')" class="w-full flex items-center gap-4 p-4 rounded-xl hover:bg-white/5 transition-colors text-right">
+                    <div class="w-10 h-10 rounded-xl bg-blue-500/15 flex items-center justify-center">
+                        <span class="material-symbols-outlined text-blue-400 text-[20px]">security</span>
+                    </div>
+                    <div class="flex-1">
+                        <p class="font-bold text-sm">التحقق بخطوتين</p>
+                        <p class="text-xs text-[#7a7570]" id="settings2FAStatus">معطّل</p>
+                    </div>
+                    <span class="material-symbols-outlined text-[#7a7570]">chevron_left</span>
+                </button>
+
+                <button onclick="showPage('page-verify')" class="w-full flex items-center gap-4 p-4 rounded-xl hover:bg-white/5 transition-colors text-right">
+                    <div class="w-10 h-10 rounded-xl bg-blue-500/15 flex items-center justify-center">
+                        <span class="material-symbols-outlined text-blue-400 text-[20px]">verified_user</span>
+                    </div>
+                    <div class="flex-1">
+                        <p class="font-bold text-sm">توثيق الحساب</p>
+                        <p class="text-xs text-[#7a7570]" id="settingsVerifyStatus">غير موثق</p>
+                    </div>
+                    <span class="material-symbols-outlined text-[#7a7570]">chevron_left</span>
+                </button>
+
+                <button onclick="showPage('page-sessions')" class="w-full flex items-center gap-4 p-4 rounded-xl hover:bg-white/5 transition-colors text-right">
+                    <div class="w-10 h-10 rounded-xl bg-green-500/15 flex items-center justify-center">
+                        <span class="material-symbols-outlined text-green-400 text-[20px]">devices</span>
+                    </div>
+                    <div class="flex-1">
+                        <p class="font-bold text-sm">إدارة الجلسات</p>
+                        <p class="text-xs text-[#7a7570]">الأجهزة المتصلة</p>
+                    </div>
+                    <span class="material-symbols-outlined text-[#7a7570]">chevron_left</span>
+                </button>
+
+                <hr class="border-[#594138]/30 my-2"/>
+
+                <button onclick="handleLogout()" class="w-full flex items-center gap-4 p-4 rounded-xl hover:bg-red-500/10 transition-colors text-right">
+                    <div class="w-10 h-10 rounded-xl bg-red-500/15 flex items-center justify-center">
+                        <span class="material-symbols-outlined text-red-400 text-[20px]">logout</span>
+                    </div>
+                    <div class="flex-1">
+                        <p class="font-bold text-sm text-red-400">تسجيل الخروج</p>
+                    </div>
+                </button>
+            </div>
+        </section>
+
+    </div>
+    <!-- END AUTH WRAPPER -->
+
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- HOME PREVIEW (After Login) -->
+    <!-- ═══════════════════════════════════════════ -->
+    <div id="homePreview" class="home-preview relative z-10">
+        <!-- Top Bar -->
+        <header class="fixed top-0 w-full z-50 border-b border-[#594138]/40 flex items-center justify-between px-4 h-16" style="background:rgba(32,31,31,0.85); backdrop-filter:blur(16px);">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-[#f26522] to-[#e85d1c] flex items-center justify-center">
+                    <span class="material-symbols-outlined text-white text-[18px]" style="font-variation-settings:'FILL' 1;">balance</span>
+                </div>
+                <h1 class="text-xl font-extrabold text-[#f26522] tracking-tight">لو بوك</h1>
+            </div>
+            <div class="flex items-center gap-2">
+                <button onclick="showPage('page-settings'); switchToAuth();" class="p-2 rounded-full hover:bg-white/5 transition-colors">
+                    <span class="material-symbols-outlined text-[#e1bfb3]">settings</span>
+                </button>
+                <div id="homeUserAvatar" class="w-9 h-9 rounded-full bg-[#f26522] flex items-center justify-center text-white font-bold text-sm cursor-pointer" onclick="showPage('page-settings'); switchToAuth();"></div>
+            </div>
+        </header>
+
+        <main class="pt-20 max-w-xl mx-auto px-4 pb-24">
+            <!-- Welcome Card -->
+            <div class="glass-card rounded-2xl p-6 mb-6 text-center" style="animation: fadeIn 0.6s ease;">
+                <div id="homeAvatarLarge" class="w-20 h-20 rounded-full bg-[#f26522] mx-auto mb-4 flex items-center justify-center text-white text-2xl font-bold border-4 border-[#f26522]/30"></div>
+                <h2 class="text-xl font-extrabold mb-1" id="homeUserName"></h2>
+                <p class="text-sm text-[#7a7570] mb-4" id="homeUserPhone"></p>
+
+                <div class="flex justify-center gap-4 mb-4">
+                    <div class="text-center">
+                        <p class="text-lg font-extrabold text-[#f26522]">0</p>
+                        <p class="text-xs text-[#7a7570]">المنشورات</p>
+                    </div>
+                    <div class="text-center">
+                        <p class="text-lg font-extrabold text-[#f26522]">0</p>
+                        <p class="text-xs text-[#7a7570]">المتابعين</p>
+                    </div>
+                    <div class="text-center">
+                        <p class="text-lg font-extrabold text-[#f26522]">0</p>
+                        <p class="text-xs text-[#7a7570]">المتابَعين</p>
+                    </div>
+                </div>
+
+                <div id="homeVerifyBadge" class="hidden mb-4"></div>
+                <div id="home2FABadge" class="hidden mb-2"></div>
+
+                <button onclick="showPage('page-settings'); switchToAuth();" class="btn-outline w-full flex items-center justify-center gap-2">
+                    <span class="material-symbols-outlined text-[18px]">settings</span>
+                    إعدادات الحساب
+                </button>
+            </div>
+
+            <!-- Quick Post -->
+            <div class="glass-card rounded-2xl p-5 mb-6" style="animation: fadeIn 0.7s ease;">
+                <div class="flex items-center gap-3 mb-3">
+                    <div id="quickPostAvatar" class="w-10 h-10 rounded-full bg-[#f26522] flex items-center justify-center text-white font-bold text-sm"></div>
+                    <div class="flex-1">
+                        <textarea id="quickPostInput" class="w-full bg-[#2a2a2a]/60 border border-[#594138]/30 rounded-xl p-3 text-sm text-[#e5e2e1] placeholder-[#7a7570] resize-none outline-none focus:border-[#f26522] transition-colors" rows="2" placeholder="شارك تحديثاً أو سابقة قانونية..."></textarea>
+                    </div>
+                </div>
+                <div class="flex justify-between items-center pt-2 border-t border-[#594138]/20">
+                    <div class="flex gap-1">
+                        <button class="p-2 rounded-full hover:bg-white/5 text-[#f26522] transition-colors"><span class="material-symbols-outlined text-[20px]">image</span></button>
+                        <button class="p-2 rounded-full hover:bg-white/5 text-[#f26522] transition-colors"><span class="material-symbols-outlined text-[20px]">poll</span></button>
+                        <button class="p-2 rounded-full hover:bg-white/5 text-[#f26522] transition-colors"><span class="material-symbols-outlined text-[20px]">schedule</span></button>
+                    </div>
+                    <button onclick="publishQuickPost()" class="bg-[#f26522] text-white px-5 py-2 text-sm font-bold rounded-full hover:scale-105 active:scale-95 transition-all shadow-md">نشر</button>
+                </div>
+            </div>
+
+            <!-- Posts Feed -->
+            <div id="homeFeed" class="space-y-4" style="animation: fadeIn 0.8s ease;">
+                <!-- Sample Posts -->
+            </div>
+        </main>
+    </div>
+
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- JAVASCRIPT -->
+    <!-- ═══════════════════════════════════════════ -->
+    <script>
+    // ═══════════════════════════════════════════
+    // DATABASE MANAGER (localStorage)
+    // ═══════════════════════════════════════════
+    const DB = {
+        get(key) {
+            try { return JSON.parse(localStorage.getItem('lb_' + key)); }
+            catch { return null; }
+        },
+        set(key, value) {
+            localStorage.setItem('lb_' + key, JSON.stringify(value));
+        },
+        remove(key) {
+            localStorage.removeItem('lb_' + key);
+        }
+    };
+
+    // ═══════════════════════════════════════════
+    // AUTH MANAGER
+    // ═══════════════════════════════════════════
+    const Auth = {
+        // إنشاء مستخدم جديد
+        register(name, phone, email, password) {
+            const users = DB.get('users') || [];
+            // التحقق من عدم تكرار رقم الهاتف
+            if (users.find(u => u.phone === phone)) {
+                return { success: false, message: 'رقم الهاتف مسجل بالفعل' };
+            }
+            if (email && users.find(u => u.email === email)) {
+                return { success: false, message: 'البريد الإلكتروني مسجل بالفعل' };
+            }
+
+            const user = {
+                id: 'usr_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6),
+                name: name,
+                phone: phone,
+                email: email || '',
+                password: this.hashPassword(password),
+                avatar: '',
+                verified: false,
+                verificationStatus: 'none', // none | pending | verified | rejected
+                twoFactorEnabled: false,
+                twoFactorPin: '',
+                backupCodes: [],
+                createdAt: new Date().toISOString(),
+                sessions: [],
+                loginHistory: []
+            };
+
+            users.push(user);
+            DB.set('users', users);
+
+            // تسجيل الدخول تلقائياً
+            this.createSession(user);
+            return { success: true, user: user };
+        },
+
+        // تسجيل الدخول
+        login(identifier, password) {
+            const users = DB.get('users') || [];
+            const user = users.find(u => u.phone === identifier || u.email === identifier);
+
+            if (!user) {
+                return { success: false, message: 'المستخدم غير موجود' };
+            }
+            if (user.password !== this.hashPassword(password)) {
+                return { success: false, message: 'كلمة المرور غير صحيحة' };
+            }
+
+            this.createSession(user);
+            return { success: true, user: user };
+        },
+
+        // إنشاء جلسة
+        createSession(user) {
+            const session = {
+                token: 'jwt_' + this.generateToken(),
+                userId: user.id,
+                device: this.detectDevice(),
+                browser: this.detectBrowser(),
+                ip: '192.168.1.' + Math.floor(Math.random() * 255),
+                location: 'المملكة العربية السعودية',
+                createdAt: new Date().toISOString(),
+                lastActive: new Date().toISOString(),
+                isCurrent: true
+            };
+
+            // تحديث جلسات المستخدم
+            const users = DB.get('users') || [];
+            const uIndex = users.findIndex(u => u.id === user.id);
+            if (uIndex !== -1) {
+                // جعل كل الجلسات السابقة غير حالية
+                users[uIndex].sessions.forEach(s => s.isCurrent = false);
+                users[uIndex].sessions.push(session);
+                users[uIndex].loginHistory.push({
+                    action: 'login',
+                    device: session.device,
+                    time: session.createdAt
+                });
+                DB.set('users', users);
+            }
+
+            // حفظ الجلسة الحالية
+            DB.set('currentSession', session);
+            DB.set('currentUserId', user.id);
+        },
+
+        // تسجيل الخروج
+        logout() {
+            const session = DB.get('currentSession');
+            const userId = DB.get('currentUserId');
+
+            if (userId && session) {
+                const users = DB.get('users') || [];
+                const uIndex = users.findIndex(u => u.id === userId);
+                if (uIndex !== -1) {
+                    users[uIndex].sessions = users[uIndex].sessions.filter(s => s.token !== session.token);
+                    users[uIndex].loginHistory.push({
+                        action: 'logout',
+                        device: session.device,
+                        time: new Date().toISOString()
+                    });
+                    DB.set('users', users);
+                }
+            }
+
+            DB.remove('currentSession');
+            DB.remove('currentUserId');
+        },
+
+        // الحصول على المستخدم الحالي
+        getCurrentUser() {
+            const userId = DB.get('currentUserId');
+            if (!userId) return null;
+            const users = DB.get('users') || [];
+            return users.find(u => u.id === userId) || null;
+        },
+
+        // هل المستخدم مسجل دخوله؟
+        isLoggedIn() {
+            return !!DB.get('currentUserId') && !!DB.get('currentSession');
+        },
+
+        // تحديث بيانات المستخدم
+        updateUser(userId, updates) {
+            const users = DB.get('users') || [];
+            const index = users.findIndex(u => u.id === userId);
+            if (index !== -1) {
+                users[index] = { ...users[index], ...updates };
+                DB.set('users', users);
+                return users[index];
+            }
+            return null;
+        },
+
+        // استعادة كلمة المرور (محاكاة)
+        requestPasswordReset(identifier) {
+            const users = DB.get('users') || [];
+            const user = users.find(u => u.phone === identifier || u.email === identifier);
+            if (!user) {
+                return { success: false, message: 'لم يتم العثور على حساب بهذا المعرف' };
+            }
+            const code = Math.random().toString(36).substr(2, 6).toUpperCase();
+            DB.set('resetCode', { code: code, userId: user.id, expires: Date.now() + 600000 });
+            return { success: true, code: code, target: identifier };
+        },
+
+        // التحقق من رمز الاستعادة
+        verifyResetCode(code) {
+            const resetData = DB.get('resetCode');
+            if (!resetData) return { success: false, message: 'لم يتم طلب رمز تحقق' };
+            if (Date.now() > resetData.expires) return { success: false, message: 'انتهت صلاحية الرمز' };
+            if (resetData.code !== code.toUpperCase()) return { success: false, message: 'الرمز غير صحيح' };
+            return { success: true, userId: resetData.userId };
+        },
+
+        // تحديث كلمة المرور
+        resetPassword(userId, newPassword) {
+            const result = this.updateUser(userId, { password: this.hashPassword(newPassword) });
+            DB.remove('resetCode');
+            return !!result;
+        },
+
+        // تشفير كلمة المرور (محاكاة بسيطة للواجهة)
+        hashPassword(password) {
+            let hash = 0;
+            for (let i = 0; i < password.length; i++) {
+                const char = password.charCodeAt(i);
+                hash = ((hash << 5) - hash) + char;
+                hash = hash & hash;
+            }
+            return 'hashed_' + Math.abs(hash).toString(36) + '_' + password.length;
+        },
+
+        // توليد رمز JWT (محاكاة)
+        generateToken() {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+            let token = '';
+            for (let i = 0; i < 32; i++) {
+                token += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return token;
+        },
+
+        // كشف نوع الجهاز
+        detectDevice() {
+            const ua = navigator.userAgent;
+            if (/tablet|ipad/i.test(ua)) return 'جهاز لوحي';
+            if (/mobile|android|iphone/i.test(ua)) return 'هاتف ذكي';
+            return 'حاسوب';
+        },
+
+        // كشف المتصفح
+        detectBrowser() {
+            const ua = navigator.userAgent;
+            if (ua.includes('Chrome') && !ua.includes('Edg')) return 'Chrome';
+            if (ua.includes('Firefox')) return 'Firefox';
+            if (ua.includes('Safari') && !ua.includes('Chrome')) return 'Safari';
+            if (ua.includes('Edg')) return 'Edge';
+            return 'متصفح غير معروف';
+        },
+
+        // إنهاء جلسة محددة
+        terminateSession(token) {
+            const userId = DB.get('currentUserId');
+            const users = DB.get('users') || [];
+            const uIndex = users.findIndex(u => u.id === userId);
+            if (uIndex !== -1) {
+                users[uIndex].sessions = users[uIndex].sessions.filter(s => s.token !== token);
+                DB.set('users', users);
+            }
+        },
+
+        // إنهاء كل الجلسات الأخرى
+        terminateOtherSessions() {
+            const userId = DB.get('currentUserId');
+            const currentToken = DB.get('currentSession')?.token;
+            const users = DB.get('users') || [];
+            const uIndex = users.findIndex(u => u.id === userId);
+            if (uIndex !== -1) {
+                users[uIndex].sessions = users[uIndex].sessions.filter(s => s.token === currentToken);
+                DB.set('users', users);
+            }
+        }
+    };
+
+    // ═══════════════════════════════════════════
+    // CAPTCHA GENERATOR
+    // ═══════════════════════════════════════════
+    let currentCaptcha = '';
+
+    function generateCaptcha() {
+        const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+        let result = '';
+        for (let i = 0; i < 4; i++) {
+            result += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        currentCaptcha = result;
+
+        const display = document.getElementById('captchaDisplay');
+        const colors = ['#f26522', '#ffb599', '#ff8c5a', '#ffd4c4'];
+        const rotations = [-12, 8, -5, 15, -8, 10];
+        const offsets = [-4, 6, -2, 8, -6, 3];
+
+        display.innerHTML = result.split('').map((char, i) => {
+            const rot = rotations[i % rotations.length];
+            const ty = offsets[i % offsets.length];
+            const color = colors[i % colors.length];
+            return `<span class="captcha-char" style="--rot:${rot}deg; --ty:${ty}px; --clr:${color};">${char}</span>`;
+        }).join('');
+    }
+
+    // ═══════════════════════════════════════════
+    // PASSWORD STRENGTH CHECKER
+    // ═══════════════════════════════════════════
+    function checkPasswordStrength(password) {
+        let score = 0;
+        let feedback = '';
+
+        if (password.length >= 8) score++;
+        if (password.length >= 12) score++;
+        if (/[A-Z]/.test(password)) score++;
+        if (/[a-z]/.test(password)) score++;
+        if (/[0-9]/.test(password)) score++;
+        if (/[^A-Za-z0-9]/.test(password)) score++;
+
+        const fill = document.getElementById('strengthFill');
+        const fill2 = document.getElementById('strengthFill2');
+        const text = document.getElementById('strengthText');
+
+        let percent, color, label;
+
+        if (score <= 2) {
+            percent = 25; color = '#ef4444'; label = 'ضعيفة';
+        } else if (score <= 3) {
+            percent = 50; color = '#f59e0b'; label = 'متوسطة';
+        } else if (score <= 4) {
+            percent = 75; color = '#22c55e'; label = 'جيدة';
+        } else {
+            percent = 100; color = '#10b981'; label = 'قوية جداً';
+        }
+
+        [fill, fill2].forEach(f => {
+            if (f) {
+                f.style.width = percent + '%';
+                f.style.background = color;
+            }
+        });
+        if (text) {
+            text.textContent = password.length > 0 ? `قوة كلمة المرور: ${label}` : '';
+            text.style.color = color;
+        }
+    }
+
+    // ═══════════════════════════════════════════
+    // PASSWORD VISIBILITY TOGGLE
+    // ═══════════════════════════════════════════
+    function togglePassVisibility(inputId, btn) {
+        const input = document.getElementById(inputId);
+        const icon = btn.querySelector('.material-symbols-outlined');
+        if (input.type === 'password') {
+            input.type = 'text';
+            icon.textContent = 'visibility';
+        } else {
+            input.type = 'password';
+            icon.textContent = 'visibility_off';
+        }
+    }
+
+    // ═══════════════════════════════════════════
+    // PAGE NAVIGATION
+    // ═══════════════════════════════════════════
+    function showPage(pageId) {
+        document.querySelectorAll('.auth-page').forEach(p => p.classList.remove('active'));
+        const page = document.getElementById(pageId);
+        if (page) {
+            page.classList.add('active');
+            // إعادة تشغيل الأنيميشن
+            page.style.animation = 'none';
+            page.offsetHeight; // trigger reflow
+            page.style.animation = '';
+        }
+    }
+
+    function switchToAuth() {
+        document.getElementById('homePreview').classList.remove('active');
+        document.getElementById('authWrapper').style.display = 'flex';
+    }
+
+    function switchToHome() {
+        document.getElementById('authWrapper').style.display = 'none';
+        document.getElementById('homePreview').classList.add('active');
+        populateHome();
+    }
+
+    // ═══════════════════════════════════════════
+    // TOAST NOTIFICATIONS
+    // ═══════════════════════════════════════════
+    function showToast(message, type = 'info') {
+        const toast = document.getElementById('toastEl');
+        const icons = {
+            success: 'check_circle',
+            error: 'error',
+            info: 'info'
+        };
+        toast.className = `toast ${type}`;
+        toast.innerHTML = `<span class="material-symbols-outlined text-[20px]">${icons[type]}</span> ${message}`;
+
+        // إظهار
+        setTimeout(() => toast.classList.add('show'), 10);
+
+        // إخفاء
+        setTimeout(() => toast.classList.remove('show'), 3500);
+    }
+
+    // ═══════════════════════════════════════════
+    // BUTTON LOADING STATE
+    // ═══════════════════════════════════════════
+    function setLoading(btnId, loading) {
+        const btn = document.getElementById(btnId);
+        if (!btn) return;
+        if (loading) {
+            btn.classList.add('loading');
+            btn.disabled = true;
+        } else {
+            btn.classList.remove('loading');
+            btn.disabled = false;
+        }
+    }
+
+    // ═══════════════════════════════════════════
+    // HANDLE: LOGIN
+    // ═══════════════════════════════════════════
+    function handleLogin(e) {
+        e.preventDefault();
+
+        const identifier = document.getElementById('loginEmail').value.trim();
+        const password = document.getElementById('loginPassword').value;
+
+        if (!identifier || !password) {
+            showToast('يرجى ملء جميع الحقول', 'error');
+            return false;
+        }
+
+        setLoading('loginBtn', true);
+
+        setTimeout(() => {
+            const result = Auth.login(identifier, password);
+
+            if (result.success) {
+                showToast('تم تسجيل الدخول بنجاح!', 'success');
+                setTimeout(() => switchToHome(), 800);
+            } else {
+                showToast(result.message, 'error');
+                document.getElementById('loginForm').classList.add('animate-shake');
+                setTimeout(() => document.getElementById('loginForm').classList.remove('animate-shake'), 500);
+            }
+
+            setLoading('loginBtn', false);
+        }, 1200);
+
+        return false;
+    }
+
+    // ═══════════════════════════════════════════
+    // HANDLE: REGISTER
+    // ═══════════════════════════════════════════
+    function handleRegister(e) {
+        e.preventDefault();
+
+        const name = document.getElementById('regName').value.trim();
+        const phone = document.getElementById('regPhone').value.trim();
+        const email = document.getElementById('regEmail').value.trim();
+        const password = document.getElementById('regPassword').value;
+        const confirmPassword = document.getElementById('regPasswordConfirm').value;
+        const captchaVal = document.getElementById('captchaInput').value.trim().toUpperCase();
+        const termsChecked = document.getElementById('acceptTerms').checked;
+
+        // التحقق من الحقول
+        if (!name || !phone || !password || !confirmPassword) {
+            showToast('يرجى ملء جميع الحقول المطلوبة', 'error');
+            return false;
+        }
+
+        // التحقق من قوة كلمة المرور
+        if (password.length < 8) {
+            showToast('كلمة المرور يجب أن تكون 8 أحرف على الأقل', 'error');
+            return false;
+        }
+        if (!/[A-Z]/.test(password)) {
+            showToast('كلمة المرور يجب أن تحتوي على حرف كبير واحد على الأقل', 'error');
+            return false;
+        }
+        if (!/[0-9]/.test(password)) {
+            showToast('كلمة المرور يجب أن تحتوي على رقم واحد على الأقل', 'error');
+            return false;
+        }
+
+        // تطابق كلمة المرور
+        if (password !== confirmPassword) {
+            showToast('كلمتا المرور غير متطابقتين', 'error');
+            document.getElementById('regPasswordConfirm').classList.add('error');
+            return false;
+        }
+        document.getElementById('regPasswordConfirm').classList.remove('error');
+
+        // التحقق من Captcha
+        if (captchaVal !== currentCaptcha) {
+            showToast('رمز التحقق غير صحيح، حاول مرة أخرى', 'error');
+            document.getElementById('captchaInput').classList.add('error');
+            document.getElementById('captchaInput').parentElement.classList.add('animate-shake');
+            setTimeout(() => {
+                document.getElementById('captchaInput').parentElement.classList.remove('animate-shake');
+            }, 500);
+            generateCaptcha();
+            document.getElementById('captchaInput').value = '';
+            return false;
+        }
+        document.getElementById('captchaInput').classList.remove('error');
+
+        // الموافقة على الشروط
+        if (!termsChecked) {
+            showToast('يجب الموافقة على الشروط والأحكام', 'error');
+            return false;
+        }
+
+        setLoading('registerBtn', true);
+
+        setTimeout(() => {
+            const result = Auth.register(name, phone, email, password);
+
+            if (result.success) {
+                showToast('تم إنشاء الحساب وتسجيل الدخول بنجاح!', 'success');
+                setTimeout(() => switchToHome(), 1000);
+            } else {
+                showToast(result.message, 'error');
+            }
+
+            setLoading('registerBtn', false);
+        }, 1500);
+
+        return false;
+    }
+
+    // مراقبة تطابق كلمة المرور في الوقت الحقيقي
+    document.getElementById('regPasswordConfirm')?.addEventListener('input', function() {
+        const password = document.getElementById('regPassword').value;
+        const msg = document.getElementById('passwordMatchMsg');
+        if (this.value.length === 0) {
+            msg.classList.add('hidden');
+            this.classList.remove('error');
+            return;
+        }
+        if (this.value === password) {
+            msg.textContent = '✓ كلمتا المرور متطابقتان';
+            msg.className = 'text-xs mt-1 text-green-400';
+            this.classList.remove('error');
+        } else {
+            msg.textContent = '✗ كلمتا المرور غير متطابقتين';
+            msg.className = 'text-xs mt-1 text-red-400';
+            this.classList.add('error');
+        }
+    });
+
+    // ═══════════════════════════════════════════
+    // HANDLE: FORGOT PASSWORD
+    // ═══════════════════════════════════════════
+    function handleForgotStep1(e) {
+        e.preventDefault();
+        const identifier = document.getElementById('forgotEmail').value.trim();
+
+        if (!identifier) {
+            showToast('يرجى إدخال البريد الإلكتروني أو رقم الهاتف', 'error');
+            return false;
+        }
+
+        setLoading('forgotBtn1', true);
+
+        setTimeout(() => {
+            const result = Auth.requestPasswordReset(identifier);
+
+            if (result.success) {
+                showToast('تم إرسال رمز التحقق', 'success');
+                document.getElementById('forgotTarget').textContent = identifier;
+                document.getElementById('forgotStep1').classList.add('hidden');
+                document.getElementById('forgotStep2').classList.remove('hidden');
+                // حفظ الرمز مؤقتاً للعرض (في الإنتاج لا يُعرض)
+                DB.set('lastResetCode', result.code);
+            } else {
+                showToast(result.message, 'error');
+            }
+
+            setLoading('forgotBtn1', false);
+        }, 1200);
+
+        return false;
+    }
+
+    function handleForgotStep2(e) {
+        e.preventDefault();
+        const code = document.getElementById('forgotCode').value.trim();
+
+        if (!code) {
+            showToast('يرجى إدخال رمز التحقق', 'error');
+            return false;
+        }
+
+        setLoading('forgotBtn2', true);
+
+        setTimeout(() => {
+            const result = Auth.verifyResetCode(code);
+
+            if (result.success) {
+                showToast('تم التحقق بنجاح!', 'success');
+                document.getElementById('forgotStep2').classList.add('hidden');
+                document.getElementById('forgotStep3').classList.remove('hidden');
+            } else {
+                showToast(result.message, 'error');
+            }
+
+            setLoading('forgotBtn2', false);
+        }, 1000);
+
+        return false;
+    }
+
+    function handleForgotStep3(e) {
+        e.preventDefault();
+        const newPass = document.getElementById('newPassword').value;
+        const confirmPass = document.getElementById('newPasswordConfirm').value;
+
+        if (newPass.length < 8) {
+            showToast('كلمة المرور يجب أن تكون 8 أحرف على الأقل', 'error');
+            return false;
+        }
+        if (newPass !== confirmPass) {
+            showToast('كلمتا المرور غير متطابقتين', 'error');
+            return false;
+        }
+
+        setLoading('forgotBtn3', true);
+
+        setTimeout(() => {
+            const resetData = DB.get('resetCode');
+            if (resetData && Auth.resetPassword(resetData.userId, newPass)) {
+                showToast('تم تحديث كلمة المرور! يمكنك تسجيل الدخول الآن', 'success');
+                setTimeout(() => {
+                    showPage('page-login');
+                    // إعادة تعيين النموذج
+                    document.getElementById('forgotStep1').classList.remove('hidden');
+                    document.getElementById('forgotStep2').classList.add('hidden');
+                    document.getElementById('forgotStep3').classList.add('hidden');
+                    document.getElementById('forgotForm')?.reset();
+                }, 1500);
+            } else {
+                showToast('حدث خطأ، يرجى المحاولة مرة أخرى', 'error');
+            }
+
+            setLoading('forgotBtn3', false);
+        }, 1200);
+
+        return false;
+    }
+
+    function resendResetCode() {
+        const identifier = document.getElementById('forgotEmail').value.trim();
+        if (identifier) {
+            Auth.requestPasswordReset(identifier);
+            showToast('تم إعادة إرسال الرمز', 'success');
+        }
+    }
+
+    // ═══════════════════════════════════════════
+    // HANDLE: 2FA
+    // ═══════════════════════════════════════════
+    function handleToggle2FA(checkbox) {
+        const toggleBg = document.getElementById('toggle2FABg');
+        const toggleDot = document.getElementById('toggle2FADot');
+        const statusText = document.getElementById('2faStatus');
+        const pinSection = document.getElementById('pinSection');
+
+        if (checkbox.checked) {
+            toggleBg.style.background = '#f26522';
+            toggleDot.style.right = '26px';
+            statusText.textContent = 'مفعّل - أدخل الرمز للتأكيد';
+            statusText.style.color = '#f26522';
+            pinSection.classList.remove('hidden');
+            pinSection.style.animation = 'fadeIn 0.4s ease';
+            document.querySelector('#pinSection .otp-input')?.focus();
+        } else {
+            toggleBg.style.background = '#353534';
+            toggleDot.style.right = '4px';
+            statusText.textContent = 'معطّل';
+            statusText.style.color = '#7a7570';
+            pinSection.classList.add('hidden');
+
+            // تعطيل 2FA
+            const user = Auth.getCurrentUser();
+            if (user) {
+                Auth.updateUser(user.id, { twoFactorEnabled: false, twoFactorPin: '', backupCodes: [] });
+                showToast('تم تعطيل التحقق بخطوتين', 'info');
+                updateSettingsStatuses();
+            }
+        }
+    }
+
+    // التعامل مع إدخال OTP
+    function handleOTPInput(input) {
+        const value = input.value.replace(/[^0-9]/g, '');
+        input.value = value;
+
+        if (value && input.dataset.index < 5) {
+            const nextIndex = parseInt(input.dataset.index) + 1;
+            const next = document.querySelector(`.otp-input[data-index="${nextIndex}"]`);
+            if (next) next.focus();
+        }
+
+        // التحقق التلقائي عند إدخال كل الأرقام
+        const allInputs = document.querySelectorAll('.otp-input');
+        const code = Array.from(allInputs).map(i => i.value).join('');
+        if (code.length === 6) {
+            verify2FAPin();
+        }
+    }
+
+    function handleOTPKeydown(e, input) {
+        if (e.key === 'Backspace' && !input.value && input.dataset.index > 0) {
+            const prevIndex = parseInt(input.dataset.index) - 1;
+            const prev = document.querySelector(`.otp-input[data-index="${prevIndex}"]`);
+            if (prev) {
+                prev.focus();
+                prev.value = '';
+            }
+        }
+    }
+
+    function verify2FAPin() {
+        const allInputs = document.querySelectorAll('.otp-input');
+        const code = Array.from(allInputs).map(i => i.value).join('');
+
+        if (code.length !== 6) {
+            showToast('يرجى إدخال الرمز المكون من 6 أرقام', 'error');
+            return;
+        }
+
+        setLoading('verifyPinBtn', true);
+
+        setTimeout(() => {
+            const user = Auth.getCurrentUser();
+            if (user) {
+                // توليد أكواد استعادة
+                const backupCodes = [];
+                for (let i = 0; i < 8; i++) {
+                    backupCodes.push(
+                        Math.random().toString(36).substr(2, 4).toUpperCase() + '-' +
+                        Math.random().toString(36).substr(2, 4).toUpperCase()
+                    );
+                }
+
+                Auth.updateUser(user.id, {
+                    twoFactorEnabled: true,
+                    twoFactorPin: code,
+                    backupCodes: backupCodes
+                });
+
+                // عرض أكواد الاستعادة
+                const list = document.getElementById('backupCodesList');
+                list.innerHTML = backupCodes.map(c =>
+                    `<div class="bg-[#1a1a1a] border border-[#594138]/30 rounded-lg px-3 py-2 text-center">
+                        <code class="text-sm text-[#f26522] font-mono font-bold">${c}</code>
+                    </div>`
+                ).join('');
+
+                document.getElementById('backupCodesSection').classList.remove('hidden');
+                document.getElementById('backupCodesSection').style.animation = 'fadeIn 0.4s ease';
+
+                showToast('تم تفعيل التحقق بخطوتين بنجاح!', 'success');
+                updateSettingsStatuses();
+            }
+
+            setLoading('verifyPinBtn', false);
+        }, 1000);
+    }
+
+    function copyBackupCodes() {
+        const user = Auth.getCurrentUser();
+        if (user && user.backupCodes) {
+            navigator.clipboard?.writeText(user.backupCodes.join('\n'))
+                .then(() => showToast('تم نسخ الأكواد', 'success'))
+                .catch(() => showToast('فشل النسخ', 'error'));
+        }
+    }
+
+    // ═══════════════════════════════════════════
+    // HANDLE: ACCOUNT VERIFICATION
+    // ═══════════════════════════════════════════
+    function handleDocUpload(input) {
+        const file = input.files[0];
+        if (!file) return;
+
+        if (file.size > 5 * 1024 * 1024) {
+            showToast('حجم الملف يتجاوز 5MB', 'error');
+            input.value = '';
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById('previewImg').src = e.target.result;
+            document.getElementById('uploadPreview').classList.remove('hidden');
+            document.getElementById('uploadZone').classList.add('hidden');
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function removeDocUpload() {
+        document.getElementById('docFile').value = '';
+        document.getElementById('uploadPreview').classList.add('hidden');
+        document.getElementById('uploadZone').classList.remove('hidden');
+    }
+
+    function submitVerification() {
+        const docType = document.getElementById('docType').value;
+        const docFile = document.getElementById('docFile').files[0];
+        const docName = document.getElementById('docName').value.trim();
+
+        if (!docType) {
+            showToast('يرجى اختيار نوع الوثيقة', 'error');
+            return;
+        }
+        if (!docFile) {
+            showToast('يرجى رفع صورة الوثيقة', 'error');
+            return;
+        }
+        if (!docName) {
+            showToast('يرجى إدخال الاسم كما هو على الوثيقة', 'error');
+            return;
+        }
+
+        setLoading('verifyBtn', true);
+
+        setTimeout(() => {
+            const user = Auth.getCurrentUser();
+            if (user) {
+                Auth.updateUser(user.id, {
+                    verificationStatus: 'pending',
+                    verificationDoc: {
+                        type: docType,
+                        name: docName,
+                        submittedAt: new Date().toISOString()
+                    }
+                });
+
+                showToast('تم إرسال طلب التوثيق! سيتم مراجعته خلال 24-48 ساعة', 'success');
+                updateVerificationStatus();
+                updateSettingsStatuses();
+            }
+
+            setLoading('verifyBtn', false);
+        }, 2000);
+    }
+
+    function updateVerificationStatus() {
+        const user = Auth.getCurrentUser();
+        if (!user) return;
+
+        const statusEl = document.getElementById('verifyStatus');
+        const formEl = document.getElementById('verifyForm');
+
+        switch (user.verificationStatus) {
+            case 'pending':
+                statusEl.className = 'p-4 rounded-xl mb-6 bg-yellow-500/10 border border-yellow-500/20';
+                statusEl.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <span class="badge-pending"><span class="material-symbols-outlined text-[14px]">schedule</span> قيد المراجعة</span>
+                    </div>
+                    <p class="text-sm text-[#7a7570] mt-2">طلبك قيد المراجعة. سنُبلغك بالنتيجة قريباً.</p>
+                `;
+                formEl.classList.add('hidden');
+                break;
+            case 'verified':
+                statusEl.className = 'p-4 rounded-xl mb-6 bg-blue-500/10 border border-blue-500/20';
+                statusEl.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <span class="badge-verified"><span class="material-symbols-outlined text-[14px]" style="font-variation-settings:'FILL' 1;">verified</span> حساب موثّق</span>
+                    </div>
+                    <p class="text-sm text-[#7a7570] mt-2">تم توثيق حسابك بنجاح! تظهر شارة التوثيق بجانب اسمك.</p>
+                `;
+                formEl.classList.add('hidden');
+                break;
+            case 'rejected':
+                statusEl.className = 'p-4 rounded-xl mb-6 bg-red-500/10 border border-red-500/20';
+                statusEl.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <span class="badge-rejected"><span class="material-symbols-outlined text-[14px]">cancel</span> مرفوض</span>
+                    </div>
+                    <p class="text-sm text-[#7a7570] mt-2">تم رفض طلب التوثيق. يرجى المحاولة مرة أخرى بوثيقة أوضح.</p>
+                `;
+                formEl.classList.remove('hidden');
+                break;
+            default:
+                statusEl.className = 'p-4 rounded-xl mb-6 bg-[#2a2a2a]/50 border border-[#594138]/20';
+                statusEl.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <span class="material-symbols-outlined text-[#7a7570]">info</span>
+                        <p class="text-sm text-[#7a7570]">لم تقم بطلب توثيق بعد.</p>
+                    </div>
+                `;
+                formEl.classList.remove('hidden');
+        }
+    }
+
+    // ═══════════════════════════════════════════
+    // HANDLE: SESSIONS
+    // ═══════════════════════════════════════════
+    function populateSessions() {
+        const user = Auth.getCurrentUser();
+        if (!user) return;
+
+        const list = document.getElementById('sessionsList');
+        const otherSessions = user.sessions.filter(s => !s.isCurrent);
+
+        if (otherSessions.length === 0) {
+            list.innerHTML = `
+                <div class="text-center py-8 text-[#7a7570]">
+                    <span class="material-symbols-outlined text-4xl mb-2">devices_off</span>
+                    <p class="text-sm">لا توجد جلسات أخرى نشطة</p>
+                </div>
+            `;
+            return;
+        }
+
+        const deviceIcons = {
+            'هاتف ذكي': 'smartphone',
+            'جهاز لوحي': 'tablet',
+            'حاسوب': 'computer'
+        };
+
+        list.innerHTML = otherSessions.map(session => `
+            <div class="session-card animate-slide-in">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-[#353534] flex items-center justify-center">
+                            <span class="material-symbols-outlined text-[#7a7570] text-[20px]">${deviceIcons[session.device] || 'devices'}</span>
+                        </div>
+                        <div>
+                            <p class="font-bold text-sm">${session.device} - ${session.browser}</p>
+                            <p class="text-xs text-[#7a7570]">${session.location}</p>
+                            <p class="text-xs text-[#7a7570] mt-0.5">آخر نشاط: ${formatTimeAgo(session.lastActive)}</p>
+                        </div>
+                    </div>
+                    <button onclick="terminateSession('${session.token}')" class="text-xs text-red-400 hover:text-red-300 font-semibold px-3 py-1.5 rounded-lg hover:bg-red-500/10 transition-colors">
+                        إنهاء
+                    </button>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function terminateSession(token) {
+        Auth.terminateSession(token);
+        showToast('تم إنهاء الجلسة', 'success');
+        populateSessions();
+    }
+
+    function terminateAllSessions() {
+        if (confirm('هل تريد إنهاء جميع الجلسات الأخرى؟')) {
+            Auth.terminateOtherSessions();
+            showToast('تم إنهاء جميع الجلسات الأخرى', 'success');
+            populateSessions();
+        }
+    }
+
+    // ═══════════════════════════════════════════
+    // HANDLE: SOCIAL LOGIN (Demo)
+    // ═══════════════════════════════════════════
+    function socialLogin(provider) {
+        showToast(`جاري تسجيل الدخول عبر ${provider === 'google' ? 'Google' : 'Apple'}...`, 'info');
+
+        setTimeout(() => {
+            const result = Auth.register(
+                provider === 'google' ? 'مستخدم Google' : 'مستخدم Apple',
+                '+9665' + Math.floor(Math.random() * 100000000),
+                `user_${Date.now()}@${provider}.com`,
+                'SocialLogin_' + Math.random().toString(36).substr(2, 8)
+            );
+
+            if (result.success) {
+                showToast('تم تسجيل الدخول بنجاح!', 'success');
+                setTimeout(() => switchToHome(), 800);
+            }
+        }, 1500);
+    }
+
+    // ═══════════════════════════════════════════
+    // HANDLE: LOGOUT
+    // ═══════════════════════════════════════════
+    function handleLogout() {
+        if (confirm('هل أنت متأكد من تسجيل الخروج؟')) {
+            Auth.logout();
+            showToast('تم تسجيل الخروج', 'info');
+            setTimeout(() => {
+                switchToAuth();
+                showPage('page-login');
+                // تنظيف الحقول
+                document.querySelectorAll('input').forEach(i => {
+                    if (i.type !== 'checkbox') i.value = '';
+                    else i.checked = false;
+                });
+            }, 500);
+        }
+    }
+
+    // ═══════════════════════════════════════════
+    // NAVIGATE TO SETTINGS
+    // ═══════════════════════════════════════════
+    function navigateToSettings() {
+        showPage('page-settings');
+        updateSettingsStatuses();
+    }
+
+    function updateSettingsStatuses() {
+        const user = Auth.getCurrentUser();
+        if (!user) return;
+
+        // 2FA status
+        const status2FA = document.getElementById('settings2FAStatus');
+        if (status2FA) {
+            status2FA.textContent = user.twoFactorEnabled ? 'مفعّل' : 'معطّل';
+            status2FA.style.color = user.twoFactorEnabled ? '#22c55e' : '#7a7570';
+        }
+
+        // Verification status
+        const statusVerify = document.getElementById('settingsVerifyStatus');
+        if (statusVerify) {
+            const labels = {
+                none: 'غير موثق',
+                pending: 'قيد المراجعة',
+                verified: 'موثّق ✓',
+                rejected: 'مرفوض'
+            };
+            statusVerify.textContent = labels[user.verificationStatus] || 'غير موثق';
+            statusVerify.style.color = user.verificationStatus === 'verified' ? '#3b82f6' :
+                                        user.verificationStatus === 'pending' ? '#facc15' :
+                                        user.verificationStatus === 'rejected' ? '#ef4444' : '#7a7570';
+        }
+    }
+
+  
+      // ═══════════════════════════════════════════
+    // POPULATE HOME PAGE
+    // ═══════════════════════════════════════════
+    function populateHome() {
+        const user = Auth.getCurrentUser();
+        if (!user) return;
+
+        const initials = user.name.split(' ').map(n => n[0]).join('').substr(0, 2);
+
+        // ملء الصور الرمزية في كل الأماكن
+        const avatarEls = ['homeUserAvatar', 'homeAvatarLarge', 'quickPostAvatar'];
+        avatarEls.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.textContent = initials;
+        });
+
+        // الاسم ورقم الهاتف
+        document.getElementById('homeUserName').textContent = user.name;
+        document.getElementById('homeUserPhone').textContent = user.phone;
+
+        // شارة التوثيق
+        const verifyBadge = document.getElementById('homeVerifyBadge');
+        if (user.verificationStatus === 'verified') {
+            verifyBadge.classList.remove('hidden');
+            verifyBadge.innerHTML = `<span class="badge-verified"><span class="material-symbols-outlined text-[14px]" style="font-variation-settings:'FILL' 1;">verified</span> حساب موثّق</span>`;
+        } else {
+            verifyBadge.classList.add('hidden');
+        }
+
+        // شارة 2FA
+        const twoFABadge = document.getElementById('home2FABadge');
+        if (user.twoFactorEnabled) {
+            twoFABadge.classList.remove('hidden');
+            twoFABadge.innerHTML = `<span class="inline-flex items-center gap-1 text-xs text-green-400 bg-green-500/10 px-3 py-1 rounded-full"><span class="material-symbols-outlined text-[14px]">shield</span> 2FA مفعّل</span>`;
+        } else {
+            twoFABadge.classList.add('hidden');
+        }
+
+        // توليد المنشورات التجريبية
+        generateSampleFeed();
+    }
+
+    // ═══════════════════════════════════════════
+    // GENERATE SAMPLE FEED
+    // ═══════════════════════════════════════════
+    function generateSampleFeed() {
+        const feed = document.getElementById('homeFeed');
+        const posts = [
+            {
+                name: 'د. نورة القحطاني',
+                role: 'أستاذة قانون تجاري',
+                time: 'منذ ساعتين',
+                text: 'نصيحة قانونية: عند توقيع أي عقد تجاري، تأكد من وجود بند التحكيم النزاعات. هذا يوفر عليك الكثير من الوقت والمال في حال حدوث خلاف.',
+                likes: 45,
+                comments: 12,
+                shares: 8
+            },
+            {
+                name: 'أ. فهد العتيبي',
+                role: 'محامي مرخص',
+                time: 'منذ 4 ساعات',
+                text: 'صدر اليوم قرار جديد من المحكمة العليا بشأن حماية حقوق المستهلك في المعاملات الإلكترونية. القرار يعزز من مسؤولية المنصات الرقمية.',
+                likes: 128,
+                comments: 34,
+                shares: 56
+            },
+            {
+                name: 'المكتبة القانونية',
+                role: 'حساب موثّق',
+                time: 'منذ 6 ساعات',
+                text: '#قانون_العمل هل تعلم؟ لا يحق لصاحب العمل خصم أكثر من 10% من راتب الموظف شهرياً في حال وجود التزامات مالية. تعرف على المزيد من حقوقك...',
+                likes: 230,
+                comments: 67,
+                shares: 89
+            }
+        ];
+
+        feed.innerHTML = posts.map(post => `
+            <div class="glass-card rounded-2xl p-5 hover:border-[#f26522]/20 transition-all">
+                <div class="flex items-center gap-3 mb-3">
+                    <div class="w-10 h-10 rounded-full bg-[#f26522]/20 flex items-center justify-center text-[#f26522] font-bold text-sm">
+                        ${post.name.split(' ').map(n => n[0]).join('').substr(0, 2)}
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-sm flex items-center gap-1">${post.name}
+                            ${post.role === 'حساب موثّق' ? '<span class="material-symbols-outlined text-[14px] text-blue-400" style="font-variation-settings:FILL 1">verified</span>' : ''}
+                        </h3>
+                        <p class="text-[10px] text-[#7a7570]">${post.role} • ${post.time}</p>
+                    </div>
+                </div>
+                <p class="text-sm leading-relaxed mb-4">${post.text}</p>
+                <div class="flex justify-between border-t border-[#594138]/20 pt-3 text-[#7a7570]">
+                    <button class="flex items-center gap-2 hover:text-[#f26522] transition-colors group" onclick="toggleLike(this)">
+                        <span class="material-symbols-outlined text-[20px] group-active:animate-pop">favorite</span>
+                        <span class="text-xs font-bold like-count">${post.likes}</span>
+                    </button>
+                    <button class="flex items-center gap-2 hover:text-blue-400 transition-colors">
+                        <span class="material-symbols-outlined text-[20px]">chat_bubble</span>
+                        <span class="text-xs font-bold">${post.comments}</span>
+                    </button>
+                    <button class="flex items-center gap-2 hover:text-green-400 transition-colors">
+                        <span class="material-symbols-outlined text-[20px]">repeat</span>
+                        <span class="text-xs font-bold">${post.shares}</span>
+                    </button>
+                    <button class="flex items-center gap-2 hover:text-[#f26522] transition-colors" onclick="toggleBookmark(this)">
+                        <span class="material-symbols-outlined text-[20px]">bookmark</span>
+                    </button>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    // ═══════════════════════════════════════════
+    // POST INTERACTIONS (Home)
+    // ═══════════════════════════════════════════
+    function toggleLike(btn) {
+        const icon = btn.querySelector('.material-symbols-outlined');
+        const count = btn.querySelector('.like-count');
+        let val = parseInt(count.textContent);
+
+        if (icon.classList.contains('filled-icon')) {
+            icon.classList.remove('filled-icon');
+            btn.classList.remove('text-[#f26522]');
+            count.textContent = val - 1;
+        } else {
+            icon.classList.add('filled-icon');
+            btn.classList.add('text-[#f26522]');
+            count.textContent = val + 1;
+            icon.style.animation = 'pop 0.3s ease';
+            setTimeout(() => { icon.style.animation = ''; }, 300);
+        }
+    }
+
+    function toggleBookmark(btn) {
+        const icon = btn.querySelector('.material-symbols-outlined');
+        if (icon.classList.contains('filled-icon')) {
+            icon.classList.remove('filled-icon');
+            showToast('تمت إزالة المنشور من المحفوظات', 'info');
+        } else {
+            icon.classList.add('filled-icon');
+            showToast('تم حفظ المنشور', 'success');
+        }
+    }
+
+    function publishQuickPost() {
+        const input = document.getElementById('quickPostInput');
+        if (!input.value.trim()) {
+            showToast('اكتب شيئاً قبل النشر', 'error');
+            return;
+        }
+
+        const user = Auth.getCurrentUser();
+        const initials = user.name.split(' ').map(n => n[0]).join('').substr(0, 2);
+
+        const feed = document.getElementById('homeFeed');
+        const newPost = document.createElement('div');
+        newPost.className = 'glass-card rounded-2xl p-5 hover:border-[#f26522]/20 transition-all';
+        newPost.style.animation = 'fadeIn 0.5s ease';
+        newPost.innerHTML = `
+            <div class="flex items-center gap-3 mb-3">
+                <div class="w-10 h-10 rounded-full bg-[#f26522] flex items-center justify-center text-white font-bold text-sm">${initials}</div>
+                <div>
+                    <h3 class="font-bold text-sm">${user.name}</h3>
+                    <p class="text-[10px] text-[#7a7570]">الآن</p>
+                </div>
+            </div>
+            <p class="text-sm leading-relaxed mb-4">${input.value.replace(/\n/g, '<br>')}</p>
+            <div class="flex justify-between border-t border-[#594138]/20 pt-3 text-[#7a7570]">
+                <button class="flex items-center gap-2 hover:text-[#f26522] transition-colors group" onclick="toggleLike(this)">
+                    <span class="material-symbols-outlined text-[20px] group-active:animate-pop">favorite</span>
+                    <span class="text-xs font-bold like-count">0</span>
+                </button>
+                <button class="flex items-center gap-2 hover:text-blue-400 transition-colors">
+                    <span class="material-symbols-outlined text-[20px]">chat_bubble</span>
+                    <span class="text-xs font-bold">0</span>
+                </button>
+                <button class="flex items-center gap-2 hover:text-green-400 transition-colors">
+                    <span class="material-symbols-outlined text-[20px]">repeat</span>
+                    <span class="text-xs font-bold">0</span>
+                </button>
+                <button class="flex items-center gap-2 hover:text-[#f26522] transition-colors" onclick="toggleBookmark(this)">
+                    <span class="material-symbols-outlined text-[20px]">bookmark</span>
+                </button>
+            </div>
+        `;
+
+        feed.prepend(newPost);
+        input.value = '';
+        showToast('تم نشر التحديث بنجاح!', 'success');
+    }
+
+    // ═══════════════════════════════════════════
+    // UTILITY: FORMAT TIME AGO
+    // ═══════════════════════════════════════════
+    function formatTimeAgo(dateString) {
+        const now = new Date();
+        const date = new Date(dateString);
+        const diff = Math.floor((now - date) / 1000);
+
+        if (diff < 60) return 'الآن';
+        if (diff < 3600) return `منذ ${Math.floor(diff / 60)} دقيقة`;
+        if (diff < 86400) return `منذ ${Math.floor(diff / 3600)} ساعة`;
+        return `منذ ${Math.floor(diff / 86400)} يوم`;
+    }
+
+    // ═══════════════════════════════════════════
+    // RATE LIMITER (Security)
+    // ═══════════════════════════════════════════
+    const RateLimiter = {
+        attempts: {},
+        maxAttempts: 5,
+        windowMs: 60000,
+
+        check(action) {
+            const now = Date.now();
+            if (!this.attempts[action]) {
+                this.attempts[action] = [];
+            }
+            // تنقية المحاولات القديمة
+            this.attempts[action] = this.attempts[action].filter(t => now - t < this.windowMs);
+
+            if (this.attempts[action].length >= this.maxAttempts) {
+                return false; // تم تجاوز الحد
+            }
+            this.attempts[action].push(now);
+            return true; // مسموح
+        },
+
+        reset(action) {
+            delete this.attempts[action];
+        }
+    };
+
+    // ═══════════════════════════════════════════
+    // XSS PROTECTION
+    // ═══════════════════════════════════════════
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.appendChild(document.createTextNode(text));
+        return div.innerHTML;
+    }
+
+    // ═══════════════════════════════════════════
+    // CSRF TOKEN GENERATOR
+    // ═══════════════════════════════════════════
+    function generateCSRFToken() {
+        const token = 'csrf_' + Math.random().toString(36).substr(2, 16) + '_' + Date.now();
+        DB.set('csrfToken', token);
+        return token;
+    }
+
+    function validateCSRF(token) {
+        return DB.get('csrfToken') === token;
+    }
+
+    // ═══════════════════════════════════════════
+    // INITIALIZATION
+    // ═══════════════════════════════════════════
+    document.addEventListener('DOMContentLoaded', function() {
+        // توليد Captcha عند التحميل
+        generateCaptcha();
+
+        // توليد CSRF Token
+        generateCSRFToken();
+
+        // ═══════════════════════════════════════
+        // فحص حالة تسجيل الدخول
+        // ═══════════════════════════════════════
+        if (Auth.isLoggedIn()) {
+            // التحقق من انتهاء صلاحية الجلسة (24 ساعة)
+            const session = DB.get('currentSession');
+            if (session) {
+                const sessionAge = Date.now() - new Date(session.createdAt).getTime();
+                const maxAge = 24 * 60 * 60 * 1000; // 24 ساعة
+
+                if (sessionAge > maxAge) {
+                    // انتهت صلاحية الجلسة
+                    Auth.logout();
+                    showToast('انتهت صلاحية الجلسة، يرجى تسجيل الدخول مجدداً', 'info');
+                    showPage('page-login');
+                } else {
+                    // تحديث آخر نشاط
+                    const users = DB.get('users') || [];
+                    const userId = DB.get('currentUserId');
+                    const uIndex = users.findIndex(u => u.id === userId);
+                    if (uIndex !== -1) {
+                        const sIndex = users[uIndex].sessions.findIndex(s => s.token === session.token);
+                        if (sIndex !== -1) {
+                            users[uIndex].sessions[sIndex].lastActive = new Date().toISOString();
+                            DB.set('users', users);
+                        }
+                    }
+                    switchToHome();
+                }
+            }
+        } else {
+            showPage('page-login');
+        }
+
+        // ═══════════════════════════════════════
+        // مراقبة أحداث التنقل بين الصفحات
+        // ═══════════════════════════════════════
+        document.querySelectorAll('section[id^="page-"]').forEach(section => {
+            section.addEventListener('animationend', function() {
+                // تحميل البيانات حسب الصفحة المفعلة
+                if (this.id === 'page-sessions') {
+                    populateSessions();
+                }
+                if (this.id === 'page-verify') {
+                    updateVerificationStatus();
+                }
+                if (this.id === 'page-settings') {
+                    updateSettingsStatuses();
+                }
+                if (this.id === 'page-2fa') {
+                    // تحميل حالة 2FA الحالية
+                    const user = Auth.getCurrentUser();
+                    if (user) {
+                        const checkbox = document.getElementById('toggle2FA');
+                        const toggleBg = document.getElementById('toggle2FABg');
+                        const toggleDot = document.getElementById('toggle2FADot');
+                        const statusText = document.getElementById('2faStatus');
+                        const pinSection = document.getElementById('pinSection');
+
+                        checkbox.checked = user.twoFactorEnabled;
+
+                        if (user.twoFactorEnabled) {
+                            toggleBg.style.background = '#f26522';
+                            toggleDot.style.right = '26px';
+                            statusText.textContent = 'مفعّل';
+                            statusText.style.color = '#22c55e';
+                            pinSection.classList.add('hidden');
+
+                            // عرض أكواد الاستعادة إن وُجدت
+                            if (user.backupCodes && user.backupCodes.length > 0) {
+                                const list = document.getElementById('backupCodesList');
+                                list.innerHTML = user.backupCodes.map(c =>
+                                    `<div class="bg-[#1a1a1a] border border-[#594138]/30 rounded-lg px-3 py-2 text-center">
+                                        <code class="text-sm text-[#f26522] font-mono font-bold">${c}</code>
+                                    </div>`
+                                ).join('');
+                                document.getElementById('backupCodesSection').classList.remove('hidden');
+                            }
+                        } else {
+                            toggleBg.style.background = '#353534';
+                            toggleDot.style.right = '4px';
+                            statusText.textContent = 'معطّل';
+                            statusText.style.color = '#7a7570';
+                            pinSection.classList.add('hidden');
+                        }
+                    }
+                }
+            });
+        });
+
+        // ═══════════════════════════════════════
+        // حماية النماذج من CSRF
+        // ═══════════════════════════════════════
+        document.querySelectorAll('form').forEach(form => {
+            const hiddenInput = document.createElement('input');
+            hiddenInput.type = 'hidden';
+            hiddenInput.name = '_csrf';
+            hiddenInput.value = DB.get('csrfToken') || generateCSRFToken();
+            form.appendChild(hiddenInput);
+        });
+
+        // ═══════════════════════════════════════
+        // منع إرسال النماذج بالضغط على Enter
+        // في حقل Captcha
+        // ═══════════════════════════════════════
+        document.getElementById('captchaInput')?.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                document.getElementById('registerForm')?.dispatchEvent(new Event('submit'));
+            }
+        });
+
+        // ═══════════════════════════════════════
+        // تحديث تلقائي لحالة الجلسة كل دقيقة
+        // ═══════════════════════════════════════
+        setInterval(() => {
+            if (Auth.isLoggedIn()) {
+                const session = DB.get('currentSession');
+                const users = DB.get('users') || [];
+                const userId = DB.get('currentUserId');
+
+                if (session && userId) {
+                    const uIndex = users.findIndex(u => u.id === userId);
+                    if (uIndex !== -1) {
+                        const sIndex = users[uIndex].sessions.findIndex(s => s.token === session.token);
+                        if (sIndex !== -1) {
+                            users[uIndex].sessions[sIndex].lastActive = new Date().toISOString();
+                            DB.set('users', users);
+                        }
+                    }
+                }
+            }
+        }, 60000); // كل 60 ثانية
+
+        // ═══════════════════════════════════════
+        // تسجيل Service Worker (اختياري)
+        // ═══════════════════════════════════════
+        // if ('serviceWorker' in navigator) {
+        //     navigator.serviceWorker.register('/sw.js');
+        // }
+
+        console.log('%c لو بوك | المنصة القانونية الشاملة ', 'background: #f26522; color: white; font-size: 16px; font-weight: bold; border-radius: 8px; padding: 8px 16px;');
+        console.log('%c نظام المصادقة جاهز ✓ ', 'background: #22c55e; color: white; font-size: 12px; border-radius: 4px; padding: 4px 8px;');
+    });
+
+    </script>
+</body>
+</html>
