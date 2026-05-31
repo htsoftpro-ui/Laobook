@@ -190,14 +190,19 @@
         .empty-state p{font-size:13px;color:var(--text-muted)}
 
 
-        .quick-links{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;padding:14px 16px}
-        .quick-link{display:flex;align-items:center;gap:10px;padding:12px;border-radius:14px;background:var(--surface);border:1px solid var(--border);color:var(--text);cursor:pointer;transition:all .25s;font-family:'Tajawal',sans-serif}
-        .quick-link:hover{border-color:var(--border-light);transform:translateY(-1px)}
-        .quick-link .material-symbols-outlined{width:34px;height:34px;border-radius:12px;display:flex;align-items:center;justify-content:center;background:var(--surface-2);color:var(--accent);font-size:20px}
-        .quick-link-text{display:flex;flex-direction:column;gap:2px;min-width:0}
-        .quick-link-text strong{font-size:12px}
-        .quick-link-text span{font-size:10px;color:var(--text-muted)}
-    
+        .composer-card{background:linear-gradient(180deg,rgba(31,31,35,.98),rgba(24,24,27,.98));border:1px solid var(--border);border-radius:20px;margin:10px 16px 14px;padding:14px;box-shadow:0 12px 30px rgba(0,0,0,.18)}
+        .composer-head{display:flex;align-items:center;gap:10px}
+        .composer-head img{width:44px;height:44px;border-radius:50%;object-fit:cover;border:2px solid rgba(249,115,22,.28)}
+        .composer-input{flex:1;background:var(--surface-2);border:1px solid rgba(255,255,255,.05);border-radius:16px;padding:12px 14px;color:var(--text-secondary);font-family:'Tajawal',sans-serif;font-size:13px;text-align:right;cursor:pointer;transition:all .22s}
+        .composer-input:hover{border-color:rgba(249,115,22,.22);color:var(--text)}
+        .composer-actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:12px}
+        .composer-action{display:flex;align-items:center;justify-content:center;gap:6px;padding:10px 8px;border:none;border-radius:14px;background:rgba(255,255,255,.03);color:var(--text-secondary);font-size:12px;font-weight:700;font-family:'Tajawal',sans-serif;cursor:pointer;transition:all .22s}
+        .composer-action:hover{background:rgba(249,115,22,.08);color:var(--text)}
+        .composer-action .material-symbols-outlined{font-size:19px;color:var(--accent)}
+        .bottom-item.profile-item{min-width:62px}
+        .bottom-avatar-wrap{width:28px;height:28px;border-radius:50%;padding:2px;background:linear-gradient(135deg,var(--accent),#facc15);display:flex;align-items:center;justify-content:center;box-shadow:0 8px 18px rgba(249,115,22,.16)}
+        .bottom-avatar{width:100%;height:100%;border-radius:50%;object-fit:cover;border:2px solid var(--bg)}
+
         /* ─── Spacing ─── */
         .page-spacer-top{height:56px}
         .page-spacer-bottom{height:72px}
@@ -207,7 +212,7 @@
             .navbar{padding:0 24px}
             .post-card{margin:8px auto;max-width:560px}
             .stories-bar{padding:12px 24px;justify-content:center}
-            .quick-links{max-width:560px;margin:0 auto}
+            .composer-card{max-width:560px;margin:10px auto 14px}
             .modal-overlay{align-items:center}
             .modal-sheet{border-radius:var(--radius);max-height:80dvh}
         }
@@ -227,8 +232,8 @@
             <span class="material-symbols-outlined">notifications</span>
             <span class="badge-dot"></span>
         </button>
-        <button class="nav-btn" onclick="openCreateModal()" title="منشور جديد">
-            <span class="material-symbols-outlined">add_box</span>
+        <button class="nav-btn" onclick="window.location.href='search.html'" title="البحث والاستكشاف">
+            <span class="material-symbols-outlined">search</span>
         </button>
         <button class="nav-btn" onclick="window.location.href='messages.html'" title="الرسائل">
             <span class="material-symbols-outlined">chat</span>
@@ -243,31 +248,16 @@
 <!-- Stories -->
 <section class="stories-bar" id="storiesBar"></section>
 
-<section class="quick-links">
-    <button class="quick-link" onclick="window.location.href='reels.html'">
-        <span class="material-symbols-outlined">smart_display</span>
-        <span class="quick-link-text"><strong>الريلز</strong><span>مشاهدة عمودية سريعة</span></span>
-    </button>
-    <button class="quick-link" onclick="window.location.href='live.html'">
-        <span class="material-symbols-outlined">podcasts</span>
-        <span class="quick-link-text"><strong>البث المباشر</strong><span>جلسات ونقاشات حيّة</span></span>
-    </button>
-    <button class="quick-link" onclick="window.location.href='groups.html'">
-        <span class="material-symbols-outlined">groups</span>
-        <span class="quick-link-text"><strong>المجموعات</strong><span>مجتمعات متخصصة</span></span>
-    </button>
-    <button class="quick-link" onclick="window.location.href='pages.html'">
-        <span class="material-symbols-outlined">dashboard_customize</span>
-        <span class="quick-link-text"><strong>الصفحات</strong><span>حسابات وهيئات رسمية</span></span>
-    </button>
-    <button class="quick-link" onclick="window.location.href='friends.html'">
-        <span class="material-symbols-outlined">diversity_3</span>
-        <span class="quick-link-text"><strong>الأصدقاء</strong><span>إدارة العلاقات والاقتراحات</span></span>
-    </button>
-    <button class="quick-link" onclick="window.location.href='settings.html'">
-        <span class="material-symbols-outlined">tune</span>
-        <span class="quick-link-text"><strong>الحساب</strong><span>الخصوصية والتخصيص</span></span>
-    </button>
+<section class="composer-card a-fadeUp">
+    <div class="composer-head">
+        <img id="composerAvatar" data-user-avatar src="https://i.pravatar.cc/80?img=5" alt="صورتك الشخصية"/>
+        <button class="composer-input" onclick="openCreateModal()">ابدأ منشوراً جديداً أو شارك فكرة قانونية سريعة...</button>
+    </div>
+    <div class="composer-actions">
+        <button class="composer-action" onclick="openCreateModal()"><span class="material-symbols-outlined">edit_square</span><span>منشور</span></button>
+        <button class="composer-action" onclick="openCreateWithImagePicker()"><span class="material-symbols-outlined">image</span><span>صورة</span></button>
+        <button class="composer-action" onclick="showToast('ميزة الاستطلاعات قيد التحسين','info')"><span class="material-symbols-outlined">bar_chart</span><span>استطلاع</span></button>
+    </div>
 </section>
 
 <div class="divider"></div>
@@ -283,10 +273,6 @@
         <span class="material-symbols-outlined">home</span>
         <span>الرئيسية</span>
     </button>
-    <button class="bottom-item" onclick="window.location.href='search.html'">
-        <span class="material-symbols-outlined">search</span>
-        <span>اكتشاف</span>
-    </button>
     <button class="bottom-item" onclick="window.location.href='reels.html'">
         <span class="material-symbols-outlined">smart_display</span>
         <span>ريلز</span>
@@ -295,13 +281,8 @@
         <span class="material-symbols-outlined">add_circle</span>
         <span>إنشاء</span>
     </button>
-    <button class="bottom-item" onclick="window.location.href='notifications.html'">
-        <span class="material-symbols-outlined">notifications</span>
-        <span>إشعارات</span>
-        <span class="count-badge" id="notifBadge">5</span>
-    </button>
-    <button class="bottom-item" onclick="window.location.href='profile.html'">
-        <span class="material-symbols-outlined">person</span>
+    <button class="bottom-item profile-item" onclick="window.location.href='profile.html'">
+        <span class="bottom-avatar-wrap"><img id="bottomProfileAvatar" data-user-avatar class="bottom-avatar" src="https://i.pravatar.cc/80?img=5" alt="حسابي"/></span>
         <span>حسابي</span>
     </button>
 </nav>
@@ -350,6 +331,7 @@
 <!-- Toast -->
 <div id="toastEl" class="toast"></div>
 
+<script src="js/core/lobuk-shared.js"></script>
 <script>
 // ═══════════════════════════════════════════════
 // ██  SHARED DATABASE LAYER  ██
@@ -447,6 +429,32 @@ const DEFAULT_CURRENT_USER = {
 
 let CURRENT_USER = { ...DEFAULT_CURRENT_USER };
 
+function hydrateCurrentUserFromShared(){
+    if(!window.LobukShared) return;
+    const snapshot = window.LobukShared.getProfileSnapshot();
+    CURRENT_USER = {
+        ...CURRENT_USER,
+        ...snapshot,
+        verified: typeof snapshot.verified === 'boolean' ? snapshot.verified : CURRENT_USER.verified,
+        badgeType: snapshot.badgeType || CURRENT_USER.badgeType
+    };
+}
+
+function syncCurrentUserUI(){
+    if(window.LobukShared){
+        window.LobukShared.syncUserTargets(document);
+    }
+    const createAvatar = document.getElementById('createAvatar');
+    const createName = document.getElementById('createName');
+    if(createAvatar) createAvatar.src = CURRENT_USER.avatar;
+    if(createName) createName.textContent = CURRENT_USER.name;
+}
+
+function openCreateWithImagePicker(){
+    openCreateModal();
+    setTimeout(()=>document.getElementById('imageInput')?.click(), 60);
+}
+
 function readLB(key){
     try{
         const raw = localStorage.getItem('lb_' + key);
@@ -492,10 +500,12 @@ function getAuthCurrentUser(){
 // ██  SEED DATA  ██
 // ═══════════════════════════════════════════════
 async function seedData(){
+    hydrateCurrentUserFromShared();
     const authUser = getAuthCurrentUser();
     if (authUser) {
-        CURRENT_USER = mapAuthUserToCurrent(authUser);
+        CURRENT_USER = { ...CURRENT_USER, ...mapAuthUserToCurrent(authUser) };
     }
+    hydrateCurrentUserFromShared();
 
     const existingUsers = await DB.getAll('users');
     const existingUserIds = new Set(existingUsers.map(u => u.id));

@@ -331,6 +331,17 @@
             color: #f26522;
             border: 1px solid rgba(242,101,34,0.3);
         }
+        .btn-outline-sm.primary-ghost{border-color:rgba(242,101,34,.26);background:rgba(242,101,34,.08);color:#f26522}
+        .management-panel{display:none;margin-top:14px;padding:18px;border-radius:18px;background:rgba(32,31,31,.78);border:1px solid rgba(89,65,56,.18);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
+        .management-panel.open{display:block;animation:fadeInUp .35s ease}
+        .management-header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
+        .management-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+        .management-card{display:flex;align-items:center;gap:12px;padding:14px;border-radius:16px;border:1px solid rgba(89,65,56,.22);background:rgba(255,255,255,.02);color:#e5e2e1;cursor:pointer;transition:all .25s;font-family:'Tajawal',sans-serif;text-align:right}
+        .management-card:hover{border-color:rgba(242,101,34,.32);transform:translateY(-2px);background:rgba(242,101,34,.05)}
+        .management-card .icon-shell{width:44px;height:44px;border-radius:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:rgba(242,101,34,.12);color:#f26522}
+        .management-card .meta{display:flex;flex-direction:column;gap:2px;min-width:0}
+        .management-card .meta strong{font-size:14px}
+        .management-card .meta span{font-size:11px;color:#7a7570}
 
         /* ═══════ Post Cards ═══════ */
         .post-card {
@@ -514,14 +525,19 @@
     <!-- ═══════════════════════════════════════════ -->
     <!-- TOP NAVIGATION BAR -->
     <!-- ═══════════════════════════════════════════ -->
-    <header class="fixed top-0 w-full z-50 glass-bar border-b border-[#594138]/30 flex items-center justify-between px-4 h-14">
-        <button onclick="history.back()" class="p-2 rounded-full hover:bg-white/5 transition-colors">
+    <header class="fixed top-0 w-full z-50 glass-bar border-b border-[#594138]/30 px-4 h-14 flex items-center gap-3">
+        <button onclick="history.back()" class="p-2 rounded-full hover:bg-white/5 transition-colors shrink-0">
             <span class="material-symbols-outlined text-[#e1bfb3]">arrow_forward</span>
         </button>
         <h1 id="headerTitle" class="text-lg font-bold text-[#f26522]">الملف المهني</h1>
-        <button onclick="openSettingsMenu()" class="p-2 rounded-full hover:bg-white/5 transition-colors">
-            <span class="material-symbols-outlined text-[#e1bfb3]">more_vert</span>
-        </button>
+        <div class="flex items-center gap-1 mr-auto">
+            <button onclick="window.location.href='search.html'" class="p-2 rounded-full hover:bg-white/5 transition-colors" title="بحث">
+                <span class="material-symbols-outlined text-[#e1bfb3]">search</span>
+            </button>
+            <button onclick="openSettingsMenu()" class="p-2 rounded-full hover:bg-white/5 transition-colors" title="الإعدادات">
+                <span class="material-symbols-outlined text-[#e1bfb3]">settings</span>
+            </button>
+        </div>
     </header>
 
     <!-- ═══════════════════════════════════════════ -->
@@ -613,6 +629,8 @@
                     </div>
                 </div>
             </div>
+
+            <section id="accountManagementPanel" class="management-panel" aria-live="polite"></section>
         </div>
 
         <!-- ═══ PROFILE TABS ═══ -->
@@ -683,9 +701,6 @@
         <a class="nav-item" href="javascript:void(0)" onclick="navTo('home')">
             <span class="material-symbols-outlined">home</span>
         </a>
-        <a class="nav-item" href="javascript:void(0)" onclick="navTo('search')">
-            <span class="material-symbols-outlined">search</span>
-        </a>
         <a class="nav-item" href="javascript:void(0)" onclick="navTo('reels')">
             <span class="material-symbols-outlined">movie</span>
         </a>
@@ -697,7 +712,7 @@
         </a>
         <a class="nav-item active" href="javascript:void(0)">
             <div class="w-7 h-7 rounded-full overflow-hidden border-2 border-[#f26522]">
-                <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=60&h=60&fit=crop&crop=face" class="w-full h-full object-cover"/>
+                <img id="bottomProfileAvatar" data-user-avatar src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=60&h=60&fit=crop&crop=face" class="w-full h-full object-cover" alt="حسابي"/>
             </div>
         </a>
     </nav>
@@ -821,6 +836,7 @@
     <!-- ═══════════════════════════════════════════ -->
     <!-- JAVASCRIPT -->
     <!-- ═══════════════════════════════════════════ -->
+    <script src="js/core/lobuk-shared.js"></script>
     <script>
     // ═══════════════════════════════════════════
     // DATABASE MANAGER
@@ -986,6 +1002,12 @@
     let profile = { ...DEFAULT_PROFILE };
     let editingSkills = [...profile.skills];
     let editingLinks = [...profile.links];
+    const ACCOUNT_MANAGEMENT_ITEMS = [
+        { id: 'live', label: 'البث المباشر', desc: 'جلسات ونقاشات حيّة', icon: 'podcasts', href: 'live.html' },
+        { id: 'friends', label: 'الأصدقاء', desc: 'إدارة العلاقات والاقتراحات', icon: 'diversity_3', href: 'friends.html' },
+        { id: 'pages', label: 'الصفحات', desc: 'حسابات وهيئات رسمية', icon: 'dashboard_customize', href: 'pages.html' },
+        { id: 'groups', label: 'المجموعات', desc: 'مجتمعات متخصصة', icon: 'groups', href: 'groups.html' }
+    ];
 
     // ═══════════════════════════════════════════
     // SAMPLE DATA
@@ -1091,6 +1113,11 @@
         document.getElementById('coverEditBtn').style.display = profile.isOwnProfile ? 'flex' : 'none';
         document.getElementById('avatarEditBtn').style.display = profile.isOwnProfile ? 'flex' : 'none';
 
+        renderAccountManagement();
+        if (window.LobukShared) {
+            window.LobukShared.syncUserTargets(document);
+        }
+
         // Render all tabs
         renderPostsTab();
         renderReelsTab();
@@ -1135,6 +1162,10 @@
                 <button onclick="openEditModal()" class="btn-outline-sm">
                     <span class="material-symbols-outlined text-[18px]">edit</span>
                     تعديل الملف
+                </button>
+                <button onclick="toggleAccountManagement()" class="btn-outline-sm primary-ghost" id="accountManagementBtn">
+                    <span class="material-symbols-outlined text-[18px]">apps</span>
+                    إدارة الحساب
                 </button>
             `;
         } else {
@@ -1540,7 +1571,10 @@
             profile.avatar = e.target.result;
             document.getElementById('profileAvatar').src = e.target.result;
             DB.set('profile', profile);
-        persistProfileToAuthStores();
+            persistProfileToAuthStores();
+            if (window.LobukShared) {
+                window.LobukShared.syncUserTargets(document);
+            }
             showToast('تم تحديث الصورة الشخصية', 'success');
         };
         reader.readAsDataURL(file);
@@ -1665,8 +1699,47 @@
         showToast('جاري فتح المعاينة...', 'info');
     }
 
+    function renderAccountManagement() {
+        const panel = document.getElementById('accountManagementPanel');
+        if (!panel) return;
+        if (!profile.isOwnProfile) {
+            panel.classList.remove('open');
+            panel.innerHTML = '';
+            return;
+        }
+        panel.innerHTML = `
+            <div class="management-header">
+                <div>
+                    <h3 class="text-sm font-extrabold text-[#f26522]">إدارة الحساب</h3>
+                    <p class="text-xs text-[#7a7570] mt-1">وصول سريع إلى البث المباشر والأصدقاء والصفحات والمجموعات</p>
+                </div>
+                <button class="p-2 rounded-full hover:bg-white/5 text-[#7a7570]" onclick="toggleAccountManagement(false)" aria-label="إغلاق">
+                    <span class="material-symbols-outlined text-[18px]">close</span>
+                </button>
+            </div>
+            <div class="management-grid">
+                ${ACCOUNT_MANAGEMENT_ITEMS.map(item => `
+                    <button class="management-card" onclick="window.location.href='${item.href}'">
+                        <span class="icon-shell"><span class="material-symbols-outlined text-[22px]">${item.icon}</span></span>
+                        <span class="meta"><strong>${item.label}</strong><span>${item.desc}</span></span>
+                    </button>
+                `).join('')}
+            </div>
+        `;
+    }
+
+    function toggleAccountManagement(forceState) {
+        const panel = document.getElementById('accountManagementPanel');
+        if (!panel) return;
+        const nextState = typeof forceState === 'boolean' ? forceState : !panel.classList.contains('open');
+        panel.classList.toggle('open', nextState);
+        const btn = document.getElementById('accountManagementBtn');
+        if (btn) btn.classList.toggle('primary-ghost', nextState);
+        if (nextState) panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
     function openSettingsMenu() {
-        showToast('الإعدادات', 'info');
+        window.location.href = 'settings.html';
     }
 
     function showStatDetail(type) {
@@ -1677,7 +1750,6 @@
     function navTo(page) {
         const routes = {
             home: 'index.html',
-            search: 'search.html',
             reels: 'reels.html',
             messages: 'messages.html'
         };

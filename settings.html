@@ -38,6 +38,7 @@
 
         /* ═══════ Settings List ═══════ */
         .settings-group{margin-bottom:8px}
+        .shortcut-note{font-size:11px;color:var(--text-muted);padding:0 20px 10px}
         .settings-group-title{font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;padding:12px 20px 6px}
         .settings-item{display:flex;align-items:center;gap:14px;padding:14px 20px;cursor:pointer;transition:all .2s;border-bottom:1px solid rgba(89,65,56,.06);position:relative}
         .settings-item:hover{background:rgba(242,101,34,.03)}
@@ -122,7 +123,7 @@
 
 <!-- ═══════ MAIN SETTINGS PAGE ═══════ -->
 <header class="fixed top-0 w-full z-50 border-b flex items-center px-4 h-14" style="background:var(--bg);border-color:rgba(89,65,56,.12)">
-    <button class="p-2 rounded-full hover:bg-white/5"><span class="material-symbols-outlined" style="color:var(--text-muted)">arrow_forward</span></button>
+    <button class="p-2 rounded-full hover:bg-white/5" onclick="history.length > 1 ? history.back() : window.location.href='profile.html'"><span class="material-symbols-outlined" style="color:var(--text-muted)">arrow_forward</span></button>
     <h1 class="text-lg font-extrabold mr-2" style="color:var(--accent)">الإعدادات</h1>
 </header>
 
@@ -133,15 +134,15 @@
         <div class="rounded-2xl p-5 border" style="background:rgba(42,42,42,.25);border-color:rgba(89,65,56,.1);border:1px solid rgba(89,65,56,.1)">
             <div class="flex items-center gap-4">
                 <div class="relative">
-                    <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop&crop=face" class="w-16 h-16 rounded-full object-cover border-2" style="border-color:var(--accent)"/>
+                    <img id="settingsProfileAvatar" data-user-avatar src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop&crop=face" class="w-16 h-16 rounded-full object-cover border-2" style="border-color:var(--accent)" alt="الصورة الشخصية"/>
                     <button class="absolute -bottom-1 -left-1 w-7 h-7 rounded-full flex items-center justify-center" style="background:var(--accent)" onclick="showToast('تعديل الصورة','info')">
                         <span class="material-symbols-outlined text-white text-[14px]">edit</span>
                     </button>
                 </div>
                 <div class="flex-1 min-w-0">
-                    <h2 class="font-extrabold text-base">عبدالملك بن محمد</h2>
-                    <p class="text-xs" style="color:var(--text-muted)">@abdulmalik_m</p>
-                    <p class="text-xs mt-1" style="color:var(--accent)">مدير عام • موثق</p>
+                    <h2 class="font-extrabold text-base" id="settingsProfileName" data-user-name>عبدالملك بن محمد</h2>
+                    <p class="text-xs" style="color:var(--text-muted)" id="settingsProfileUsername" data-user-username>@abdulmalik_m</p>
+                    <p class="text-xs mt-1" style="color:var(--accent)">إعدادات الحساب والخصوصية</p>
                 </div>
                 <span class="material-symbols-outlined text-[20px]" style="color:var(--text-muted)">chevron_left</span>
             </div>
@@ -172,6 +173,7 @@
     <div class="modal-box" id="modalContent"></div>
 </div>
 
+<script src="js/core/lobuk-shared.js"></script>
 <script>
 // ═══════════════════════════════════════════
 // STATE (persisted in localStorage)
@@ -223,6 +225,14 @@ function saveSettings(){
     localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
 }
 
+function syncSettingsProfileCard(){
+    if (window.LobukShared) {
+        const snapshot = window.LobukShared.syncUserTargets(document);
+        settings.displayName = snapshot.name || settings.displayName;
+        settings.username = snapshot.username || settings.username;
+    }
+}
+
 function esc(t){const d=document.createElement('div');d.appendChild(document.createTextNode(t));return d.innerHTML}
 
 // ═══════════════════════════════════════════
@@ -234,10 +244,16 @@ function renderSettingsList(){
 
     el.innerHTML = `
     <div class="settings-group">
-        <div class="settings-group-title">الحساب</div>
+        <div class="settings-group-title">الوصول السريع</div>
+        <div class="shortcut-note">الخيارات الأساسية التي طلبتها أصبحت هنا: الحساب والريلز، بينما إدارة البث والأصدقاء والصفحات والمجموعات أصبحت من شاشة الملف الشخصي عبر زر إدارة الحساب.</div>
         <div class="settings-item anim-fadeUp" onclick="openSubPage('account')" style="animation-delay:0s;opacity:0">
             <div class="item-icon" style="background:rgba(242,101,34,.12)"><span class="material-symbols-outlined text-[18px]" style="color:var(--accent);font-variation-settings:'FILL' 1">person</span></div>
-            <div class="item-content"><div class="item-title">معلومات الحساب</div><div class="item-desc">الاسم، البريد، النبذة، كلمة المرور</div></div>
+            <div class="item-content"><div class="item-title">الحساب</div><div class="item-desc">الاسم، البريد، النبذة، وكلمة المرور</div></div>
+            <span class="material-symbols-outlined item-arrow">chevron_left</span>
+        </div>
+        <div class="settings-item anim-fadeUp" onclick="window.location.href='reels.html'" style="animation-delay:.03s;opacity:0">
+            <div class="item-icon" style="background:rgba(239,68,68,.12)"><span class="material-symbols-outlined text-[18px]" style="color:#ef4444;font-variation-settings:'FILL' 1">smart_display</span></div>
+            <div class="item-content"><div class="item-title">الريلز</div><div class="item-desc">انتقال مباشر إلى تجربة الريلز وصفحتها المتخصصة</div></div>
             <span class="material-symbols-outlined item-arrow">chevron_left</span>
         </div>
     </div>
@@ -283,26 +299,6 @@ function renderSettingsList(){
     </div>
 
     <div class="settings-group">
-        <div class="settings-group-title">المنصة</div>
-        <div class="settings-item anim-fadeUp" onclick="openAdminPortal()" style="animation-delay:.23s;opacity:0">
-            <div class="item-icon" style="background:rgba(242,101,34,.12)"><span class="material-symbols-outlined text-[18px]" style="color:var(--accent);font-variation-settings:'FILL' 1">admin_panel_settings</span></div>
-            <div class="item-content"><div class="item-title">لوحة الإدارة الرئيسية</div><div class="item-desc">رابط منفصل لإدارة المنصة والبلاغات والخصائص</div></div>
-            <span class="item-badge" style="background:rgba(242,101,34,.12);color:var(--accent)">خارجي</span>
-            <span class="material-symbols-outlined item-arrow">open_in_new</span>
-        </div>
-        <div class="settings-item anim-fadeUp" onclick="window.location.href='reels.html'" style="animation-delay:.24s;opacity:0">
-            <div class="item-icon" style="background:rgba(239,68,68,.12)"><span class="material-symbols-outlined text-[18px]" style="color:#ef4444;font-variation-settings:'FILL' 1">smart_display</span></div>
-            <div class="item-content"><div class="item-title">إعدادات وتجربة الريلز</div><div class="item-desc">مراجعة العرض العمودي والتفاعل السريع والرفع</div></div>
-            <span class="material-symbols-outlined item-arrow">chevron_left</span>
-        </div>
-        <div class="settings-item anim-fadeUp" onclick="window.location.href='notifications.html'" style="animation-delay:.245s;opacity:0">
-            <div class="item-icon" style="background:rgba(59,130,246,.12)"><span class="material-symbols-outlined text-[18px]" style="color:#3b82f6;font-variation-settings:'FILL' 1">notifications_active</span></div>
-            <div class="item-content"><div class="item-title">مركز الإشعارات</div><div class="item-desc">إدارة أنواع التنبيهات وسجل النشاط اللحظي</div></div>
-            <span class="material-symbols-outlined item-arrow">chevron_left</span>
-        </div>
-    </div>
-
-    <div class="settings-group">
         <div class="settings-group-title">المساعدة</div>
         <div class="settings-item anim-fadeUp" onclick="openSubPage('help')" style="animation-delay:.25s;opacity:0">
             <div class="item-icon" style="background:rgba(59,130,246,.08)"><span class="material-symbols-outlined text-[18px]" style="color:var(--text-muted)">help</span></div>
@@ -336,10 +332,10 @@ function closeSubPage(name){
     document.body.style.overflow = '';
 }
 
-function subPageHeader(title, desc){
+function subPageHeader(pageName, title, desc){
     return `
     <div class="sub-page-header">
-        <button onclick="closeSubPage(this.dataset.page)" data-page="${title}" class="p-2 rounded-full hover:bg-white/5">
+        <button onclick="closeSubPage('${pageName}')" class="p-2 rounded-full hover:bg-white/5">
             <span class="material-symbols-outlined text-[22px]" style="color:var(--text-muted)">arrow_forward</span>
         </button>
         <div class="flex-1">
@@ -365,7 +361,7 @@ function renderSubPage(name, page){
 // ═══════════════════════════════════════════
 function renderAccountPage(page){
     page.innerHTML = `
-    ${subPageHeader('معلومات الحساب','تعديل بياناتك الشخصية')}
+    ${subPageHeader('account','الحساب','تعديل بياناتك الشخصية')}
     <div class="p-4 space-y-4">
         <div class="anim-fadeUp">
             <label class="text-sm font-bold block mb-2">الاسم الكامل</label>
@@ -442,6 +438,35 @@ function saveAccount(){
     settings.email = document.getElementById('accEmail').value.trim();
     settings.bio = document.getElementById('accBio').value.trim();
     saveSettings();
+
+    const storedProfile = (window.LobukShared && window.LobukShared.readLB('profile')) || {};
+    const nextProfile = {
+        ...storedProfile,
+        name: settings.displayName || storedProfile.name,
+        username: settings.username || storedProfile.username,
+        bio: settings.bio || storedProfile.bio
+    };
+    localStorage.setItem('lb_profile', JSON.stringify(nextProfile));
+
+    if (window.LobukShared) {
+        const currentUser = window.LobukShared.getCurrentAuthUser();
+        const users = window.LobukShared.readLB('users') || [];
+        if (currentUser) {
+            const idx = users.findIndex(user => user.id === currentUser.id);
+            if (idx !== -1) {
+                users[idx] = {
+                    ...users[idx],
+                    name: settings.displayName || users[idx].name,
+                    username: settings.username || users[idx].username,
+                    bio: settings.bio || users[idx].bio,
+                    email: settings.email || users[idx].email
+                };
+                localStorage.setItem('lb_users', JSON.stringify(users));
+            }
+        }
+    }
+
+    syncSettingsProfileCard();
     renderSettingsList();
     showToast('تم حفظ التغييرات','success');
 }
@@ -485,7 +510,7 @@ function renderPrivacyPage(page){
     const tagLabels = {everyone:'الجميع',followers:'المتابعين فقط',nobody:'لا أحد'};
 
     page.innerHTML = `
-    ${subPageHeader('الخصوصية','تحكم في من يمكنه رؤية ملفك')}
+    ${subPageHeader('privacy','الخصوصية','تحكم في من يمكنه رؤية ملفك')}
     <div class="p-4 space-y-4">
         <!-- Profile Visibility -->
         <div class="anim-fadeUp">
@@ -604,7 +629,7 @@ function renderNotificationsPage(page){
     ];
 
     page.innerHTML = `
-    ${subPageHeader('الإشعارات','تحكم في ما يصل إليك')}
+    ${subPageHeader('notifications','الإشعارات','تحكم في ما يصل إليك')}
     <div class="p-4 space-y-2">
         <div class="mb-3 anim-fade">
             <button onclick="toggleAllNotifs(true)" class="text-xs font-bold px-3 py-1.5 rounded-lg" style="background:rgba(34,197,94,.1);color:#4ade80;border:1px solid rgba(34,197,94,.2)">تفعيل الكل</button>
@@ -640,7 +665,7 @@ function toggleAllNotifs(state){
 // ═══════════════════════════════════════════
 function renderAppearancePage(page){
     page.innerHTML = `
-    ${subPageHeader('المظهر واللغة','خصّص تجربتك')}
+    ${subPageHeader('appearance','المظهر واللغة','خصّص تجربتك')}
     <div class="p-4 space-y-5">
         <!-- Theme -->
         <div class="anim-fadeUp">
@@ -746,7 +771,7 @@ function applyFontSize(){
 // ═══════════════════════════════════════════
 function renderSecurityPage(page){
     page.innerHTML = `
-    ${subPageHeader('الأمان والجلسات','حماية حسابك')}
+    ${subPageHeader('security','الأمان والجلسات','حماية حسابك')}
     <div class="p-4 space-y-4">
         <!-- 2FA -->
         <div class="anim-fadeUp">
@@ -865,7 +890,7 @@ function renderHelpPage(page){
     ];
 
     page.innerHTML = `
-    ${subPageHeader('المساعدة والدعم','كيف يمكننا مساعدتك؟')}
+    ${subPageHeader('help','المساعدة والدعم','كيف يمكننا مساعدتك؟')}
     <div class="p-4 space-y-2">
         ${helpItems.map((item, idx) => {
             const delay = Math.min(idx * 0.05, 0.3);
@@ -1010,6 +1035,7 @@ document.addEventListener('DOMContentLoaded', function(){
     applyFontSize();
     document.documentElement.dir = settings.language==='ar'?'rtl':'ltr';
     document.documentElement.lang = settings.language;
+    syncSettingsProfileCard();
     renderSettingsList();
     console.log('%c لو بوك | الإعدادات ','background:#f26522;color:white;font-size:14px;font-weight:bold;border-radius:8px;padding:6px 14px');
 });
