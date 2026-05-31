@@ -335,13 +335,14 @@
         .management-panel{display:none;margin-top:14px;padding:18px;border-radius:18px;background:rgba(32,31,31,.78);border:1px solid rgba(89,65,56,.18);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
         .management-panel.open{display:block;animation:fadeInUp .35s ease}
         .management-header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
-        .management-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
-        .management-card{display:flex;align-items:center;gap:12px;padding:14px;border-radius:16px;border:1px solid rgba(89,65,56,.22);background:rgba(255,255,255,.02);color:#e5e2e1;cursor:pointer;transition:all .25s;font-family:'Tajawal',sans-serif;text-align:right}
-        .management-card:hover{border-color:rgba(242,101,34,.32);transform:translateY(-2px);background:rgba(242,101,34,.05)}
-        .management-card .icon-shell{width:44px;height:44px;border-radius:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:rgba(242,101,34,.12);color:#f26522}
-        .management-card .meta{display:flex;flex-direction:column;gap:2px;min-width:0}
+        .management-strip{display:flex;gap:12px;overflow-x:auto;padding-bottom:6px;scroll-snap-type:x proximity}
+        .management-strip::-webkit-scrollbar{display:none}
+        .management-card{min-width:168px;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:12px;padding:16px;border-radius:18px;border:1px solid rgba(89,65,56,.22);background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(242,101,34,.04));color:#e5e2e1;cursor:pointer;transition:all .25s;font-family:'Tajawal',sans-serif;text-align:right;scroll-snap-align:start;box-shadow:0 14px 30px rgba(0,0,0,.16)}
+        .management-card:hover,.management-card:active{border-color:rgba(242,101,34,.32);transform:translateY(-2px);background:rgba(242,101,34,.06)}
+        .management-card .icon-shell{width:48px;height:48px;border-radius:16px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:rgba(242,101,34,.12);color:#f26522}
+        .management-card .meta{display:flex;flex-direction:column;gap:4px;min-width:0}
         .management-card .meta strong{font-size:14px}
-        .management-card .meta span{font-size:11px;color:#7a7570}
+        .management-card .meta span{font-size:11px;color:#7a7570;line-height:1.5}
 
         /* ═══════ Post Cards ═══════ */
         .post-card {
@@ -488,18 +489,23 @@
             position: fixed; bottom: 0; left: 0; right: 0;
             z-index: 50;
             border-top: 1px solid rgba(89,65,56,0.3);
-            display: flex; justify-content: around; align-items: center;
-            height: 64px; padding-bottom: env(safe-area-inset-bottom, 0);
+            display: flex; justify-content: space-around; align-items: center;
+            height: 68px; padding: 0 8px calc(env(safe-area-inset-bottom, 0) + 4px);
         }
         .nav-item {
             display: flex; flex-direction: column;
             align-items: center; justify-content: center;
+            gap: 4px;
             color: #7a7570; transition: all 0.3s;
             width: 100%; height: 100%;
             cursor: pointer; text-decoration: none;
+            font-size: 11px; font-weight: 700;
         }
         .nav-item:hover { color: #f26522; }
         .nav-item.active { color: #f26522; }
+        .nav-item .material-symbols-outlined { font-size: 22px; }
+        .bottom-avatar-shell{width:30px;height:30px;border-radius:50%;padding:2px;background:linear-gradient(135deg,#f26522,#f59e0b);display:flex;align-items:center;justify-content:center;box-shadow:0 8px 18px rgba(242,101,34,.18)}
+        .bottom-avatar-shell img{width:100%;height:100%;border-radius:50%;object-fit:cover;border:2px solid #161616}
 
         /* ═══════ Responsive ═══════ */
         @media (max-width: 640px) {
@@ -700,20 +706,21 @@
     <nav class="bottom-nav glass-bar">
         <a class="nav-item" href="javascript:void(0)" onclick="navTo('home')">
             <span class="material-symbols-outlined">home</span>
+            <span>الرئيسية</span>
         </a>
         <a class="nav-item" href="javascript:void(0)" onclick="navTo('reels')">
             <span class="material-symbols-outlined">movie</span>
+            <span>ريلز</span>
         </a>
-        <a class="nav-item" href="javascript:void(0)" onclick="navTo('messages')">
-            <div class="relative">
-                <span class="material-symbols-outlined">chat</span>
-                <span class="absolute -top-1 -right-1 w-3 h-3 bg-red-500 border-2 border-[#1a1a1a] rounded-full hidden" id="msgBadge"></span>
-            </div>
+        <a class="nav-item" href="javascript:void(0)" onclick="openComposer()">
+            <span class="material-symbols-outlined">add_circle</span>
+            <span>إنشاء</span>
         </a>
         <a class="nav-item active" href="javascript:void(0)">
-            <div class="w-7 h-7 rounded-full overflow-hidden border-2 border-[#f26522]">
-                <img id="bottomProfileAvatar" data-user-avatar src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=60&h=60&fit=crop&crop=face" class="w-full h-full object-cover" alt="حسابي"/>
-            </div>
+            <span class="bottom-avatar-shell">
+                <img id="bottomProfileAvatar" data-user-avatar src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=60&h=60&fit=crop&crop=face" alt="حسابي"/>
+            </span>
+            <span>حسابي</span>
         </a>
     </nav>
 
@@ -1717,9 +1724,9 @@
                     <span class="material-symbols-outlined text-[18px]">close</span>
                 </button>
             </div>
-            <div class="management-grid">
+            <div class="management-strip" role="list" aria-label="خيارات إدارة الحساب">
                 ${ACCOUNT_MANAGEMENT_ITEMS.map(item => `
-                    <button class="management-card" onclick="window.location.href='${item.href}'">
+                    <button class="management-card" role="listitem" onclick="window.location.href='${item.href}'">
                         <span class="icon-shell"><span class="material-symbols-outlined text-[22px]">${item.icon}</span></span>
                         <span class="meta"><strong>${item.label}</strong><span>${item.desc}</span></span>
                     </button>
@@ -1747,11 +1754,14 @@
         showToast('عرض ' + labels[type], 'info');
     }
 
+    function openComposer() {
+        window.location.href = 'index.html?composer=1';
+    }
+
     function navTo(page) {
         const routes = {
             home: 'index.html',
-            reels: 'reels.html',
-            messages: 'messages.html'
+            reels: 'reels.html'
         };
         window.location.href = routes[page] || 'index.html';
     }

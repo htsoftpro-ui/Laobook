@@ -450,9 +450,26 @@ function syncCurrentUserUI(){
     if(createName) createName.textContent = CURRENT_USER.name;
 }
 
+async function syncHomeShellFromProfile(){
+    hydrateCurrentUserFromShared();
+    syncCurrentUserUI();
+    await renderStories();
+}
+
 function openCreateWithImagePicker(){
     openCreateModal();
     setTimeout(()=>document.getElementById('imageInput')?.click(), 60);
+}
+
+function maybeOpenDeferredComposer(){
+    const params = new URLSearchParams(window.location.search);
+    if(params.get('composer') !== '1') return;
+    openCreateModal();
+    requestAnimationFrame(()=>document.getElementById('createText')?.focus());
+    params.delete('composer');
+    const next = params.toString();
+    const cleanUrl = next ? `${window.location.pathname}?${next}` : window.location.pathname;
+    history.replaceState({}, '', cleanUrl);
 }
 
 function readLB(key){
@@ -975,9 +992,11 @@ function goToProfile(userId){
 document.addEventListener('DOMContentLoaded',async()=>{
     await DB.init();
     await seedData();
+    syncCurrentUserUI();
     document.title = `لو بوك — ${CURRENT_USER.name}`;
     await renderStories();
     await renderFeed();
+    maybeOpenDeferredComposer();
 
     const authUser = getAuthCurrentUser();
     if(!authUser){
@@ -990,6 +1009,16 @@ document.addEventListener('DOMContentLoaded',async()=>{
             closeStoryViewer();
             closeMenus();
         }
+    });
+
+    document.addEventListener('visibilitychange',()=>{
+        if(document.visibilityState==='visible'){
+            syncHomeShellFromProfile();
+        }
+    });
+
+    window.addEventListener('storage',()=>{
+        syncHomeShellFromProfile();
     });
 });
 </script>
