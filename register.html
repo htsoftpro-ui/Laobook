@@ -7,6 +7,7 @@
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet"/>
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <link rel="stylesheet" href="css/icons.css"/>
     <style>
         * { box-sizing: border-box; }
         body {
@@ -825,7 +826,7 @@
                 id: genId(), author: { ...USERS[1] }, pinned: false,
                 text: 'فيديو: شرح مبسط لقانون العمل الجديد — أهم 5 نقاط يجب على كل موظف ومدير معرفتها.',
                 images: [],
-                video: { url: '', poster: 'https://images.unsplash.com/photo-1436491865332-7a61a109db05?w=800&h=450&fit=crop', duration: 185 },
+                video: { url: '', poster: 'assets/media/flight-portrait.svg', duration: 185 },
                 poll: null, quoteOf: null, scheduled: null, createdAt: yesterday(),
                 likes: 567, likedBy: [], comments: [], shares: 201, bookmarks: [], isBookmarked: false
             },
@@ -885,6 +886,7 @@
     function fourHoursAgo() { return new Date(Date.now() - 14400000).toISOString(); }
     function threeHoursAgo() { return new Date(Date.now() - 10800000).toISOString(); }
     function yesterday() { return new Date(Date.now() - 86400000).toISOString(); }
+    function threeDaysAgo() { return new Date(Date.now() - 3 * 86400000).toISOString(); }
     function twoDaysAgo() { return new Date(Date.now() - 172800000).toISOString(); }
     function inHours(h) { return new Date(Date.now() + h * 3600000).toISOString(); }
     function genId() { return 'p_' + Date.now() + '_' + Math.random().toString(36).substr(2,6); }

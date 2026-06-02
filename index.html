@@ -8,6 +8,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet"/>
     <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <link rel="stylesheet" href="css/icons.css"/>
     <style>
         *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
         :root{
@@ -199,6 +200,23 @@
         .composer-action{display:flex;align-items:center;justify-content:center;gap:6px;padding:10px 8px;border:none;border-radius:14px;background:rgba(255,255,255,.03);color:var(--text-secondary);font-size:12px;font-weight:700;font-family:'Tajawal',sans-serif;cursor:pointer;transition:all .22s}
         .composer-action:hover{background:rgba(249,115,22,.08);color:var(--text)}
         .composer-action .material-symbols-outlined{font-size:19px;color:var(--accent)}
+        .poll-builder{display:none;margin-top:12px;padding:12px;border-radius:14px;background:var(--surface-2);border:1px solid var(--border)}
+        .poll-builder.open{display:block;animation:fadeUp .25s ease}
+        .poll-builder-head{display:flex;align-items:center;gap:8px;margin-bottom:10px;font-size:12px;font-weight:700;color:var(--text-secondary)}
+        .poll-options{display:flex;flex-direction:column;gap:8px}
+        .poll-input{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:10px 12px;color:var(--text);font-size:13px;font-family:'Tajawal',sans-serif;outline:none}
+        .poll-input:focus{border-color:rgba(249,115,22,.35)}
+        .poll-builder-actions{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:10px}
+        .poll-add-btn{border:none;background:rgba(249,115,22,.12);color:var(--accent);padding:8px 12px;border-radius:10px;font-size:12px;font-weight:700;font-family:'Tajawal',sans-serif;cursor:pointer}
+        .poll-meta{font-size:11px;color:var(--text-muted)}
+        .poll-card{margin-top:10px;padding:12px;border-radius:14px;background:var(--surface-2);border:1px solid var(--border)}
+        .poll-title{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:700;color:var(--text);margin-bottom:10px}
+        .poll-option-btn{position:relative;overflow:hidden;width:100%;display:flex;align-items:center;justify-content:space-between;gap:10px;text-align:right;padding:10px 12px;border-radius:12px;border:1px solid var(--border);background:var(--surface);color:var(--text-secondary);font-family:'Tajawal',sans-serif;font-size:13px;cursor:pointer;margin-bottom:8px}
+        .poll-option-btn:disabled{cursor:default}
+        .poll-option-fill{position:absolute;inset:0 auto 0 0;background:linear-gradient(90deg,rgba(249,115,22,.2),rgba(249,115,22,.06));width:0;transition:width .3s ease}
+        .poll-option-content,.poll-option-meta{position:relative;z-index:1}
+        .poll-option-meta{font-size:11px;font-weight:700;color:var(--accent)}
+        .poll-option-btn.selected{border-color:rgba(249,115,22,.35);color:var(--text)}
         .bottom-item.profile-item{min-width:62px}
         .bottom-avatar-wrap{width:28px;height:28px;border-radius:50%;padding:2px;background:linear-gradient(135deg,var(--accent),#facc15);display:flex;align-items:center;justify-content:center;box-shadow:0 8px 18px rgba(249,115,22,.16)}
         .bottom-avatar{width:100%;height:100%;border-radius:50%;object-fit:cover;border:2px solid var(--bg)}
@@ -256,7 +274,7 @@
     <div class="composer-actions">
         <button class="composer-action" onclick="openCreateModal()"><span class="material-symbols-outlined">edit_square</span><span>منشور</span></button>
         <button class="composer-action" onclick="openCreateWithImagePicker()"><span class="material-symbols-outlined">image</span><span>صورة</span></button>
-        <button class="composer-action" onclick="showToast('ميزة الاستطلاعات قيد التحسين','info')"><span class="material-symbols-outlined">bar_chart</span><span>استطلاع</span></button>
+        <button class="composer-action" onclick="openCreateModal('poll')"><span class="material-symbols-outlined">bar_chart</span><span>استطلاع</span></button>
     </div>
 </section>
 
@@ -307,10 +325,21 @@
             <img id="imagePreview" src=""/>
             <button class="remove-image" onclick="removeSelectedImage()"><span class="material-symbols-outlined" style="color:white;font-size:16px">close</span></button>
         </div>
+        <div class="poll-builder" id="pollBuilder">
+            <div class="poll-builder-head"><span class="material-symbols-outlined" style="font-size:18px;color:var(--accent)">bar_chart</span><span>إنشاء استطلاع سريع</span></div>
+            <div class="poll-options" id="pollOptions">
+                <input class="poll-input" type="text" placeholder="الخيار الأول" oninput="updateCharCount()"/>
+                <input class="poll-input" type="text" placeholder="الخيار الثاني" oninput="updateCharCount()"/>
+            </div>
+            <div class="poll-builder-actions">
+                <button class="poll-add-btn" type="button" onclick="addPollOption()">إضافة خيار</button>
+                <span class="poll-meta">خياران على الأقل وحتى 4 خيارات</span>
+            </div>
+        </div>
         <div class="create-toolbar">
             <button class="toolbar-btn" onclick="document.getElementById('imageInput').click()" title="صورة"><span class="material-symbols-outlined">image</span></button>
             <input type="file" id="imageInput" accept="image/*" hidden onchange="handleImageSelect(this.files[0])"/>
-            <button class="toolbar-btn" title="استطلاع"><span class="material-symbols-outlined">bar_chart</span></button>
+            <button class="toolbar-btn" onclick="togglePollBuilder()" title="استطلاع"><span class="material-symbols-outlined">bar_chart</span></button>
             <button class="toolbar-btn" title="هاشتاق"><span class="material-symbols-outlined">tag</span></button>
             <span class="char-count" id="charCount">0 / 500</span>
             <button class="post-submit" id="postSubmit" disabled onclick="submitPost()">نشر</button>
@@ -777,6 +806,7 @@ async function renderFeed(){
             <div class="post-body">
                 <p class="post-text">${linkify(post.text)}</p>
                 ${post.image?`<div class="post-image-container"><img src="${post.image}" alt="صورة المنشور" loading="lazy"/></div>`:''}
+                ${renderPollHTML(post)}
             </div>
 
             <!-- Stats -->
@@ -925,9 +955,45 @@ document.addEventListener('click',e=>{if(!e.target.closest('.post-more')&&!e.tar
 // ═══════════════════════════════════════════════
 let selectedImage=null;
 
-function openCreateModal(){
+function getPollBuilder(){return document.getElementById('pollBuilder')}
+function getPollOptionsWrap(){return document.getElementById('pollOptions')}
+function getPollOptionValues(){return [...getPollOptionsWrap().querySelectorAll('input')].map(i=>i.value.trim()).filter(Boolean)}
+function addPollOption(value=''){
+    const wrap=getPollOptionsWrap();
+    if(wrap.querySelectorAll('input').length>=4){showToast('الحد الأقصى 4 خيارات','info');return}
+    const input=document.createElement('input');
+    input.className='poll-input';
+    input.type='text';
+    input.placeholder='خيار إضافي';
+    input.value=value;
+    input.oninput=()=>updateCharCount();
+    wrap.appendChild(input);
+    input.focus();
+    updateCharCount();
+}
+function resetPollBuilder(){
+    const wrap=getPollOptionsWrap();
+    wrap.innerHTML='';
+    ['الخيار الأول','الخيار الثاني'].forEach(ph=>{
+        const input=document.createElement('input');
+        input.className='poll-input';
+        input.type='text';
+        input.placeholder=ph;
+        input.oninput=()=>updateCharCount();
+        wrap.appendChild(input);
+    });
+    getPollBuilder().classList.remove('open');
+}
+function togglePollBuilder(forceOpen=false){
+    const builder=getPollBuilder();
+    const shouldOpen=forceOpen||!builder.classList.contains('open');
+    builder.classList.toggle('open',shouldOpen);
+    updateCharCount();
+}
+function openCreateModal(mode='text'){
     document.getElementById('createModal').classList.add('active');
     document.body.style.overflow='hidden';
+    if(mode==='poll')togglePollBuilder(true);
     document.getElementById('createText').focus();
 }
 function closeCreateModal(){
@@ -935,6 +1001,7 @@ function closeCreateModal(){
     document.body.style.overflow='';
     document.getElementById('createText').value='';
     removeSelectedImage();
+    resetPollBuilder();
     updateCharCount();
 }
 function updateCharCount(){
@@ -942,9 +1009,10 @@ function updateCharCount(){
     const count=document.getElementById('charCount');
     const btn=document.getElementById('postSubmit');
     const len=text.length;
+    const hasPoll=getPollBuilder().classList.contains('open')&&getPollOptionValues().length>=2;
     count.textContent=len+' / 500';
     count.className='char-count'+(len>450?len>500?' over':' warn':'');
-    btn.disabled=len===0&&!selectedImage;
+    btn.disabled=len===0&&!selectedImage&&!hasPoll;
 }
 function handleImageSelect(file){
     if(!file)return;
@@ -963,19 +1031,42 @@ function removeSelectedImage(){
     document.getElementById('imageInput').value='';
     updateCharCount();
 }
+function renderPollHTML(post){
+    if(!post.poll)return'';
+    const selected=post.poll.votedBy?.[CURRENT_USER.id]||null;
+    return `<div class="poll-card"><div class="poll-title"><span class="material-symbols-outlined" style="font-size:18px;color:var(--accent)">bar_chart</span><span>${esc(post.poll.question||'استطلاع')}</span></div>${post.poll.options.map(opt=>{const pct=post.poll.totalVotes?Math.round((opt.votes/post.poll.totalVotes)*100):0;const isSelected=selected===opt.id;return `<button class="poll-option-btn ${isSelected?'selected':''}" ${selected?'disabled':''} onclick="votePoll('${post.id}','${opt.id}')"><span class="poll-option-fill" style="width:${selected?pct:0}%"></span><span class="poll-option-content">${esc(opt.text)}</span><span class="poll-option-meta">${selected?pct+'%':''}</span></button>`}).join('')}<div class="poll-meta">${post.poll.totalVotes||0} صوت</div></div>`;
+}
+async function votePoll(postId,optId){
+    const post=await DB.get('posts',postId);
+    if(!post?.poll)return;
+    post.poll.votedBy=post.poll.votedBy||{};
+    if(post.poll.votedBy[CURRENT_USER.id]){showToast('تم التصويت مسبقاً','info');return}
+    const option=post.poll.options.find(opt=>opt.id===optId);
+    if(!option)return;
+    option.votes=(option.votes||0)+1;
+    post.poll.totalVotes=(post.poll.totalVotes||0)+1;
+    post.poll.votedBy[CURRENT_USER.id]=optId;
+    await DB.update('posts',post);
+    showToast('تم تسجيل صوتك','success');
+    renderFeed();
+}
 async function submitPost(){
     const text=document.getElementById('createText').value.trim();
-    if(!text&&!selectedImage)return;
+    const pollEnabled=getPollBuilder().classList.contains('open');
+    const options=getPollOptionValues();
+    if(!text&&!selectedImage&&!pollEnabled)return;
+    if(pollEnabled&&options.length<2){showToast('أضف خيارين على الأقل للاستطلاع','error');return}
     const post={
         authorId:CURRENT_USER.id,
         text:text,
         image:selectedImage,
+        poll:pollEnabled?{question:text||'استطلاع قانوني سريع',options:options.map((value,index)=>({id:'opt_'+(index+1),text:value,votes:0})),totalVotes:0,votedBy:{}}:null,
         likes:0,comments:0,shares:0,
         saved:false,liked:false,pinned:false
     };
     await DB.add('posts',post);
     closeCreateModal();
-    showToast('تم نشر المنشور!','success');
+    showToast(post.poll?'تم نشر الاستطلاع!':'تم نشر المنشور!','success');
     renderFeed();
 }
 

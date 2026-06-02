@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="1600" viewBox="0 0 900 1600" role="img" aria-label="خلفية رحلة جوية">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#0f172a"/>
+      <stop offset="45%" stop-color="#1d4ed8"/>
+      <stop offset="100%" stop-color="#f97316"/>
+    </linearGradient>
+    <linearGradient id="glow" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.8"/>
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+    <filter id="blur" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="30"/>
+    </filter>
+  </defs>
+  <rect width="900" height="1600" fill="url(#sky)"/>
+  <circle cx="720" cy="260" r="140" fill="#fff7ed" opacity="0.95"/>
+  <circle cx="180" cy="240" r="110" fill="url(#glow)" filter="url(#blur)"/>
+  <circle cx="760" cy="1140" r="160" fill="url(#glow)" filter="url(#blur)"/>
+  <g opacity="0.22" fill="#ffffff">
+    <ellipse cx="220" cy="480" rx="120" ry="38"/>
+    <ellipse cx="310" cy="470" rx="90" ry="28"/>
+    <ellipse cx="610" cy="620" rx="150" ry="45"/>
+    <ellipse cx="720" cy="612" rx="90" ry="28"/>
+    <ellipse cx="470" cy="930" rx="180" ry="52"/>
+  </g>
+  <g transform="translate(450 820) rotate(-18)">
+    <path d="M-20 -280 L65 -32 L282 44 L282 92 L54 78 L-6 238 L-48 238 L-34 72 L-242 44 L-242 -2 L-34 6 L-20 -280 Z" fill="#f8fafc"/>
+    <path d="M-10 -220 L35 -24 L210 28 L210 56 L30 44 L-12 188 L-30 188 L-20 40 L-176 20 L-176 0 L-18 2 L-10 -220 Z" fill="#cbd5e1" opacity="0.55"/>
+  </g>
+  <text x="80" y="1330" fill="#ffffff" font-family="Tajawal, Arial, sans-serif" font-size="68" font-weight="700">بث مباشر من عالم السفر</text>
+  <text x="80" y="1410" fill="#e2e8f0" font-family="Tajawal, Arial, sans-serif" font-size="36">خلفية محلية سريعة وآمنة بدون اعتماد خارجي</text>
+</svg>
