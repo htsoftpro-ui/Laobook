@@ -47,7 +47,26 @@
       root.querySelectorAll('[data-user-name]').forEach(el => el.textContent = user.name);
       root.querySelectorAll('[data-user-username]').forEach(el => el.textContent = '@' + user.username);
       return user;
+    },
+    bootNavigationWarmup(){
+      if(this._warmupStarted) return;
+      this._warmupStarted = true;
+      const run = () => {
+        if(navigator.connection && navigator.connection.saveData) return;
+        const pages = ['index.html','profile.html','reels.html','messages.html','notifications.html','settings.html'];
+        const base = (window.location.pathname || '/').split('/').filter(Boolean);
+        const repoBase = window.location.hostname.endsWith('github.io') && base.length ? '/' + base[0] + '/' : '/';
+        pages.filter(page => !window.location.pathname.endsWith('/' + page)).slice(0,4).forEach((page, idx) => {
+          setTimeout(() => {
+            fetch(window.location.origin + repoBase + page, { cache: 'force-cache' }).catch(() => {});
+          }, idx * 120);
+        });
+      };
+      if('requestIdleCallback' in window) window.requestIdleCallback(run, { timeout: 1200 });
+      else setTimeout(run, 300);
     }
   };
   window.LobukShared = Shared;
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', () => Shared.bootNavigationWarmup(), { once: true });
+  else Shared.bootNavigationWarmup();
 })(window);

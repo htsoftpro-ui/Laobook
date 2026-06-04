@@ -1010,12 +1010,104 @@
     let profile = { ...DEFAULT_PROFILE };
     let editingSkills = [...profile.skills];
     let editingLinks = [...profile.links];
+    let profilePosts = [];
+    let profileReels = [];
+    const PROFILE_SYNC_KEY = 'lb_profile_sync';
     const ACCOUNT_MANAGEMENT_ITEMS = [
         { id: 'live', label: 'البث المباشر', desc: 'جلسات ونقاشات حيّة', icon: 'podcasts', href: 'live.html' },
         { id: 'friends', label: 'الأصدقاء', desc: 'إدارة العلاقات والاقتراحات', icon: 'diversity_3', href: 'friends.html' },
         { id: 'pages', label: 'الصفحات', desc: 'حسابات وهيئات رسمية', icon: 'dashboard_customize', href: 'pages.html' },
         { id: 'groups', label: 'المجموعات', desc: 'مجتمعات متخصصة', icon: 'groups', href: 'groups.html' }
     ];
+
+    function writeLB(key, value) {
+        localStorage.setItem('lb_' + key, JSON.stringify(value));
+        localStorage.setItem(PROFILE_SYNC_KEY, String(Date.now()));
+    }
+
+    function formatRelativeDate(value) {
+        if (!value) return 'الآن';
+        if (typeof value === 'string' && value.startsWith('منذ')) return value;
+        const date = new Date(value);
+        if (Number.isNaN(date.getTime())) return value;
+        const diff = Math.max(1, Math.floor((Date.now() - date.getTime()) / 1000));
+        if (diff < 60) return 'الآن';
+        if (diff < 3600) return `منذ ${Math.floor(diff / 60)} د`;
+        if (diff < 86400) return `منذ ${Math.floor(diff / 3600)} س`;
+        if (diff < 604800) return `منذ ${Math.floor(diff / 86400)} يوم`;
+        return date.toLocaleDateString('ar-SA');
+    }
+
+    function getStoredPosts() {
+        const posts = readLB('posts');
+        return Array.isArray(posts) ? posts : [];
+    }
+
+    function getStoredComments() {
+        const comments = readLB('comments');
+        return Array.isArray(comments) ? comments : [];
+    }
+
+    function getStoredReels() {
+        const reels = readLB('reels_v2') || readLB('reels');
+        return Array.isArray(reels) ? reels : [];
+    }
+
+    function syncProfileCollections() {
+        profilePosts = getStoredPosts()
+            .filter(post => post.authorId === profile.id)
+            .sort((a, b) => {
+                if ((b.pinned ? 1 : 0) !== (a.pinned ? 1 : 0)) return (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0);
+                return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
+            });
+
+        profileReels = getStoredReels()
+            .filter(reel => (reel.user?.id || reel.authorId) === profile.id)
+            .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+
+        profile.stats = profile.stats || {};
+        profile.stats.posts = profilePosts.length;
+        const likesSum = profilePosts.reduce((sum, post) => sum + (post.likes || 0), 0) + profileReels.reduce((sum, reel) => sum + (reel.likes || 0), 0);
+        if (likesSum > 0 || profile.isOwnProfile) {
+            profile.stats.likes = likesSum;
+        }
+        syncProfileTabCounts();
+    }
+
+    function syncProfileTabCounts() {
+        const counts = document.querySelectorAll('.profile-tab .tab-count');
+        if (counts[0]) counts[0].textContent = profilePosts.length;
+        if (counts[1]) counts[1].textContent = profileReels.length;
+        if (counts[2]) counts[2].textContent = SAMPLE_MEDIA.length;
+        if (counts[3]) counts[3].textContent = SAMPLE_FILES.length;
+        if (counts[4]) counts[4].textContent = 230;
+    }
+
+    function syncProfileSummaryStats() {
+        const postsEl = document.getElementById('statPosts');
+        const followersEl = document.getElementById('statFollowers');
+        const followingEl = document.getElementById('statFollowing');
+        const likesEl = document.getElementById('statLikes');
+        if (postsEl) postsEl.textContent = formatNumber(profile.stats.posts || 0);
+        if (followersEl) followersEl.textContent = formatNumber(profile.stats.followers || 0);
+        if (followingEl) followingEl.textContent = formatNumber(profile.stats.following || 0);
+        if (likesEl) likesEl.textContent = formatNumber(profile.stats.likes || 0);
+    }
+
+    function refreshProfileContent() {
+        syncProfileCollections();
+        syncProfileSummaryStats();
+        renderPostsTab();
+        renderReelsTab();
+    }
+
+    function openCreatePost() {
+        window.location.href = 'index.html?composer=1';
+    }
+
+    function openCreateReel() {
+        window.location.href = 'reels.html?compose=1';
+    }
 
     // ═══════════════════════════════════════════
     // SAMPLE DATA
@@ -1108,11 +1200,10 @@
         // Skills
         renderSkills();
 
+        syncProfileCollections();
+
         // Stats
-        document.getElementById('statPosts').textContent = formatNumber(profile.stats.posts);
-        document.getElementById('statFollowers').textContent = formatNumber(profile.stats.followers);
-        document.getElementById('statFollowing').textContent = formatNumber(profile.stats.following);
-        document.getElementById('statLikes').textContent = formatNumber(profile.stats.likes);
+        syncProfileSummaryStats();
 
         // Action Buttons
         renderActionButtons();
@@ -1171,6 +1262,10 @@
                     <span class="material-symbols-outlined text-[18px]">edit</span>
                     تعديل الملف
                 </button>
+                <button onclick="openCreateReel()" class="btn-outline-sm primary-ghost">
+                    <span class="material-symbols-outlined text-[18px]">movie</span>
+                    إنشاء ريل
+                </button>
                 <button onclick="toggleAccountManagement()" class="btn-outline-sm primary-ghost" id="accountManagementBtn">
                     <span class="material-symbols-outlined text-[18px]">apps</span>
                     إدارة الحساب
@@ -1198,12 +1293,31 @@
     // ═══════════════════════════════════════════
     function renderPostsTab() {
         const container = document.getElementById('tab-posts');
-        container.innerHTML = SAMPLE_POSTS.map((post, idx) => `
-            <div class="post-card ${post.pinned ? 'pinned' : ''}" style="animation-delay: ${idx * 0.1}s; animation: fadeInUp ${0.4 + idx * 0.1}s ease forwards; opacity: 0;">
+        const commentCounts = getStoredComments().reduce((acc, comment) => {
+            acc[comment.postId] = (acc[comment.postId] || 0) + 1;
+            return acc;
+        }, {});
+
+        if (!profilePosts.length) {
+            container.innerHTML = `
+                <div class="post-card text-center py-10">
+                    <div class="w-16 h-16 rounded-full mx-auto mb-4 flex items-center justify-center bg-[#f26522]/10 text-[#f26522]">
+                        <span class="material-symbols-outlined text-[30px]">article</span>
+                    </div>
+                    <h3 class="font-extrabold text-base mb-2">لا توجد منشورات بعد</h3>
+                    <p class="text-sm text-[#7a7570] mb-4">${profile.isOwnProfile ? 'ابدأ أول منشور لك وسيظهر هنا فوراً.' : 'لا توجد منشورات متاحة في هذا الملف حالياً.'}</p>
+                    ${profile.isOwnProfile ? `<button onclick="openCreatePost()" class="btn-primary-sm mx-auto"><span class="material-symbols-outlined text-[18px]">add</span> إنشاء منشور</button>` : ''}
+                </div>
+            `;
+            return;
+        }
+
+        container.innerHTML = profilePosts.map((post, idx) => `
+            <div class="post-card ${post.pinned ? 'pinned' : ''}" style="animation-delay: ${idx * 0.06}s; animation: fadeInUp ${0.35 + idx * 0.05}s ease forwards; opacity: 0;">
                 ${post.pinned ? `
                     <div class="flex items-center gap-1 text-xs text-[#f26522] mb-3 font-semibold">
                         <span class="material-symbols-outlined text-[16px]">push_pin</span>
-                        منشور مثبّت
+                        منشور مثبّت في الملف الشخصي
                     </div>
                 ` : ''}
                 <div class="flex items-center gap-3 mb-3">
@@ -1213,30 +1327,36 @@
                             ${escapeHtml(profile.name)}
                             ${profile.verified ? '<span class="material-symbols-outlined text-[14px] text-blue-400" style="font-variation-settings:FILL 1">verified</span>' : ''}
                         </h3>
-                        <p class="text-[10px] text-[#7a7570]">${post.time}</p>
+                        <p class="text-[10px] text-[#7a7570]">${formatRelativeDate(post.updatedAt || post.createdAt || post.time)}</p>
                     </div>
-                    <div class="ms-auto flex gap-1">
-                        <button class="p-1.5 rounded-full hover:bg-white/5 text-[#7a7570] transition-colors" onclick="editPost('${post.id}')" title="تعديل">
-                            <span class="material-symbols-outlined text-[18px]">edit</span>
-                        </button>
-                        <button class="p-1.5 rounded-full hover:bg-white/5 text-[#7a7570] transition-colors" onclick="deletePost('${post.id}')" title="حذف">
-                            <span class="material-symbols-outlined text-[18px]">delete</span>
-                        </button>
-                    </div>
+                    ${profile.isOwnProfile ? `
+                        <div class="ms-auto flex gap-1 flex-wrap justify-end">
+                            <button class="p-1.5 rounded-full hover:bg-white/5 text-[#7a7570] transition-colors" onclick="toggleProfilePin('${post.id}')" title="تثبيت">
+                                <span class="material-symbols-outlined text-[18px]" style="font-variation-settings:${post.pinned ? '\'FILL\' 1' : '\'FILL\' 0'}">push_pin</span>
+                            </button>
+                            <button class="p-1.5 rounded-full hover:bg-white/5 text-[#7a7570] transition-colors" onclick="editPost('${post.id}')" title="تعديل">
+                                <span class="material-symbols-outlined text-[18px]">edit</span>
+                            </button>
+                            <button class="p-1.5 rounded-full hover:bg-white/5 text-[#7a7570] transition-colors" onclick="deletePost('${post.id}')" title="حذف">
+                                <span class="material-symbols-outlined text-[18px]">delete</span>
+                            </button>
+                        </div>
+                    ` : ''}
                 </div>
-                <p class="text-sm leading-relaxed mb-4 whitespace-pre-wrap">${formatPostText(post.text)}</p>
+                <p class="text-sm leading-relaxed mb-4 whitespace-pre-wrap">${formatPostText(post.text || '')}</p>
+                ${post.image ? `<div class="rounded-2xl overflow-hidden border border-[#594138]/15 mb-4"><img src="${post.image}" class="w-full max-h-[420px] object-cover" loading="lazy"/></div>` : ''}
                 <div class="flex justify-between border-t border-[#594138]/15 pt-3 text-[#7a7570]">
                     <button class="flex items-center gap-2 hover:text-[#f26522] transition-colors group" onclick="togglePostLike(this)">
                         <span class="material-symbols-outlined text-[20px] group-active:animate-pop">favorite</span>
-                        <span class="text-xs font-bold like-count">${post.likes}</span>
+                        <span class="text-xs font-bold like-count">${formatNumber(post.likes || 0)}</span>
                     </button>
-                    <button class="flex items-center gap-2 hover:text-blue-400 transition-colors">
+                    <button class="flex items-center gap-2 hover:text-blue-400 transition-colors" onclick="window.location.href='index.html'">
                         <span class="material-symbols-outlined text-[20px]">chat_bubble</span>
-                        <span class="text-xs font-bold">${post.comments}</span>
+                        <span class="text-xs font-bold">${formatNumber(commentCounts[post.id] || post.comments || 0)}</span>
                     </button>
                     <button class="flex items-center gap-2 hover:text-green-400 transition-colors">
                         <span class="material-symbols-outlined text-[20px]">repeat</span>
-                        <span class="text-xs font-bold">${post.shares}</span>
+                        <span class="text-xs font-bold">${formatNumber(post.shares || 0)}</span>
                     </button>
                     <button class="flex items-center gap-2 hover:text-[#f26522] transition-colors" onclick="togglePostBookmark(this)">
                         <span class="material-symbols-outlined text-[20px]">bookmark</span>
@@ -1251,24 +1371,41 @@
     // ═══════════════════════════════════════════
     function renderReelsTab() {
         const container = document.getElementById('tab-reels');
+
+        if (!profileReels.length) {
+            container.innerHTML = `
+                <div class="post-card text-center py-10">
+                    <div class="w-16 h-16 rounded-full mx-auto mb-4 flex items-center justify-center bg-[#f26522]/10 text-[#f26522]">
+                        <span class="material-symbols-outlined text-[30px]">movie</span>
+                    </div>
+                    <h3 class="font-extrabold text-base mb-2">لا توجد ريلز بعد</h3>
+                    <p class="text-sm text-[#7a7570] mb-4">${profile.isOwnProfile ? 'أنشئ ريل جديد ليظهر مباشرة داخل ملفك الشخصي.' : 'لم يتم نشر أي ريلز في هذا الملف حتى الآن.'}</p>
+                    ${profile.isOwnProfile ? `<button onclick="openCreateReel()" class="btn-primary-sm mx-auto"><span class="material-symbols-outlined text-[18px]">movie</span> إنشاء ريل</button>` : ''}
+                </div>
+            `;
+            return;
+        }
+
         container.innerHTML = `
+            <div class="flex items-center justify-between mb-3">
+                <h3 class="font-extrabold text-sm text-[#e5e2e1]">الريلز المنشورة</h3>
+                ${profile.isOwnProfile ? `<button onclick="openCreateReel()" class="btn-outline-sm px-3 py-2"><span class="material-symbols-outlined text-[18px]">add</span> ريل جديد</button>` : ''}
+            </div>
             <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                ${SAMPLE_REELS.map((reel, i) => `
-                    <div class="relative aspect-[9/16] rounded-xl overflow-hidden cursor-pointer group" style="animation: fadeInUp ${0.3 + i * 0.1}s ease forwards; opacity: 0;">
-                        <img src="${reel.thumbnail}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"/>
-                        <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent"></div>
-                        <div class="absolute bottom-3 right-3 left-3">
-                            <div class="flex items-center gap-1 text-white text-xs font-bold">
-                                <span class="material-symbols-outlined text-[16px]" style="font-variation-settings:'FILL' 1;">play_arrow</span>
-                                ${reel.views}
-                            </div>
-                            <div class="flex items-center gap-1 text-white/80 text-xs mt-1">
-                                <span class="material-symbols-outlined text-[14px]" style="font-variation-settings:'FILL' 1;">favorite</span>
-                                ${reel.likes}
-                            </div>
+                ${profileReels.map((reel, i) => `
+                    <div class="relative aspect-[9/16] rounded-xl overflow-hidden cursor-pointer group border border-[#594138]/10" onclick="window.location.href='reels.html?focus=${reel.id}'" style="animation: fadeInUp ${0.25 + i * 0.05}s ease forwards; opacity: 0;">
+                        ${reel.videoUrl ? `<video src="${reel.videoUrl}" class="w-full h-full object-cover" muted playsinline preload="metadata"></video>` : `<img src="${reel.posterUrl || reel.thumbnail || profile.cover}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"/>`}
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent"></div>
+                        <div class="absolute top-2 left-2 rounded-full bg-black/45 px-2 py-1 text-[10px] font-bold flex items-center gap-1 text-white">
+                            <span class="material-symbols-outlined text-[14px]" style="font-variation-settings:'FILL' 1;">movie</span>
+                            ${Math.max(1, reel.duration || 0)} ث
                         </div>
-                        <div class="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
-                            <span class="material-symbols-outlined text-white text-4xl opacity-0 group-hover:opacity-100 transition-opacity">play_circle</span>
+                        <div class="absolute bottom-3 right-3 left-3">
+                            <p class="text-white text-xs leading-5 line-clamp-3 mb-2">${escapeHtml((reel.caption || 'ريلز جديد').slice(0, 90))}</p>
+                            <div class="flex items-center justify-between text-white/85 text-[11px] font-bold">
+                                <span class="flex items-center gap-1"><span class="material-symbols-outlined text-[15px]" style="font-variation-settings:'FILL' 1;">play_arrow</span>${formatNumber(reel.views || 0)}</span>
+                                <span class="flex items-center gap-1"><span class="material-symbols-outlined text-[14px]" style="font-variation-settings:'FILL' 1;">favorite</span>${formatNumber(reel.likes || 0)}</span>
+                            </div>
                         </div>
                     </div>
                 `).join('')}
@@ -1673,13 +1810,58 @@
     }
 
     function editPost(postId) {
-        showToast('جاري فتح محرر المنشور...', 'info');
+        if (!profile.isOwnProfile) {
+            showToast('يمكن تعديل منشوراتك فقط', 'error');
+            return;
+        }
+        const posts = getStoredPosts();
+        const idx = posts.findIndex(post => post.id === postId && post.authorId === profile.id);
+        if (idx === -1) {
+            showToast('تعذر العثور على المنشور', 'error');
+            return;
+        }
+        const nextText = prompt('تعديل المنشور', posts[idx].text || '');
+        if (nextText === null) return;
+        const value = nextText.trim();
+        if (!value && !posts[idx].image) {
+            showToast('لا يمكن حفظ منشور فارغ', 'error');
+            return;
+        }
+        posts[idx] = { ...posts[idx], text: value, updatedAt: new Date().toISOString() };
+        writeLB('posts', posts);
+        refreshProfileContent();
+        showToast('تم تحديث المنشور', 'success');
+    }
+
+    function toggleProfilePin(postId) {
+        if (!profile.isOwnProfile) {
+            showToast('يمكن تثبيت منشوراتك فقط', 'error');
+            return;
+        }
+        const posts = getStoredPosts();
+        const idx = posts.findIndex(post => post.id === postId && post.authorId === profile.id);
+        if (idx === -1) {
+            showToast('تعذر العثور على المنشور', 'error');
+            return;
+        }
+        posts[idx] = { ...posts[idx], pinned: !posts[idx].pinned, updatedAt: new Date().toISOString() };
+        writeLB('posts', posts);
+        refreshProfileContent();
+        showToast(posts[idx].pinned ? 'تم تثبيت المنشور داخل الملف الشخصي' : 'تم إلغاء التثبيت', 'success');
     }
 
     function deletePost(postId) {
-        if (confirm('هل أنت متأكد من حذف هذا المنشور؟')) {
-            showToast('تم حذف المنشور', 'success');
+        if (!profile.isOwnProfile) {
+            showToast('يمكن حذف منشوراتك فقط', 'error');
+            return;
         }
+        if (!confirm('هل أنت متأكد من حذف هذا المنشور؟')) return;
+        const posts = getStoredPosts().filter(post => !(post.id === postId && post.authorId === profile.id));
+        const comments = getStoredComments().filter(comment => comment.postId !== postId);
+        writeLB('posts', posts);
+        writeLB('comments', comments);
+        refreshProfileContent();
+        showToast('تم حذف المنشور', 'success');
     }
 
     function searchBySkill(skill) {
@@ -1837,6 +2019,7 @@
         editingSkills = [...(profile.skills || [])];
         editingLinks = [...(profile.links || [])];
         document.getElementById('headerTitle').textContent = profile.isOwnProfile ? 'ملفي المهني' : 'الملف المهني';
+        syncProfileCollections();
         renderProfile();
     }
 
@@ -1856,6 +2039,16 @@
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') {
                 closeEditModal();
+            }
+        });
+
+        window.addEventListener('storage', function() {
+            refreshProfileContent();
+        });
+
+        document.addEventListener('visibilitychange', function() {
+            if (document.visibilityState === 'visible') {
+                refreshProfileContent();
             }
         });
     });

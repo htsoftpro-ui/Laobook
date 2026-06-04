@@ -122,6 +122,11 @@
         .comment-item{display:flex;gap:8px;margin-bottom:10px}
         .comment-item img{width:28px;height:28px;border-radius:50%;object-fit:cover;flex-shrink:0}
         .comment-bubble{background:var(--surface-2);border-radius:var(--radius-sm);padding:8px 12px;flex:1}
+        .comment-item.own .comment-bubble{border:1px solid rgba(242,101,34,.15)}
+        .comment-head{display:flex;align-items:center;justify-content:space-between;gap:10px}
+        .comment-owner-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+        .comment-action-link{background:none;border:none;color:var(--text-muted);font-size:10px;font-weight:700;cursor:pointer;padding:0;transition:color .2s}
+        .comment-action-link:hover{color:var(--accent)}
         .comment-name{font-size:11px;font-weight:700;color:var(--text);cursor:pointer}
         .comment-name:hover{color:var(--accent)}
         .comment-text{font-size:12px;color:var(--text-secondary);margin-top:2px;line-height:1.6}
@@ -483,6 +488,7 @@ async function syncHomeShellFromProfile(){
     hydrateCurrentUserFromShared();
     syncCurrentUserUI();
     await renderStories();
+    await renderFeed();
 }
 
 function openCreateWithImagePicker(){
@@ -625,6 +631,25 @@ function linkify(text){
         .replace(/\n/g,'<br>');
 }
 
+function canManagePost(post){
+    return !!post && post.authorId===CURRENT_USER.id;
+}
+
+function canManageComment(comment){
+    return !!comment && comment.authorId===CURRENT_USER.id;
+}
+
+async function refreshCommentsForPost(postId,{keepOpen=true}={}){
+    const comments=await DB.getAll('comments');
+    const postComments=comments.filter(c=>c.postId===postId);
+    const list=document.getElementById('commentsList_'+postId);
+    if(list) list.innerHTML=renderCommentsHTML(postComments);
+    const card=document.querySelector(`article[data-id="${postId}"]`);
+    const countEls=card?card.querySelectorAll('[data-comment-count]'):[];
+    countEls.forEach(el=>el.textContent=formatNumber(postComments.length));
+    if(keepOpen) openCommentPostIds.add(postId);
+}
+
 // ═══════════════════════════════════════════════
 // ██  TOAST  ██
 // ═══════════════════════════════════════════════
@@ -731,16 +756,23 @@ function closeStoryViewer(){
 // ██  FEED  ██
 // ═══════════════════════════════════════════════
 let feedPosts=[];
+let editingPostId=null;
+const openCommentPostIds=new Set();
 let openMenuId=null;
 
 async function renderFeed(){
-    feedPosts=await DB.getAll('posts');
-    // Sort: pinned first, then by date
-    feedPosts.sort((a,b)=>{
-        if(a.pinned&&!b.pinned)return -1;
-        if(!a.pinned&&b.pinned)return 1;
-        return new Date(b.createdAt)-new Date(a.createdAt);
-    });
+    const [posts, users, comments] = await Promise.all([
+        DB.getAll('posts'),
+        DB.getAll('users'),
+        DB.getAll('comments')
+    ]);
+    const usersMap = new Map(users.map(user => [user.id, user]));
+    const commentsByPost = comments.reduce((acc, comment) => {
+        (acc[comment.postId] ||= []).push(comment);
+        return acc;
+    }, {});
+
+    feedPosts = posts.slice().sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt));
 
     const feed=document.getElementById('feed');
     if(feedPosts.length===0){
@@ -750,14 +782,12 @@ async function renderFeed(){
 
     let html='';
     for(const post of feedPosts){
-        const author=await DB.get('users',post.authorId);
-        if(!author)continue;
-        const postComments=await DB.getAll('comments');
-        const myComments=postComments.filter(c=>c.postId===post.id);
+        const author=usersMap.get(post.authorId);
+        if(!author) continue;
+        const postComments=(commentsByPost[post.id]||[]).slice().sort((a,b)=>new Date(a.createdAt)-new Date(b.createdAt));
+        const isOwner=canManagePost(post);
 
-        html+=`
-        <article class="post-card a-fadeUp" data-id="${post.id}">
-            <!-- Header -->
+        html+=`<article class="post-card a-fadeUp" data-id="${post.id}">
             <div class="post-header">
                 <img class="post-avatar" src="${author.avatar}" alt="${esc(author.name)}" onclick="goToProfile('${author.id}')"/>
                 <div class="post-user-info">
@@ -769,7 +799,6 @@ async function renderFeed(){
                         <span>${esc(author.bio?.split(' ')[0]||'')}</span>
                         <span>•</span>
                         <span>${timeAgo(post.createdAt)}</span>
-                        ${post.pinned?'<span style="color:var(--accent);display:flex;align-items:center;gap:2px"><span class="material-symbols-outlined" style="font-size:14px;font-variation-settings:FILL 1">push_pin</span> مثبت</span>':''}
                     </div>
                 </div>
                 <div style="position:relative">
@@ -781,10 +810,14 @@ async function renderFeed(){
                             <span class="material-symbols-outlined">${post.saved?'bookmark_remove':'bookmark_add'}</span>
                             ${post.saved?'إلغاء الحفظ':'حفظ المنشور'}
                         </button>
-                        ${post.authorId===CURRENT_USER.id?`
+                        ${isOwner?`
+                        <button class="more-item" onclick="openEditPostModal('${post.id}');closeMenus()">
+                            <span class="material-symbols-outlined">edit</span>
+                            تعديل المنشور
+                        </button>
                         <button class="more-item" onclick="togglePin('${post.id}');closeMenus()">
                             <span class="material-symbols-outlined">push_pin</span>
-                            ${post.pinned?'إلغاء التثبيت':'تثبيت المنشور'}
+                            ${post.pinned?'إلغاء التثبيت':'تثبيت داخل الملف الشخصي'}
                         </button>
                         <button class="more-item danger" onclick="deletePost('${post.id}');closeMenus()">
                             <span class="material-symbols-outlined">delete</span>
@@ -801,25 +834,19 @@ async function renderFeed(){
                     </div>
                 </div>
             </div>
-
-            <!-- Body -->
             <div class="post-body">
                 <p class="post-text">${linkify(post.text)}</p>
                 ${post.image?`<div class="post-image-container"><img src="${post.image}" alt="صورة المنشور" loading="lazy"/></div>`:''}
                 ${renderPollHTML(post)}
             </div>
-
-            <!-- Stats -->
             <div class="post-stats">
                 <span><span class="material-symbols-outlined" style="font-size:14px">favorite</span> ${formatNumber(post.likes)}</span>
-                <span>${formatNumber(myComments.length)} تعليق</span>
+                <span><span data-comment-count>${formatNumber(postComments.length)}</span> تعليق</span>
                 <span style="margin-right:auto">${formatNumber(post.shares)} مشاركة</span>
             </div>
-
-            <!-- Actions -->
             <div class="post-actions">
                 <button class="action-btn ${post.liked?'liked':''}" onclick="toggleLike('${post.id}')">
-                    <span class="material-symbols-outlined">${post.liked?'favorite':'favorite'}</span>
+                    <span class="material-symbols-outlined">favorite</span>
                     <span>${post.liked?'أعجبني':'إعجاب'}</span>
                 </button>
                 <button class="action-btn" onclick="toggleComments('${post.id}')">
@@ -831,12 +858,10 @@ async function renderFeed(){
                     <span>مشاركة</span>
                 </button>
                 <button class="action-btn ${post.saved?'saved':''}" onclick="toggleSave('${post.id}')">
-                    <span class="material-symbols-outlined">${post.saved?'bookmark':'bookmark'}</span>
+                    <span class="material-symbols-outlined">bookmark</span>
                 </button>
             </div>
-
-            <!-- Comments -->
-            <div class="comments-section" id="comments_${post.id}">
+            <div class="comments-section ${openCommentPostIds.has(post.id)?'open':''}" id="comments_${post.id}">
                 <div class="comment-input-wrap">
                     <img src="${CURRENT_USER.avatar}" alt=""/>
                     <input class="comment-input" placeholder="اكتب تعليقاً..." id="commentInput_${post.id}" onkeydown="if(event.key==='Enter')addComment('${post.id}')" oninput="toggleSendBtn('${post.id}')"/>
@@ -844,7 +869,7 @@ async function renderFeed(){
                         <span class="material-symbols-outlined" style="font-size:18px">send</span>
                     </button>
                 </div>
-                <div id="commentsList_${post.id}">${renderCommentsHTML(myComments)}</div>
+                <div id="commentsList_${post.id}">${renderCommentsHTML(postComments)}</div>
             </div>
         </article>`;
     }
@@ -854,9 +879,10 @@ async function renderFeed(){
 function renderCommentsHTML(comments){
     if(comments.length===0)return'<p style="font-size:11px;color:var(--text-muted);text-align:center;padding:8px">لا تعليقات بعد</p>';
     return comments.slice(0,5).map(c=>{
+        const isOwner=canManageComment(c);
         const avatar=c.authorId===CURRENT_USER.id?CURRENT_USER.avatar:'https://i.pravatar.cc/80?u='+c.authorId;
         const name=c.authorId===CURRENT_USER.id?CURRENT_USER.name:'مستخدم';
-        return '<div class="comment-item"><img src="'+avatar+'" alt=""/><div class="comment-bubble"><span class="comment-name">'+esc(name)+'</span><p class="comment-text">'+esc(c.text)+'</p><span class="comment-time">'+timeAgo(c.createdAt)+'</span></div></div>';
+        return '<div class="comment-item'+(isOwner?' own':'')+'"><img src="'+avatar+'" alt=""/><div class="comment-bubble"><div class="comment-head"><span class="comment-name">'+esc(name)+'</span>'+(isOwner?'<div class="comment-owner-actions"><button class="comment-action-link" onclick="editComment(\''+c.id+'\',\''+c.postId+'\')">تعديل</button><button class="comment-action-link" onclick="deleteComment(\''+c.id+'\',\''+c.postId+'\')">حذف</button></div>':'')+'</div><p class="comment-text">'+esc(c.text)+'</p><span class="comment-time">'+timeAgo(c.createdAt)+'</span></div></div>';
     }).join('');
 }
 
@@ -881,21 +907,54 @@ async function toggleSave(postId){
     renderFeed();
 }
 
+async function openEditPostModal(postId){
+    const post=await DB.get('posts',postId);
+    if(!canManagePost(post)){
+        showToast('يمكنك تعديل منشوراتك فقط','error');
+        return;
+    }
+    editingPostId=post.id;
+    openCreateModal(post.poll?'poll':'text');
+    document.getElementById('createText').value=post.text||'';
+    if(post.image){
+        selectedImage=post.image;
+        document.getElementById('imagePreview').src=post.image;
+        document.getElementById('imagePreviewArea').classList.add('show');
+    }
+    if(post.poll){
+        togglePollBuilder(true);
+        const wrap=getPollOptionsWrap();
+        wrap.innerHTML='';
+        (post.poll.options||[]).forEach(opt=>addPollOption(opt.text||''));
+    }
+    document.querySelector('#createModal h3').textContent='تعديل المنشور';
+    document.getElementById('postSubmit').textContent='حفظ';
+    updateCharCount();
+}
+
 async function togglePin(postId){
     const post=await DB.get('posts',postId);
-    if(!post)return;
+    if(!canManagePost(post)){
+        showToast('يمكنك تثبيت منشوراتك فقط','error');
+        return;
+    }
     post.pinned=!post.pinned;
     await DB.update('posts',post);
-    showToast(post.pinned?'تم تثبيت المنشور':'تم إلغاء التثبيت','info');
+    showToast(post.pinned?'تم تثبيت المنشور داخل ملفك الشخصي':'تم إلغاء التثبيت','info');
     renderFeed();
 }
 
 async function deletePost(postId){
+    const post=await DB.get('posts',postId);
+    if(!canManagePost(post)){
+        showToast('يمكنك حذف منشوراتك فقط','error');
+        return;
+    }
     if(!confirm('هل أنت متأكد من حذف هذا المنشور؟'))return;
     await DB.remove('posts',postId);
-    // حذف التعليقات المرتبطة
     const comments=await DB.getAll('comments');
     for(const c of comments){if(c.postId===postId)await DB.remove('comments',c.id)}
+    openCommentPostIds.delete(postId);
     showToast('تم حذف المنشور','info');
     renderFeed();
 }
@@ -919,7 +978,10 @@ function toggleComments(postId){
     if(!section)return;
     section.classList.toggle('open');
     if(section.classList.contains('open')){
+        openCommentPostIds.add(postId);
         document.getElementById('commentInput_'+postId)?.focus();
+    }else{
+        openCommentPostIds.delete(postId);
     }
 }
 
@@ -935,8 +997,38 @@ async function addComment(postId){
     await DB.add('comments',{postId,authorId:CURRENT_USER.id,text:input.value.trim()});
     input.value='';
     toggleSendBtn(postId);
+    await refreshCommentsForPost(postId);
     showToast('تمت إضافة التعليق','success');
     renderFeed();
+}
+
+async function editComment(commentId, postId){
+    const comment=await DB.get('comments',commentId);
+    if(!canManageComment(comment)){
+        showToast('يمكنك تعديل تعليقاتك فقط','error');
+        return;
+    }
+    const next=prompt('تعديل التعليق', comment.text||'');
+    if(next===null) return;
+    const value=next.trim();
+    if(!value){ showToast('لا يمكن حفظ تعليق فارغ','error'); return; }
+    comment.text=value;
+    comment.updatedAt=new Date().toISOString();
+    await DB.update('comments',comment);
+    await refreshCommentsForPost(postId);
+    showToast('تم تعديل التعليق','success');
+}
+
+async function deleteComment(commentId, postId){
+    const comment=await DB.get('comments',commentId);
+    if(!canManageComment(comment)){
+        showToast('يمكنك حذف تعليقاتك فقط','error');
+        return;
+    }
+    if(!confirm('هل تريد حذف هذا التعليق؟')) return;
+    await DB.remove('comments',commentId);
+    await refreshCommentsForPost(postId);
+    showToast('تم حذف التعليق','info');
 }
 
 // ═══════════════════════════════════════════════
@@ -994,12 +1086,17 @@ function openCreateModal(mode='text'){
     document.getElementById('createModal').classList.add('active');
     document.body.style.overflow='hidden';
     if(mode==='poll')togglePollBuilder(true);
+    document.querySelector('#createModal h3').textContent=editingPostId?'تعديل المنشور':'منشور جديد';
+    document.getElementById('postSubmit').textContent=editingPostId?'حفظ':'نشر';
     document.getElementById('createText').focus();
 }
 function closeCreateModal(){
     document.getElementById('createModal').classList.remove('active');
     document.body.style.overflow='';
     document.getElementById('createText').value='';
+    editingPostId=null;
+    document.querySelector('#createModal h3').textContent='منشور جديد';
+    document.getElementById('postSubmit').textContent='نشر';
     removeSelectedImage();
     resetPollBuilder();
     updateCharCount();
@@ -1056,6 +1153,24 @@ async function submitPost(){
     const options=getPollOptionValues();
     if(!text&&!selectedImage&&!pollEnabled)return;
     if(pollEnabled&&options.length<2){showToast('أضف خيارين على الأقل للاستطلاع','error');return}
+
+    if(editingPostId){
+        const existing=await DB.get('posts',editingPostId);
+        if(!canManagePost(existing)){
+            showToast('تعذر تعديل المنشور','error');
+            return;
+        }
+        existing.text=text;
+        existing.image=selectedImage;
+        existing.poll=pollEnabled?{question:text||'استطلاع قانوني سريع',options:options.map((value,index)=>({id:'opt_'+(index+1),text:value,votes:(existing.poll?.options||[]).find(o=>o.text===value)?.votes||0})),totalVotes:existing.poll?.totalVotes||0,votedBy:existing.poll?.votedBy||{}}:null;
+        existing.updatedAt=new Date().toISOString();
+        await DB.update('posts',existing);
+        closeCreateModal();
+        showToast('تم تحديث المنشور','success');
+        renderFeed();
+        return;
+    }
+
     const post={
         authorId:CURRENT_USER.id,
         text:text,

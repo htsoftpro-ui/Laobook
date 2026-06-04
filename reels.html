@@ -258,12 +258,14 @@
 <!-- ═══════════════════════════════════════════ -->
 <!-- JAVASCRIPT -->
 <!-- ═══════════════════════════════════════════ -->
+<script src="js/core/lobuk-shared.js"></script>
 <script>
 const DB={get(k){try{return JSON.parse(localStorage.getItem('lb_'+k))}catch{return null}},set(k,v){localStorage.setItem('lb_'+k,JSON.stringify(v))},rm(k){localStorage.removeItem('lb_'+k)}};
 
-const ME={id:'usr_001',name:'عبدالملك بن محمد',username:'abdulmalik_m',avatar:'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop&crop=face'};
+const DEFAULT_ME={id:'usr_001',name:'عبدالملك بن محمد',username:'abdulmalik_m',avatar:'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop&crop=face',verified:true};
+let ME={...DEFAULT_ME};
 
-const USERS=[
+let USERS=[
     {id:'u1',name:'د. نورة القحطاني',username:'nora_q',avatar:'https://i.pravatar.cc/80?img=5',verified:true,following:true},
     {id:'u2',name:'أ. فهد العتيبي',username:'fahad_o',avatar:'https://i.pravatar.cc/80?img=12',verified:true,following:true},
     {id:'u3',name:'المكتبة القانونية',username:'law_library',avatar:'https://i.pravatar.cc/80?img=22',verified:true,following:false},
@@ -273,17 +275,91 @@ const USERS=[
     {id:'u7',name:'منى الحربي',username:'mona_h',avatar:'https://i.pravatar.cc/80?img=44',verified:false,following:true}
 ];
 
-let reels = DB.get('reels_v2') || [];
+let reels = [];
 let currentReelIdx = 0;
 let uploadedReelData = null;
 let reelDataTransfer = null;
 
 function genId(){return 'r_'+Date.now()+'_'+Math.random().toString(36).substr(2,6)}
-function esc(t){const d=document.createElement('div');d.appendChild(document.createTextNode(t));return d.innerHTML}
-function formatNum(n){if(n>=1000000)return(n/1000000).toFixed(1)+'M';if(n>=1000)return(n/1000).toFixed(1)+'K';return n.toString()}
-function formatTimeAgo(iso){const d=Math.floor((Date.now()-new Date(iso).getTime())/1000);if(d<60)return'الآن';if(d<3600)return'منذ '+Math.floor(d/60)+' د';if(d<86400)return'منذ '+Math.floor(d/3600)+' س';return new Date(iso).toLocaleDateString('ar-SA')}
+function esc(t){const d=document.createElement('div');d.appendChild(document.createTextNode(t || ''));return d.innerHTML}
+function formatNum(n){if(n>=1000000)return(n/1000000).toFixed(1)+'M';if(n>=1000)return(n/1000).toFixed(1)+'K';return Number(n || 0).toString()}
+function formatTimeAgo(iso){const date=new Date(iso);if(Number.isNaN(date.getTime()))return'الآن';const d=Math.floor((Date.now()-date.getTime())/1000);if(d<60)return'الآن';if(d<3600)return'منذ '+Math.floor(d/60)+' د';if(d<86400)return'منذ '+Math.floor(d/3600)+' س';return date.toLocaleDateString('ar-SA')}
 function ago(m){return new Date(Date.now()-m*60000).toISOString()}
-function save(){DB.set('reels_v2',reels)}
+function emitReelsSync(){localStorage.setItem('lb_reels_sync', String(Date.now()))}
+function save(){DB.set('reels_v2',reels);DB.set('reels',reels);emitReelsSync()}
+function syncCurrentUser(){
+    const snapshot = window.LobukShared ? window.LobukShared.getProfileSnapshot() : null;
+    if(snapshot){
+        ME = {
+            ...ME,
+            id: snapshot.id || ME.id,
+            name: snapshot.name || ME.name,
+            username: snapshot.username || ME.username,
+            avatar: snapshot.avatar || ME.avatar,
+            verified: typeof snapshot.verified === 'boolean' ? snapshot.verified : ME.verified
+        };
+    }
+    const existing = USERS.find(user => user.id === ME.id);
+    if(existing){
+        existing.name = ME.name;
+        existing.username = ME.username;
+        existing.avatar = ME.avatar;
+        existing.verified = typeof ME.verified === 'boolean' ? ME.verified : existing.verified;
+    }else{
+        USERS.unshift({ ...ME, following:false });
+    }
+}
+function normalizeComment(comment, reel){
+    const owner = comment.user || USERS.find(user => user.id === comment.authorId) || (comment.authorId === ME.id ? ME : null) || { ...ME };
+    return {
+        id: comment.id || genId(),
+        user: {
+            id: owner.id || ME.id,
+            name: owner.name || ME.name,
+            username: owner.username || ME.username,
+            avatar: owner.avatar || ME.avatar,
+            verified: !!owner.verified
+        },
+        authorId: comment.authorId || owner.id || ME.id,
+        text: comment.text || '',
+        time: comment.time || comment.createdAt || reel?.createdAt || new Date().toISOString(),
+        likes: Number(comment.likes || 0)
+    };
+}
+function normalizeReel(reel, idx){
+    const owner = reel.user || USERS.find(user => user.id === reel.authorId) || (reel.authorId === ME.id ? ME : null) || USERS[idx % USERS.length] || { ...ME };
+    return {
+        id: reel.id || genId(),
+        authorId: reel.authorId || owner.id || ME.id,
+        user: {
+            id: owner.id || ME.id,
+            name: owner.name || ME.name,
+            username: owner.username || ME.username,
+            avatar: owner.avatar || ME.avatar,
+            verified: !!owner.verified,
+            following: !!owner.following
+        },
+        videoUrl: reel.videoUrl || null,
+        posterUrl: reel.posterUrl || reel.thumbnail || VID_BACKGROUNDS[idx % VID_BACKGROUNDS.length],
+        caption: reel.caption || 'ريلز جديد',
+        category: reel.category || 'general',
+        duration: Math.max(0, Math.floor(reel.duration || 0)),
+        createdAt: reel.createdAt || new Date().toISOString(),
+        likes: Number(reel.likes || 0),
+        liked: !!reel.liked,
+        saved: !!reel.saved,
+        commentsEnabled: reel.commentsEnabled !== false,
+        comments: Array.isArray(reel.comments) ? reel.comments.map(comment => normalizeComment(comment, reel)) : [],
+        saves: Number(reel.saves || 0),
+        shares: Number(reel.shares || 0),
+        music: reel.music || 'صوت أصلي',
+        views: Number(reel.views || 0)
+    };
+}
+function hydrateReels(){
+    const stored = DB.get('reels_v2') || DB.get('reels') || [];
+    reels = (Array.isArray(stored) ? stored : []).map((reel, idx) => normalizeReel(reel, idx));
+}
 
 // ═══════════════════════════════════════════
 // VIDEO URLS (free samples)
@@ -657,17 +733,25 @@ function downloadReel(reelId){
 function openComments(reelId){
     const reel = reels.find(r=>r.id===reelId);
     if(!reel) return;
+    if(reel.commentsEnabled === false){
+        showToast('التعليقات مغلقة لهذا الريل', 'info');
+        return;
+    }
 
     document.getElementById('commentsPanel').classList.add('active');
     document.getElementById('commentsCountHeader').textContent = '('+reel.comments.length+')';
 
     const list = document.getElementById('commentsList');
-    list.innerHTML = reel.comments.map(c=>{
+    list.innerHTML = reel.comments.length ? reel.comments.map(c=>{
+        const isOwner = (c.user?.id || c.authorId) === ME.id;
         return `
         <div class="comment-item">
             <img src="${c.user.avatar}"/>
             <div class="comment-bubble">
-                <span class="comment-name">${esc(c.user.name)}</span>
+                <div class="flex items-center justify-between gap-3">
+                    <span class="comment-name">${esc(c.user.name)}</span>
+                    ${isOwner ? `<div class="flex items-center gap-3 text-[10px] text-[#7a7570]"><button class="hover:text-[#f26522]" onclick="editReelComment('${c.id}')">تعديل</button><button class="hover:text-red-400" onclick="deleteReelComment('${c.id}')">حذف</button></div>` : ''}
+                </div>
                 <p class="comment-text">${esc(c.text)}</p>
                 <div class="comment-meta">
                     <span>${formatTimeAgo(c.time)}</span>
@@ -680,9 +764,8 @@ function openComments(reelId){
                 <span class="text-[10px] text-[#7a7570]">${c.likes}</span>
             </div>
         </div>`;
-    }).join('');
+    }).join('') : `<div class="px-4 pb-4 text-center text-sm text-white/60">لا توجد تعليقات بعد</div>`;
 
-    // Store current reel for commenting
     document.getElementById('commentsPanel').dataset.reelId = reelId;
     document.getElementById('commentInput').focus();
 }
@@ -699,10 +782,15 @@ function sendComment(){
     const reelId = document.getElementById('commentsPanel').dataset.reelId;
     const reel = reels.find(r=>r.id===reelId);
     if(!reel) return;
+    if(reel.commentsEnabled === false){
+        showToast('التعليقات مغلقة لهذا الريل', 'info');
+        return;
+    }
 
     const newComment = {
         id:genId(),
         user:{...ME},
+        authorId:ME.id,
         text:text,
         time:new Date().toISOString(),
         likes:0
@@ -713,9 +801,48 @@ function sendComment(){
     input.value = '';
     openComments(reelId);
     showToast('تم إضافة التعليق','success');
-
-    // Update comment count on reel card
     renderReels();
+}
+
+function editReelComment(commentId){
+    const reelId = document.getElementById('commentsPanel').dataset.reelId;
+    const reel = reels.find(r=>r.id===reelId);
+    if(!reel) return;
+    const comment = reel.comments.find(item => item.id === commentId && (item.user?.id || item.authorId) === ME.id);
+    if(!comment){
+        showToast('يمكنك تعديل تعليقاتك فقط', 'error');
+        return;
+    }
+    const next = prompt('تعديل التعليق', comment.text || '');
+    if(next === null) return;
+    const value = next.trim();
+    if(!value){
+        showToast('لا يمكن حفظ تعليق فارغ', 'error');
+        return;
+    }
+    comment.text = value;
+    comment.time = new Date().toISOString();
+    save();
+    openComments(reelId);
+    renderReels();
+    showToast('تم تعديل التعليق', 'success');
+}
+
+function deleteReelComment(commentId){
+    const reelId = document.getElementById('commentsPanel').dataset.reelId;
+    const reel = reels.find(r=>r.id===reelId);
+    if(!reel) return;
+    const target = reel.comments.find(item => item.id === commentId);
+    if(!target || (target.user?.id || target.authorId) !== ME.id){
+        showToast('يمكنك حذف تعليقاتك فقط', 'error');
+        return;
+    }
+    if(!confirm('هل تريد حذف هذا التعليق؟')) return;
+    reel.comments = reel.comments.filter(item => item.id !== commentId);
+    save();
+    openComments(reelId);
+    renderReels();
+    showToast('تم حذف التعليق', 'success');
 }
 
 // ═══════════════════════════════════════════
@@ -755,6 +882,7 @@ function shareVia(method){
 function openUpload(){
     document.getElementById('uploadOverlay').classList.add('active');
     document.body.style.overflow = 'auto';
+    document.getElementById('allowCommentsToggle').classList.add('on');
 }
 
 function closeUpload(){
@@ -789,9 +917,9 @@ function handleReelUpload(input){
     input.value = '';
 
     // Counter
-    document.getElementById('reelCaption').addEventListener('input', function(){
+    document.getElementById('reelCaption').oninput = function(){
         document.getElementById('captionCounter').textContent = this.value.length+'/500';
-    });
+    };
 }
 
 function handleReelDrop(e){
@@ -817,6 +945,7 @@ function removeReelUpload(){
     document.getElementById('reelCaption').value = '';
     document.getElementById('reelHashtags').value = '';
     document.getElementById('captionCounter').textContent = '0/500';
+    document.getElementById('allowCommentsToggle').classList.add('on');
 }
 
 function publishReel(){
@@ -825,12 +954,14 @@ function publishReel(){
     const caption = document.getElementById('reelCaption').value.trim();
     const hashtags = document.getElementById('reelHashtags').value.trim();
     const category = document.getElementById('reelCategory').value;
+    const commentsEnabled = document.getElementById('allowCommentsToggle').classList.contains('on');
 
     const fullCaption = caption + (hashtags ? '\n' + hashtags : '');
     const vid = document.getElementById('reelPreviewVid');
 
-    const newReel = {
+    const newReel = normalizeReel({
         id:genId(),
+        authorId:ME.id,
         user:{...ME},
         videoUrl:uploadedReelData,
         posterUrl:null,
@@ -841,12 +972,13 @@ function publishReel(){
         likes:0,
         liked:false,
         saved:false,
+        commentsEnabled,
         comments:[],
         saves:0,
         shares:0,
         music:'صوت أصلي',
         views:0
-    };
+    }, 0);
 
     reels.unshift(newReel);
     save();
@@ -877,8 +1009,36 @@ window.addEventListener('resize', ()=>updateTrackPosition(false));
 // INIT
 // ═══════════════════════════════════════════
 document.addEventListener('DOMContentLoaded',function(){
+    syncCurrentUser();
+    hydrateReels();
     generateSamples();
+    hydrateReels();
+
+    const params = new URLSearchParams(window.location.search);
+    const focusId = params.get('focus');
+    if (focusId) {
+        const focusIdx = reels.findIndex(reel => reel.id === focusId);
+        if (focusIdx >= 0) currentReelIdx = focusIdx;
+    }
+
     renderReels();
+    if(params.get('compose') === '1') openUpload();
+
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') {
+            syncCurrentUser();
+            hydrateReels();
+            renderReels();
+        }
+    });
+
+    window.addEventListener('storage', (event) => {
+        if (!event.key || event.key.startsWith('lb_reels') || event.key.startsWith('lb_profile') || event.key.startsWith('lb_users') || event.key.startsWith('lb_currentUser')) {
+            syncCurrentUser();
+            hydrateReels();
+            renderReels();
+        }
+    });
 
     console.log('%c لو بوك | الريلز ','background:#f26522;color:white;font-size:14px;font-weight:bold;border-radius:8px;padding:6px 14px');
 });
